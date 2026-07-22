@@ -1,5 +1,8 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2025-07-15',
-  devtools: { enabled: true }
+  compatibilityDate: '2026-07-22',
+
+  css: [
+    'quasar/dist/quasar.css',
+    '@quasar/extras/material-icons/material-icons.css',
+  ],
 })
