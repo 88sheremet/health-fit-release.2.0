@@ -4,6 +4,7 @@ export default defineNuxtConfig({
   modules: ["@pinia/nuxt"],
 
   css: [
+    "~/assets/fonts.css",
     "~/assets/colors.css",
     "~/assets/style.css",
   ],
@@ -15,6 +16,7 @@ export default defineNuxtConfig({
           rel: "stylesheet",
           href: "https://fonts.googleapis.com/icon?family=Material+Icons",
         },
+
       ],
     },
   },
