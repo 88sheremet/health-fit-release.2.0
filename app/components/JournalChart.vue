@@ -1,25 +1,15 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
-    <q-page-container>
-      <q-page class="chart-page">
-        <q-card class="chart-card">
-          <div class="header">
-            <q-btn
-              flat
-              round
-              icon="arrow_back"
-              class="back-btn"
-              @click="navigateTo(routes.recovery.journal)"
-            />
-
-            <div class="title">График состояния</div>
-          </div>
-
-          <Line :data="chartData" :options="chartOptions" />
-        </q-card>
-      </q-page>
-    </q-page-container>
-  </q-layout>
+  <div class="chart-page">
+    <div class="chart-card">
+      <div class="header">
+        <button class="back-btn" @click="navigateTo(routes.recovery.journal)">
+          <span class="material-icons">arrow_back</span>
+        </button>
+        <div class="title">График состояния</div>
+      </div>
+      <Line :data="chartData" :options="chartOptions" />
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -65,17 +55,10 @@ const chartData = computed(() => ({
 const chartOptions = {
   responsive: true,
   plugins: {
-    legend: {
-      display: false,
-    },
+    legend: { display: false },
   },
   scales: {
-    x: {
-      title: {
-        display: true,
-        text: "Дни",
-      },
-    },
+    x: { title: { display: true, text: "Дни" } },
     y: {
       min: 1,
       max: 5,
@@ -91,30 +74,29 @@ const chartOptions = {
 </script>
 
 <style scoped>
+.chart-page {
+  padding: 20px;
+  background: var(--bg-gradient-main);
+  min-height: 100vh;
+}
 .header {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 24px;
 }
-
 .back-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--black1);
 }
-.chart-page {
-  padding: 20px;
-  background: var(--bg-gradient-main);
-  min-height: 100vh;
-}
-
-.chart-card {
-  padding: 24px;
-  border-radius: 24px;
-}
-
-.title {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
+.back-btn:hover { background: rgba(0,0,0,0.05); }
+.chart-card { padding: 24px; border-radius: 24px; }
+.title { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
 </style>

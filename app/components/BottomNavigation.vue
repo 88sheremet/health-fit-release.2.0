@@ -5,44 +5,34 @@
       :class="{ active: route.path === '/daily' }"
       @click="navigateTo(routes.recovery.daily)"
     >
-      <q-icon name="task_alt" />
-
-      <span>Ежедневные<br />задания</span>
+      <span class="material-icons">task_alt</span>
+      <span class="nav-label">Ежедневные<br />задания</span>
     </div>
-
     <div
       class="nav-item"
       :class="{ active: route.path === '/weekly' }"
       @click="navigateTo(routes.recovery.weekly)"
     >
-      <q-icon name="event_note" />
-
-      <span>Еженедельное<br />задание</span>
+      <span class="material-icons">event_note</span>
+      <span class="nav-label">Еженедельное<br />задание</span>
     </div>
-
     <div
       class="nav-item"
       :class="{ active: route.path === '/journal' }"
       @click="navigateTo(routes.recovery.journal)"
     >
-      <q-icon name="menu_book" />
-
-      <span>Дневник</span>
+      <span class="material-icons">menu_book</span>
+      <span class="nav-label">Дневник</span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { routes } from "~/router/routes";
-
 const route = useRoute();
 </script>
 
 <style scoped lang="scss">
-.page {
-  padding-bottom: 120px;
-}
-
 .bottom-nav {
   position: fixed;
   left: 12px;
@@ -61,7 +51,6 @@ const route = useRoute();
   border-radius: 28px;
   z-index: 100;
 }
-
 .nav-item {
   flex: 1;
   display: flex;
@@ -75,12 +64,10 @@ const route = useRoute();
   cursor: pointer;
   border: 1px solid transparent;
   min-height: 100%;
-
-  .q-icon {
+  .material-icons {
     font-size: 24px;
     transition: 0.25s ease;
   }
-
   span {
     font-size: 11px;
     line-height: 1.2;
@@ -88,19 +75,16 @@ const route = useRoute();
     text-align: center;
   }
 }
-
 .nav-item.active {
   color: var(--green-bright);
   background: rgba(34, 197, 94, 0.1);
   border-color: rgba(34, 197, 94, 0.25);
   transform: translateY(-2px);
-
-  .q-icon {
+  .material-icons {
     transform: scale(1.08);
     filter: drop-shadow(0 4px 10px rgba(76, 175, 80, 0.25));
   }
 }
-
 .nav-item:active {
   transform: scale(0.96);
 }

@@ -4,45 +4,36 @@
       <div class="hero-section">
         <div class="hero-icon">
           <div class="glow"></div>
-          <span>☀️</span>
+          <span class="icon-emoji">☀️</span>
         </div>
-
         <h1 class="title">Твое новое состояние создаеться здесь</h1>
-
         <p class="subtitle">
           Простая система действий, которая помогает улучшать самочувствие и
           видеть прогресс каждый день
         </p>
       </div>
 
-      <q-card flat class="benefits-card">
+      <AppCard flat class="benefits-card">
         <div class="benefit-item">
-          <div class="benefit-icon"><q-icon name="psychology" /></div>
+          <div class="benefit-icon"><span class="material-icons">psychology</span></div>
           <div class="benefit-text">Узнай свой текущий уровень состояния</div>
         </div>
-
         <div class="benefit-item">
-          <div class="benefit-icon"><q-icon name="assignment_turned_in" /></div>
-          <div class="benefit-text">
-            Получай ежедневные персональные задания
-          </div>
+          <div class="benefit-icon"><span class="material-icons">assignment_turned_in</span></div>
+          <div class="benefit-text">Получай ежедневные персональные задания</div>
         </div>
-
         <div class="benefit-item">
-          <div class="benefit-icon"><q-icon name="trending_up" /></div>
+          <div class="benefit-icon"><span class="material-icons">trending_up</span></div>
           <div class="benefit-text">Отслеживай изменения и свой прогресс</div>
         </div>
-      </q-card>
+      </AppCard>
 
       <div class="bottom-section">
-        <q-btn
-          unelevated
-          no-caps
+        <AppBtn
           class="start-btn"
           label="Начать путь"
           @click="navigateTo(routes.onboarding.screening)"
         />
-
         <div class="hint-text">Это займет 2–3 минуты</div>
       </div>
     </div>
@@ -59,7 +50,6 @@ import { routes } from "~/router/routes";
   background: var(--bg-gradient-main);
   padding: 24px;
 }
-
 .welcome-container {
   width: 100%;
   max-width: 420px;
@@ -68,7 +58,6 @@ import { routes } from "~/router/routes";
   justify-content: space-between;
   min-height: 100vh;
 }
-
 .hero-section {
   margin-top: 40px;
   display: flex;
@@ -76,7 +65,6 @@ import { routes } from "~/router/routes";
   align-items: center;
   text-align: center;
 }
-
 .hero-icon {
   position: relative;
   width: 120px;
@@ -88,14 +76,12 @@ import { routes } from "~/router/routes";
   margin-bottom: 28px;
   background: var(--hero-icon);
   backdrop-filter: blur(12px);
-
-  span {
+  .icon-emoji {
     font-size: 54px;
     position: relative;
     z-index: 2;
   }
 }
-
 .glow {
   position: absolute;
   width: 90px;
@@ -105,7 +91,6 @@ import { routes } from "~/router/routes";
   filter: blur(22px);
   animation: pulse 3s infinite;
 }
-
 .title {
   font-size: 36px;
   font-weight: 700;
@@ -113,14 +98,12 @@ import { routes } from "~/router/routes";
   margin: 0 0 16px;
   color: var(--black1);
 }
-
 .subtitle {
   font-size: 18px;
   line-height: 1.6;
   color: var(--grey2);
   margin: 0;
 }
-
 .benefits-card {
   margin-top: 40px;
   padding: 24px;
@@ -129,17 +112,14 @@ import { routes } from "~/router/routes";
   backdrop-filter: blur(14px);
   box-shadow: 0 10px 40px var(--shadow-lg);
 }
-
 .benefit-item {
   display: flex;
   align-items: center;
   gap: 16px;
-
   &:not(:last-child) {
     margin-bottom: 22px;
   }
 }
-
 .benefit-icon {
   width: 42px;
   height: 42px;
@@ -151,20 +131,17 @@ import { routes } from "~/router/routes";
   font-size: 20px;
   flex-shrink: 0;
 }
-
 .benefit-text {
   font-size: 16px;
   line-height: 1.4;
   color: var(--black1);
   font-weight: 500;
 }
-
 .bottom-section {
   margin-top: auto;
   padding-top: 40px;
   padding-bottom: 24px;
 }
-
 .start-btn {
   width: 100%;
   height: 60px;
@@ -175,28 +152,15 @@ import { routes } from "~/router/routes";
   color: var(--white);
   box-shadow: var(--start-btn-shadow);
 }
-
 .hint-text {
   text-align: center;
   margin-top: 14px;
   font-size: 14px;
   color: var(--grey);
 }
-
 @keyframes pulse {
-  0% {
-    transform: scale(1);
-    opacity: 0.7;
-  }
-
-  50% {
-    transform: scale(1.15);
-    opacity: 1;
-  }
-
-  100% {
-    transform: scale(1);
-    opacity: 0.7;
-  }
+  0% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.7; }
 }
 </style>

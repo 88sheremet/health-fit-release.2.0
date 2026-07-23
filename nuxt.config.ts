@@ -1,8 +1,23 @@
 export default defineNuxtConfig({
-  compatibilityDate: '2026-07-22',
+  compatibilityDate: "2026-07-22",
+
+  modules: ["@pinia/nuxt"],
 
   css: [
-    'quasar/dist/quasar.css',
-    '@quasar/extras/material-icons/material-icons.css',
+    "~/assets/colors.css",
+    "~/assets/style.css",
   ],
-})
+
+  app: {
+    head: {
+      link: [
+        {
+          rel: "stylesheet",
+          href: "https://fonts.googleapis.com/icon?family=Material+Icons",
+        },
+      ],
+    },
+  },
+
+  devtools: { enabled: true },
+});
