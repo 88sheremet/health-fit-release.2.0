@@ -34,8 +34,10 @@ defineEmits<{ click: [e: MouseEvent] }>();
   align-items: center;
   justify-content: center;
   gap: 8px;
+  padding: 12px 24px;
   border: none;
   border-radius: 14px;
+  font-family: inherit;
   font-weight: 600;
   font-size: 15px;
   cursor: pointer;
@@ -51,6 +53,12 @@ defineEmits<{ click: [e: MouseEvent] }>();
 .app-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  pointer-events: none;
+}
+
+.app-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 /* unelevated (default) */
@@ -58,11 +66,24 @@ defineEmits<{ click: [e: MouseEvent] }>();
   background: var(--green);
   color: #fff;
 }
+.app-btn.unelevated:hover:not(:disabled) {
+  filter: brightness(1.05);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+.app-btn.unelevated:active:not(:disabled) {
+  transform: scale(0.97);
+}
 
 /* flat */
 .app-btn.flat {
   background: transparent;
   color: var(--green);
+}
+.app-btn.flat:hover:not(:disabled) {
+  background: rgba(76, 175, 80, 0.08);
+}
+.app-btn.flat:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 /* text */
@@ -71,6 +92,12 @@ defineEmits<{ click: [e: MouseEvent] }>();
   color: var(--green);
   border-radius: 8px;
 }
+.app-btn.text:hover:not(:disabled) {
+  background: rgba(76, 175, 80, 0.08);
+}
+.app-btn.text:active:not(:disabled) {
+  transform: scale(0.97);
+}
 
 /* outlined */
 .app-btn.outlined {
@@ -78,10 +105,16 @@ defineEmits<{ click: [e: MouseEvent] }>();
   color: var(--green);
   border: 1.5px solid var(--green);
 }
+.app-btn.outlined:hover:not(:disabled) {
+  background: rgba(76, 175, 80, 0.08);
+}
+.app-btn.outlined:active:not(:disabled) {
+  transform: scale(0.97);
+}
 
 /* dense */
 .app-btn.dense {
-  padding: 4px 10px;
+  padding: 6px 14px;
   font-size: 13px;
 }
 

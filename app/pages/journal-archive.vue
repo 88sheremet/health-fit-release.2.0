@@ -56,7 +56,7 @@ function formatDate(date: string) {
 <style scoped>
 .archive-page {
   min-height: 100vh;
-  padding: 20px;
+  padding: 24px;
   background: var(--bg-gradient-main);
 }
 .header {
@@ -66,16 +66,23 @@ function formatDate(date: string) {
   margin-bottom: 24px;
 }
 .back-btn {
-  background: none;
-  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--white);
+  border: 1px solid var(--border-default);
   cursor: pointer;
-  padding: 4px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--black1);
+  transition: background 0.2s, border-color 0.2s;
+  flex-shrink: 0;
 }
-.back-btn:hover { background: rgba(0,0,0,0.05); }
+.back-btn:hover {
+  background: var(--grey-hover);
+  border-color: var(--green);
+}
 .title { font-size: 28px; font-weight: 700; color: var(--black1); }
 .entry-card {
   padding: 20px; margin-bottom: 16px; border-radius: 24px;

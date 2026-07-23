@@ -45,9 +45,8 @@ const route = useRoute();
   align-items: stretch;
   background: var(--glass-heavy);
   border: 1px solid rgba(34, 197, 94, 0.1);
-  box-shadow: 0 10px 25px var(--shadow-sm);
+  box-shadow: 0 -4px 20px var(--shadow-md);
   backdrop-filter: blur(24px);
-  border: 1px solid var(--hero-icon);
   border-radius: 28px;
   z-index: 100;
 }
@@ -60,13 +59,13 @@ const route = useRoute();
   gap: 6px;
   border-radius: 20px;
   color: var(--grey-light);
-  transition: all 0.25s ease;
+  transition: all 0.3s ease;
   cursor: pointer;
   border: 1px solid transparent;
   min-height: 100%;
   .material-icons {
     font-size: 24px;
-    transition: 0.25s ease;
+    transition: all 0.3s ease;
   }
   span {
     font-size: 11px;

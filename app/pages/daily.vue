@@ -9,7 +9,7 @@
     </div>
 
     <AppCard class="energy-card">
-      <div class="row justify-between items-center">
+      <div class="energy-row">
         <div>
           <div class="label">Энергия</div>
           <div class="value">{{ store.energy }} ⚡</div>
@@ -83,7 +83,7 @@ onMounted(() => {
 
 <style scoped>
 .page {
-  padding: 20px;
+  padding: 24px;
   padding-bottom: 100px;
   background: var(--bg-gradient-main);
   width: 100%;
@@ -109,6 +109,11 @@ onMounted(() => {
   font-size: 14px;
 }
 .energy-card { margin-top: 20px; padding: 20px; border-radius: 20px; background: var(--white); }
+.energy-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 .value { font-size: 22px; font-weight: 700; }
 .tasks { margin-top: 20px; display: flex; flex-direction: column; gap: 12px; }
 .task-card {

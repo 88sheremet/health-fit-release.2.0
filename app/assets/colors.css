@@ -3,7 +3,6 @@
   --white: #ffffff;
   --black1: #1d1d1f;
   --text-light: #213547;
-  --bg-dark: #242424;
 
   /* ---------- Grey scale ---------- */
   --grey-light: #9ca3af;
@@ -37,6 +36,10 @@
   --link-hover: #747bff;
   --link-active: #535bf2;
 
+  /* ---------- Borders & focus ---------- */
+  --border-default: #e5e7eb;
+  --focus-ring: 0 0 0 3px rgba(76, 175, 80, 0.3);
+
   /* ---------- Glass backgrounds ---------- */
   --hero-icon: rgba(255, 255, 255, 0.7);
   --glass-heavy: rgba(255, 255, 255, 0.92);
@@ -47,7 +50,6 @@
   --icon-green-bg: rgba(76, 175, 80, 0.12);
   --icon-blue-bg: rgba(33, 150, 243, 0.12);
   --icon-orange-bg: rgba(255, 152, 0, 0.12);
-  --icon-orange-bg2: rgba(251, 140, 0, 0.12);
 
   /* ---------- Black shadows ---------- */
   --shadow-sm: rgba(0, 0, 0, 0.04);
@@ -63,6 +65,11 @@
   /* ---------- Glows ---------- */
   --glow-gold: rgba(255, 215, 0, 0.25);
   --glow-green: rgba(76, 175, 80, 0.25);
+
+  /* ---------- Toast colors ---------- */
+  --toast-warning: #f59e0b;
+  --toast-success: #22c55e;
+  --toast-info: #3b82f6;
 
   /* ---------- Background gradients ---------- */
   --bg-gradient-main: linear-gradient(180deg, #f5f9ff 0%, #eef7f2 100%);

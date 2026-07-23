@@ -1,7 +1,12 @@
 <template>
   <Teleport to="body">
     <Transition name="dialog">
-      <div v-if="modelValue" class="app-dialog-overlay" :class="{ persistent }" @click.self="close">
+      <div
+        v-if="modelValue"
+        class="app-dialog-overlay"
+        :class="{ persistent }"
+        @click.self="close"
+      >
         <div class="app-dialog-content" @click.stop>
           <slot />
         </div>
@@ -11,6 +16,8 @@
 </template>
 
 <script setup lang="ts">
+import { watch, onUnmounted } from "vue";
+
 const props = withDefaults(
   defineProps<{ modelValue: boolean; persistent?: boolean }>(),
   { persistent: false }
@@ -23,6 +30,34 @@ function close() {
     emit("update:modelValue", false);
   }
 }
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === "Escape" && props.modelValue) {
+    close();
+  }
+}
+
+watch(
+  () => props.modelValue,
+  (open) => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+  }
+);
+
+onUnmounted(() => {
+  document.body.style.overflow = "";
+});
+
+if (import.meta.client) {
+  document.addEventListener("keydown", onKeydown);
+  onUnmounted(() => {
+    document.removeEventListener("keydown", onKeydown);
+  });
+}
 </script>
 
 <style scoped>
@@ -34,6 +69,7 @@ function close() {
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
 }
 
 .app-dialog-content {

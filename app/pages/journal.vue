@@ -8,44 +8,44 @@
         </p>
       </div>
       <div class="hero-book">
-        <span class="material-icons" style="font-size: 72px; color: white;">menu_book</span>
+        <span class="material-icons book-icon">menu_book</span>
       </div>
     </section>
 
     <div class="actions">
       <AppCard flat class="action-card" @click="navigateTo('/journal-chart')">
         <div class="action-icon green-bg">
-          <span class="material-icons" style="color: var(--green);">show_chart</span>
+          <span class="material-icons icon-green">show_chart</span>
         </div>
         <div class="action-content">
           <div class="action-title">Смотреть график</div>
           <div class="action-subtitle">Посмотри динамику своего состояния</div>
         </div>
-        <span class="material-icons" style="color: var(--green);">chevron_right</span>
+        <span class="material-icons icon-green">chevron_right</span>
       </AppCard>
 
       <AppCard flat class="action-card note-card" @click="showNoteDialog = true">
         <div class="action-icon orange-bg">
-          <span class="material-icons" style="color: var(--orange);">edit</span>
+          <span class="material-icons icon-orange">edit</span>
         </div>
         <div class="action-content">
           <div class="action-title">Сделать заметку</div>
           <div class="action-subtitle">Запиши свои мысли или наблюдения</div>
         </div>
         <div class="plus-circle">
-          <span class="material-icons" style="color: var(--orange);">add</span>
+          <span class="material-icons icon-orange">add</span>
         </div>
       </AppCard>
 
       <AppCard flat class="action-card" @click="navigateTo(routes.recovery.journalArchive)">
         <div class="action-icon blue-bg">
-          <span class="material-icons" style="color: var(--blue);">inventory_2</span>
+          <span class="material-icons icon-blue">inventory_2</span>
         </div>
         <div class="action-content">
           <div class="action-title">Архив</div>
           <div class="action-subtitle">Просмотри сохраненные записи</div>
         </div>
-        <span class="material-icons" style="color: var(--blue);">chevron_right</span>
+        <span class="material-icons icon-blue">chevron_right</span>
       </AppCard>
     </div>
 
@@ -104,6 +104,7 @@ function saveNote() {
   background: var(--gradient-purple); box-shadow: 0 12px 32px var(--shadow-xl);
   transform: rotate(-8deg);
 }
+.book-icon { font-size: 72px; color: white; }
 .actions { display: flex; flex-direction: column; gap: 16px; }
 .action-card {
   display: flex; align-items: center; padding: 18px; border-radius: 24px;
@@ -119,17 +120,18 @@ function saveNote() {
 .green-bg { background: var(--icon-green-bg); }
 .orange-bg { background: var(--icon-orange-bg); }
 .blue-bg { background: var(--icon-blue-bg); }
+.icon-green { color: var(--green); }
+.icon-orange { color: var(--orange); }
+.icon-blue { color: var(--blue); }
 .action-content { flex: 1; margin-left: 16px; }
 .action-title { font-size: 20px; font-weight: 700; color: var(--black1); }
 .action-subtitle { margin-top: 4px; color: var(--grey); font-size: 14px; }
 .plus-circle {
   width: 52px; height: 52px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  background: var(--icon-orange-bg2);
+  background: var(--icon-orange-bg);
 }
-.dialog-card {
-  padding: 28px;
-}
+.dialog-card { padding: 28px; }
 .dialog-title { font-size: 22px; font-weight: 700; margin-bottom: 16px; }
 .dialog-actions {
   display: flex; justify-content: flex-end; gap: 8px;
