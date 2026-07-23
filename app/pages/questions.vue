@@ -88,13 +88,11 @@
 
 <script setup lang="ts">
 import { computed, ref, nextTick } from "vue";
-import { useScreeningStore } from "../stores/screening";
-import { useRouter } from "vue-router";
+import { useScreeningStore } from "~/stores/screening";
 import { useQuasar } from "quasar";
-import { routes } from "../router/index";
+import { routes } from "~/router/routes";
 
 const screeningStore = useScreeningStore();
-const router = useRouter();
 const $q = useQuasar();
 
 const pageRef = ref<HTMLElement | null>(null);
@@ -162,16 +160,15 @@ const goNext = async () => {
     screeningStore.calculateCurrentBlockScore();
 
     screeningStore.completeScreening();
-    
 
     const result = screeningStore.dominantProblem;
 
     if (result === "physical") {
-      router.push(routes.results.physical);
+      navigateTo(routes.results.physical);
     } else if (result === "food") {
-      router.push(routes.results.food);
+      navigateTo(routes.results.food);
     } else {
-      router.push(routes.results.mind);
+      navigateTo(routes.results.mind);
     }
 
     return;

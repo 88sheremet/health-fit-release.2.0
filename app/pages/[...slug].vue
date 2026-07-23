@@ -14,17 +14,14 @@
         no-caps
         class="home-btn"
         label="На главную"
-        @click="router.push(routes.recovery.daily)"
+        @click="navigateTo(routes.recovery.daily)"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useRouter } from "vue-router";
-import { routes } from "../router/index";
-
-const router = useRouter();
+import { routes } from "~/router/routes";
 </script>
 
 <style scoped lang="scss">

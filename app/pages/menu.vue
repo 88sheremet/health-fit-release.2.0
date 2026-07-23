@@ -11,7 +11,7 @@
         no-caps
         class="test-btn"
         label="Пройти анализ состояния"
-        @click="router.push(routes.onboarding.questions)"
+        @click="navigateTo(routes.onboarding.questions)"
       />
     </div>
 
@@ -45,25 +45,18 @@
 
 <script setup lang="ts">
 import { useQuasar } from "quasar";
-import { useRouter } from "vue-router";
-import { useScreeningStore } from "../stores/screening";
-import { routes } from "../router/index";
+import { useScreeningStore } from "~/stores/screening";
+import { routes } from "~/router/routes";
 
 const $q = useQuasar();
-
-const router = useRouter();
-
 const screeningStore = useScreeningStore();
 
 const showBlockedAlert = () => {
   $q.notify({
     type: "warning",
-
     message:
       "Сначала пройди анализ состояния, чтобы открыть персональные задания и дневник",
-
     position: "top",
-
     timeout: 2500,
   });
 };
@@ -71,20 +64,19 @@ const showBlockedAlert = () => {
 const openTab = (tab: string) => {
   if (!screeningStore.screeningCompleted) {
     showBlockedAlert();
-
     return;
   }
 
   if (tab === "daily") {
-    router.push(routes.recovery.daily);
+    navigateTo(routes.recovery.daily);
   }
 
   if (tab === "weekly") {
-    router.push(routes.recovery.weekly);
+    navigateTo(routes.recovery.weekly);
   }
 
   if (tab === "journal") {
-    router.push(routes.recovery.journal);
+    navigateTo(routes.recovery.journal);
   }
 };
 </script>

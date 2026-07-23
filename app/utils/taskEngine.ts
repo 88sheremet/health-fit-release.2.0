@@ -9,7 +9,7 @@ export function getDayIndex(startDate: string) {
   const today = new Date();
 
   const diff = Math.floor(
-    (today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+    (today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
   );
 
   return diff + 1;

@@ -1,38 +1,38 @@
 <template>
-  <div class="result-page physical">
+  <div class="result-page">
     <div class="hero">
-      <div class="hero-icon">⚠️</div>
+      <div class="hero-icon">⚡</div>
 
-      <div class="hero-title">Твое тело работает на износ</div>
+      <div class="hero-title">Питание крадет твою энергию</div>
 
       <div class="hero-subtitle">
-        Физическая перегрузка разрушает энергию, питание и нервы
+        Еда не восстанавливает, а истощает тело и нервную систему
       </div>
     </div>
 
     <q-card flat class="result-card">
-      <div class="card-title">🔥 Главная зона риска</div>
+      <div class="card-title">🥗 Главная зона риска</div>
 
-      <div class="card-main">Физическое состояние</div>
+      <div class="card-main">Питание и пищевые привычки</div>
 
       <div class="divider"></div>
 
       <div class="card-list">
-        <div>• постоянная усталость и “разбитость”</div>
-        <div>• низкая выносливость</div>
-        <div>• напряжение и боли в спине/шее</div>
-        <div>• организм не успевает восстанавливаться</div>
-        <div>• нехватка энергии с самого утра</div>
+        <div>• резкие перепады энергии в течение дня</div>
+        <div>• сильная тяга к сладкому и мучному</div>
+        <div>• переедание и питание "на автомате"</div>
+        <div>• постоянная нехватка воды</div>
+        <div>• тяжесть и усталость после еды</div>
       </div>
     </q-card>
 
     <q-card flat class="info-card">
-      <div class="info-title">🍽️ Как это связано с питанием</div>
+      <div class="info-title">💪 Как это связано с физическим состоянием</div>
 
       <div class="info-text">
-        Из-за физической перегрузки организм требует быстрых углеводов.
-        Появляется тяга к сладкому, переедание, резкие скачки энергии и
-        усталость после еды.
+        Неправильное питание лишает тело строительных материалов. Появляется
+        постоянная усталость, слабая выносливость, напряжение в мышцах и боли в
+        спине/шее.
       </div>
     </q-card>
 
@@ -40,8 +40,8 @@
       <div class="info-title">🧠 Связь с нервной системой</div>
 
       <div class="info-text">
-        Физическое истощение усиливает стресс. Нарушается сон, падает мотивация,
-        появляется прокрастинация и эмоциональное выгорание.
+        Скачки сахара и нехватка нутриентов усиливают стресс. Ухудшается сон,
+        падает мотивация, появляется эмоциональное выгорание и прокрастинация.
       </div>
     </q-card>
 
@@ -49,28 +49,34 @@
       <div class="info-title">✨ Что восстановит все три сферы</div>
 
       <div class="card-list">
-        <div>• мягкая физическая активность</div>
-        <div>• восстановление энергии через питание</div>
-        <div>• снижение физической и нервной перегрузки</div>
-        <div>• улучшение мобильности тела</div>
+        <div>• стабильный уровень энергии через питание</div>
+        <div>• снижение тяги к сладкому</div>
+        <div>• восстановление физических сил</div>
+        <div>• поддержка нервной системы</div>
       </div>
     </q-card>
 
     <div class="bottom-action">
-    <q-btn unelevated no-caps class="main-btn" label="Начать восстановление" @click="$router.push(routes.recovery.daily)"/>
+      <q-btn
+        unelevated
+        no-caps
+        class="main-btn"
+        label="Начать восстановление"
+        @click="navigateTo(routes.recovery.daily)"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { routes } from "../router/index";
+import { routes } from "~/router/routes";
 </script>
 
 <style scoped lang="scss">
 .result-page {
   min-height: 100vh;
   padding: 24px 20px 140px;
-  background: var(--result-page-btn);
+  background: var(--food-result-btn);
 }
 
 .hero {
@@ -88,7 +94,7 @@ import { routes } from "../router/index";
   justify-content: center;
   font-size: 52px;
   background: var(--hero-icon);
-  box-shadow: var(--hero-icon-shadow);
+  box-shadow: 0 10px 40px rgba(76, 175, 80, 0.2);
 }
 
 .hero-title {
@@ -119,7 +125,7 @@ import { routes } from "../router/index";
 .card-title {
   font-size: 15px;
   font-weight: 700;
-  color: var(--orange);
+  color: var(--green);
   margin-bottom: 14px;
 }
 
@@ -127,7 +133,7 @@ import { routes } from "../router/index";
   font-size: 28px;
   font-weight: 700;
   line-height: 1.2;
-  color: var(--black1);
+  margin-bottom: 0;
 }
 
 .divider {
@@ -176,8 +182,8 @@ import { routes } from "../router/index";
   border-radius: 22px;
   font-size: 18px;
   font-weight: 700;
-  background: var(--main-btn);
+  background: var(--gradient-food);
   color: var(--white);
-  box-shadow: 0 10px 30px rgba(251, 140, 0, 0.35);
+  box-shadow: 0 10px 30px rgba(67, 160, 71, 0.35);
 }
 </style>

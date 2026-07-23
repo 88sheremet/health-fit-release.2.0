@@ -1,12 +1,13 @@
 import { defineStore } from "pinia";
-import { getDayIndex, isRestDayByDate } from "../utils/taskEngine";
 
-import food from "../../mocks/dailyTasks/dailyFoodTasks.json";
-import mental from "../../mocks/dailyTasks/dailyMentalTasks.json";
-import physical from "../../mocks/dailyTasks/dailyPhysicalTasks.json";
+import { getDayIndex, isRestDayByDate } from "~/utils/taskEngine";
 
-import { Task } from "../interfaces/Task.interface";
-import { TaskState } from "../interfaces/TaskState.interface";
+import food from "~/mocks/dailyTasks/dailyFoodTasks.json";
+import mental from "~/mocks/dailyTasks/dailyMentalTasks.json";
+import physical from "~/mocks/dailyTasks/dailyPhysicalTasks.json";
+
+import type { Task } from "~/interfaces/Task.interface";
+import type { TaskState } from "~/interfaces/TaskState.interface";
 
 export const useTaskStore = defineStore("tasks", {
   state: (): TaskState => ({
@@ -20,15 +21,18 @@ export const useTaskStore = defineStore("tasks", {
   getters: {
     dayIndex(state) {
       if (!state.startDate) return 1;
+
       return getDayIndex(state.startDate);
     },
 
-    isRestDay(state): boolean {
+    isRestDay(): boolean {
       return isRestDayByDate(new Date());
     },
 
     todayTasks(): Task[] {
-      if (this.isRestDay) return [];
+      if (this.isRestDay) {
+        return [];
+      }
 
       const index = (this.dayIndex - 1) % 30;
 
@@ -79,14 +83,11 @@ export const useTaskStore = defineStore("tasks", {
     init() {
       const today = new Date().toDateString();
 
-       if (!this.startDate) {
-    this.startDate = new Date().toISOString();
+      if (!this.startDate) {
+        this.startDate = new Date().toISOString();
 
-    localStorage.setItem(
-      "recovery-start-date",
-      this.startDate
-    );
-  }
+        localStorage.setItem("recovery-start-date", this.startDate);
+      }
 
       if (!this.lastVisitDate) {
         this.lastVisitDate = today;
@@ -95,6 +96,7 @@ export const useTaskStore = defineStore("tasks", {
       }
 
       const lastVisit = new Date(this.lastVisitDate);
+
       const currentDate = new Date(today);
 
       const diffDays = Math.floor(
@@ -111,9 +113,12 @@ export const useTaskStore = defineStore("tasks", {
     },
 
     completeTask(task: Task) {
-      if (this.completed[task.id]) return;
+      if (this.completed[task.id]) {
+        return;
+      }
 
       this.completed[task.id] = true;
+
       this.energy += task.reward;
     },
 

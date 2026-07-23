@@ -3,7 +3,7 @@
     <div
       class="nav-item"
       :class="{ active: route.path === '/daily' }"
-      @click="router.push(routes.recovery.daily)"
+      @click="navigateTo(routes.recovery.daily)"
     >
       <q-icon name="task_alt" />
 
@@ -13,7 +13,7 @@
     <div
       class="nav-item"
       :class="{ active: route.path === '/weekly' }"
-      @click="router.push(routes.recovery.weekly)"
+      @click="navigateTo(routes.recovery.weekly)"
     >
       <q-icon name="event_note" />
 
@@ -23,7 +23,7 @@
     <div
       class="nav-item"
       :class="{ active: route.path === '/journal' }"
-      @click="router.push(routes.recovery.journal)"
+      @click="navigateTo(routes.recovery.journal)"
     >
       <q-icon name="menu_book" />
 
@@ -33,9 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter, useRoute } from "vue-router";
-import { routes } from "../router/index";
-const router = useRouter();
+import { routes } from "~/router/routes";
 
 const route = useRoute();
 </script>

@@ -1,9 +1,9 @@
 import { defineStore } from "pinia";
 
-import { Question } from "../interfaces/Question.interface";
-import { Block } from "../interfaces/Block.interface";
-import { Answers } from "../interfaces/Answers.interface";
-import { BlockScores } from "../interfaces/BlockScores.interface";
+import type { Question } from "../interfaces/Question.interface";
+import type { Block } from "../interfaces/Block.interface";
+import type { Answers } from "../interfaces/Answers.interface";
+import type { BlockScores } from "../interfaces/BlockScores.interface";
 
 export const useScreeningStore = defineStore("screening", {
   state: () => ({

@@ -22,7 +22,7 @@
             flat
             clickable
             class="action-card"
-            @click="$router.push('/journal-chart')"
+            @click="navigateTo('/journal-chart')"
           >
             <div class="action-icon green-bg">
               <q-icon name="show_chart" size="30px" color="green" />
@@ -66,7 +66,7 @@
             flat
             clickable
             class="action-card"
-            @click="router.push(routes.recovery.journalArchive)"
+            @click="navigateTo(routes.recovery.journalArchive)"
           >
             <div class="action-icon blue-bg">
               <q-icon name="inventory_2" size="28px" color="primary" />
@@ -109,13 +109,11 @@
 </template>
 
 <script setup lang="ts">
-import { useJournalStore } from "../stores/journal.ts";
-import { useRouter } from "vue-router";
-import BottomNavigation from "../components/BottomNavigation.vue";
-import { routes } from "../router/index";
-const router = useRouter();
-const journalStore = useJournalStore();
+import { useJournalStore } from "~/stores/journal";
+import { routes } from "~/router/routes";
 import { ref } from "vue";
+
+const journalStore = useJournalStore();
 
 const showNoteDialog = ref(false);
 const note = ref("");

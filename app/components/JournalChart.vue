@@ -9,7 +9,7 @@
               round
               icon="arrow_back"
               class="back-btn"
-              @click="goBack"
+              @click="navigateTo(routes.recovery.journal)"
             />
 
             <div class="title">График состояния</div>
@@ -23,11 +23,10 @@
 </template>
 
 <script setup lang="ts">
-import { routes } from "../router/index";
+import { routes } from "~/router/routes";
 import { computed } from "vue";
 import { Line } from "vue-chartjs";
-import { useJournalStore } from "../stores/journal";
-import { useRouter } from "vue-router";
+import { useJournalStore } from "~/stores/journal";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -36,7 +35,7 @@ import {
   LineElement,
   Tooltip,
 } from "chart.js";
-import { moodEmojis } from "../constants/moods";
+import { moodEmojis } from "~/constants/moods";
 
 ChartJS.register(
   CategoryScale,
@@ -47,11 +46,7 @@ ChartJS.register(
 );
 
 const store = useJournalStore();
-const router = useRouter();
 
-function goBack() {
-  router.push(routes.recovery.journal);
-}
 const chartData = computed(() => ({
   labels: store.entries.map((entry) =>
     new Date(entry.date).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })

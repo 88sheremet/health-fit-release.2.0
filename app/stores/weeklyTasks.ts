@@ -1,9 +1,9 @@
 import { defineStore } from "pinia";
-import weeklyTasks from "../../mocks/weeklyTasks/weeklyTasks.json";
+import weeklyTasks from "~/mocks/weeklyTasks/weeklyTasks.json";
 import { useTaskStore } from "./dailyTasks";
 
-import { WeeklyTask } from "../interfaces/WeeklyTask.interface";
-import { WeeklyState } from "../interfaces/WeeklyState.interface";
+import type { WeeklyTask } from "../interfaces/WeeklyTask.interface";
+import type { WeeklyState } from "../interfaces/WeeklyState.interface";
 
 export const useWeeklyTaskStore = defineStore("weeklyTasks", {
   state: (): WeeklyState => ({

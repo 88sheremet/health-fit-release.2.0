@@ -1,28 +1,28 @@
 <template>
   <div class="result-page">
     <div class="hero">
-      <div class="hero-icon">⚡</div>
+      <div class="hero-icon">🧠</div>
 
-      <div class="hero-title">Питание крадет твою энергию</div>
+      <div class="hero-title">Твоя нервная система на пределе</div>
 
       <div class="hero-subtitle">
-        Еда не восстанавливает, а истощает тело и нервную систему
+        Хронический стресс разрушает тело и питание
       </div>
     </div>
 
     <q-card flat class="result-card">
-      <div class="card-title">🥗 Главная зона риска</div>
+      <div class="card-title">⚡ Главная зона риска</div>
 
-      <div class="card-main">Питание и пищевые привычки</div>
+      <div class="card-main">Психологическое состояние</div>
 
       <div class="divider"></div>
 
       <div class="card-list">
-        <div>• резкие перепады энергии в течение дня</div>
-        <div>• сильная тяга к сладкому и мучному</div>
-        <div>• переедание и питание “на автомате”</div>
-        <div>• постоянная нехватка воды</div>
-        <div>• тяжесть и усталость после еды</div>
+        <div>• высокий уровень стресса</div>
+        <div>• эмоциональное выгорание</div>
+        <div>• проблемы со сном</div>
+        <div>• полное отсутствие сил</div>
+        <div>• прокрастинация и потеря дисциплины</div>
       </div>
     </q-card>
 
@@ -30,18 +30,18 @@
       <div class="info-title">💪 Как это связано с физическим состоянием</div>
 
       <div class="info-text">
-        Неправильное питание лишает тело строительных материалов. Появляется
-        постоянная усталость, слабая выносливость, напряжение в мышцах и боли в
-        спине/шее.
+        Постоянный стресс держит мышцы в напряжении. Появляются боли в спине и
+        шее, хроническая усталость, слабая выносливость и ощущение "разбитости"
+        с утра.
       </div>
     </q-card>
 
     <q-card flat class="info-card">
-      <div class="info-title">🧠 Связь с нервной системой</div>
+      <div class="info-title">🍽️ Связь с питанием</div>
 
       <div class="info-text">
-        Скачки сахара и нехватка нутриентов усиливают стресс. Ухудшается сон,
-        падает мотивация, появляется эмоциональное выгорание и прокрастинация.
+        Стресс запускает тягу к сладкому и переедание. Возникают резкие перепады
+        энергии, питание "на автомате" и усталость после еды.
       </div>
     </q-card>
 
@@ -49,10 +49,10 @@
       <div class="info-title">✨ Что восстановит все три сферы</div>
 
       <div class="card-list">
-        <div>• стабильный уровень энергии через питание</div>
-        <div>• снижение тяги к сладкому</div>
-        <div>• восстановление физических сил</div>
-        <div>• поддержка нервной системы</div>
+        <div>• снижение уровня стресса</div>
+        <div>• восстановление сна и энергии</div>
+        <div>• расслабление физического тела</div>
+        <div>• стабильное питание без скачков</div>
       </div>
     </q-card>
 
@@ -62,21 +62,21 @@
         no-caps
         class="main-btn"
         label="Начать восстановление"
-        @click="$router.push(routes.recovery.daily)"
+        @click="navigateTo(routes.recovery.daily)"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { routes } from "../router/index";
+import { routes } from "~/router/routes";
 </script>
 
 <style scoped lang="scss">
 .result-page {
   min-height: 100vh;
   padding: 24px 20px 140px;
-  background: var(--food-result-btn);
+  background: var(--bg-gradient-purple);
 }
 
 .hero {
@@ -94,7 +94,7 @@ import { routes } from "../router/index";
   justify-content: center;
   font-size: 52px;
   background: var(--hero-icon);
-  box-shadow: 0 10px 40px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 10px 40px rgba(103, 58, 183, 0.2);
 }
 
 .hero-title {
@@ -125,7 +125,7 @@ import { routes } from "../router/index";
 .card-title {
   font-size: 15px;
   font-weight: 700;
-  color: var(--green);
+  color: var(--purple);
   margin-bottom: 14px;
 }
 
@@ -182,8 +182,8 @@ import { routes } from "../router/index";
   border-radius: 22px;
   font-size: 18px;
   font-weight: 700;
-  background: var(--gradient-food);
+  background: var(--gradient-purple);
   color: var(--white);
-  box-shadow: 0 10px 30px rgba(67, 160, 71, 0.35);
+  box-shadow: 0 10px 30px rgba(94, 53, 177, 0.35);
 }
 </style>

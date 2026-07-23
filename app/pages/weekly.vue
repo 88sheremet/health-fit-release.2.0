@@ -56,8 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import BottomNavigation from "../components/BottomNavigation.vue";
-import { useWeeklyTaskStore } from "../stores/weeklyTasks.ts";
+import { useWeeklyTaskStore } from "~/stores/weeklyTasks";
 
 const store = useWeeklyTaskStore();
 

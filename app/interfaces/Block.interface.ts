@@ -1,4 +1,4 @@
-import { Question } from "./Question.interface";
+import type { Question } from "./Question.interface";
 
 export interface Block {
   id: number;

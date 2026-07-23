@@ -74,20 +74,18 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from "vue-router";
-import { useScreeningStore } from "../stores/screening";
-import { routes } from "../router/index";
+import { useScreeningStore } from "~/stores/screening";
+import { routes } from "~/router/routes";
 
-const router = useRouter();
 const store = useScreeningStore();
 
 const skip = () => {
   store.completeScreening();
-  router.push(routes.recovery.menu);
+  navigateTo(routes.recovery.menu);
 };
 
 const startQuestions = () => {
-  router.push(routes.onboarding.questions);
+  navigateTo(routes.onboarding.questions);
 };
 </script>
 

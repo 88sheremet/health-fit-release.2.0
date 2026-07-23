@@ -17,6 +17,7 @@
           <div class="row justify-between items-center">
             <div>
               <div class="label">Энергия</div>
+
               <div class="value">{{ store.energy }} ⚡</div>
             </div>
 
@@ -31,7 +32,9 @@
 
         <div v-if="store.isRestDay" class="rest-card">
           <div class="emoji">🌿</div>
+
           <div class="rest-title">Сегодня полный отдых</div>
+
           <div class="rest-text">Восстановление — это тоже прогресс</div>
         </div>
 
@@ -47,6 +50,7 @@
               <div class="task-title">
                 {{ task.title }}
               </div>
+
               <q-btn
                 class="icon-popup"
                 flat
@@ -58,6 +62,7 @@
                 <img :src="click" class="click-icon" />
               </q-btn>
             </div>
+
             <div class="task-footer">
               <div class="reward">+{{ task.reward }} ресурса</div>
 
@@ -67,45 +72,49 @@
                 color="green"
                 :label="store.isDone(task.id) ? 'Готово' : 'Выполнить'"
                 :disable="store.isDone(task.id)"
-                @click="store.completeTask(task)"
                 @click.stop="store.completeTask(task)"
               />
             </div>
           </q-card>
         </div>
+
+        <TaskDetailsDialog v-model="showDialog" :task="selectedTask" />
+
+        <CheckInDialog
+          v-model="journalStore.showCheckin"
+          @save="journalStore.saveCheckin"
+        />
       </q-page>
     </q-page-container>
-    <TaskDetailsDialog v-model="showDialog" :task="selectedTask" />
-    <CheckInDialog
-  v-model="journalStore.showCheckin"
-  @save="journalStore.saveCheckin"
-/>
+
     <BottomNavigation />
   </q-layout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import BottomNavigation from "../components/BottomNavigation.vue";
-import { useTaskStore } from "../stores/dailyTasks.ts";
-import TaskDetailsDialog from "../components/TaskDetailsDialog.vue";
-import { useJournalStore } from "../stores/journal.ts";
-import click from "../assets/click.png";
-import CheckInDialog from "../components/CheckInDialog.vue"
+import { onMounted } from "vue";
+
+import { useTaskStore } from "~/stores/dailyTasks";
+import { useJournalStore } from "~/stores/journal";
+
+import click from "~/assets/click.svg";
 
 const store = useTaskStore();
-const tasks = computed(() => store.todayTasks);
-const selectedTask = ref(null);
-const showDialog = ref(false);
 const journalStore = useJournalStore();
-function openTask(task) {
+
+const tasks = computed(() => store.todayTasks);
+
+const selectedTask = ref<any>(null);
+const showDialog = ref(false);
+
+function openTask(task: any) {
   selectedTask.value = task;
   showDialog.value = true;
 }
 
 onMounted(() => {
   store.init();
-    journalStore.init();
+  journalStore.init();
 });
 </script>
 
@@ -200,16 +209,19 @@ onMounted(() => {
 .rest-text {
   color: var(--grey);
 }
+
 .task-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
 }
+
 .click-icon {
   width: 28px;
   height: 30px;
   object-fit: contain;
 }
+
 .icon-popup {
   margin-bottom: 10px;
 }

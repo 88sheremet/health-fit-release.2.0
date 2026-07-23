@@ -7,7 +7,7 @@
             flat
             round
             icon="arrow_back"
-            @click="router.push(routes.recovery.journal)"
+            @click="navigateTo(routes.recovery.journal)"
           />
 
           <div class="title">Архив состояния</div>
@@ -50,11 +50,10 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useJournalStore } from "../stores/journal";
-import { useRouter } from "vue-router";
-import { routes } from "../router/index";
-import { moodEmojis } from "../constants/moods";
-const router = useRouter();
+import { useJournalStore } from "~/stores/journal";
+import { routes } from "~/router/routes";
+import { moodEmojis } from "~/constants/moods";
+
 const store = useJournalStore();
 
 const entries = computed(() => {

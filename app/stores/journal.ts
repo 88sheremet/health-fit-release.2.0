@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 
-import { JournalEntry } from "../interfaces/JournalEntry.interface";
-import { JournalState } from "../interfaces/JournalState.interface";
+import type { JournalEntry } from "../interfaces/JournalEntry.interface";
+import type { JournalState } from "../interfaces/JournalState.interface";
 
 export const useJournalStore = defineStore("journal", {
   state: (): JournalState => ({

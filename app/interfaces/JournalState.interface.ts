@@ -1,4 +1,4 @@
-import { JournalEntry } from "./JournalEntry.interface";
+import type { JournalEntry } from "./JournalEntry.interface";
 
 export interface JournalState {
   entries: JournalEntry[];

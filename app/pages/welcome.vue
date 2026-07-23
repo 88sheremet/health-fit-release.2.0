@@ -40,7 +40,7 @@
           no-caps
           class="start-btn"
           label="Начать путь"
-          @click="$router.push(routes.onboarding.screening)"
+          @click="navigateTo(routes.onboarding.screening)"
         />
 
         <div class="hint-text">Это займет 2–3 минуты</div>
@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { routes } from "../router/index";
+import { routes } from "~/router/routes";
 </script>
 
 <style scoped lang="scss">
