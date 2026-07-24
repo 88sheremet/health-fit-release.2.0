@@ -1,0 +1,93 @@
+:root {
+  /* ---------- Base colors ---------- */
+  --white: #ffffff;
+  --black1: #1d1d1f;
+  --text-light: #213547;
+
+  /* ---------- Grey scale ---------- */
+  --grey-light: #9ca3af;
+  --grey: #7b8190;
+  --grey2: #6b7280;
+  --grey-dark: #374151;
+  --grey-hover: #eef2f7;
+  --grey-icon-bg: #f4f7fb;
+
+  /* ---------- Semantic colors ---------- */
+  --green: #4caf50;
+  --green-light: #6bcb77;
+  --green-bright: #22c55e;
+  --green-dark: #16a34a;
+  --green-deep: #2e7d32;
+  --green-bg: #e8f5e9;
+
+  --orange: #fb8c00;
+  --orange-light: #ffb74d;
+
+  --blue: #1e88e5;
+
+  --purple: #673ab7;
+  --purple-light: #7e57c2;
+  --purple-dark: #5e35b1;
+
+  --red: #ef4444;
+
+  /* ---------- Link colors ---------- */
+  --link: #646cff;
+  --link-hover: #747bff;
+  --link-active: #535bf2;
+
+  /* ---------- Borders & focus ---------- */
+  --border-default: #e5e7eb;
+  --focus-ring: 0 0 0 3px rgba(76, 175, 80, 0.3);
+
+  /* ---------- Glass backgrounds ---------- */
+  --hero-icon: rgba(255, 255, 255, 0.7);
+  --glass-heavy: rgba(255, 255, 255, 0.92);
+  --glass-bar: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.5);
+
+  /* ---------- Icon backgrounds ---------- */
+  --icon-green-bg: rgba(76, 175, 80, 0.12);
+  --icon-blue-bg: rgba(33, 150, 243, 0.12);
+  --icon-orange-bg: rgba(255, 152, 0, 0.12);
+
+  /* ---------- Black shadows ---------- */
+  --shadow-sm: rgba(0, 0, 0, 0.04);
+  --shadow-md: rgba(0, 0, 0, 0.05);
+  --shadow-lg: rgba(0, 0, 0, 0.06);
+  --shadow-xl: rgba(0, 0, 0, 0.08);
+  --shadow-notify: rgba(0, 0, 0, 0.12);
+
+  /* ---------- Colored shadows ---------- */
+  --shadow-green: rgba(34, 197, 94, 0.35);
+  --shadow-green-hover: rgba(34, 197, 94, 0.45);
+
+  /* ---------- Glows ---------- */
+  --glow-gold: rgba(255, 215, 0, 0.25);
+  --glow-green: rgba(76, 175, 80, 0.25);
+
+  /* ---------- Toast colors ---------- */
+  --toast-warning: #f59e0b;
+  --toast-success: #22c55e;
+  --toast-info: #3b82f6;
+
+  /* ---------- Background gradients ---------- */
+  --bg-gradient-main: linear-gradient(180deg, #f5f9ff 0%, #eef7f2 100%);
+  --bg-gradient-purple: linear-gradient(180deg, #f7f5ff 0%, #fcfbff 100%);
+
+  /* ---------- Button gradients ---------- */
+  --main-btn: linear-gradient(135deg, #ffb74d 0%, #fb8c00 100%);
+  --start-btn: linear-gradient(135deg, #6bcb77 0%, #4caf50 100%);
+  --gradient-green-bright: linear-gradient(135deg, #22c55e, #16a34a);
+  --gradient-purple: linear-gradient(135deg, #7e57c2 0%, #5e35b1 100%);
+  --gradient-food: linear-gradient(135deg, #66bb6a 0%, #43a047 100%);
+  --gradient-green-active: linear-gradient(135deg, #6bcb77, #22c55e);
+
+  /* ---------- Page-specific background gradients ---------- */
+  --food-result-btn: linear-gradient(180deg, #f4fff5 0%, #fcfffd 100%);
+  --result-page-btn: linear-gradient(180deg, #fff6f1 0%, #fffdfb 100%);
+
+  /* ---------- Specific shadows ---------- */
+  --start-btn-shadow: 0 10px 30px rgba(76, 175, 80, 0.35);
+  --hero-icon-shadow: 0 10px 40px rgba(255, 152, 0, 0.2);
+}

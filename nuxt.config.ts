@@ -1,5 +1,25 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2025-07-15',
-  devtools: { enabled: true }
-})
+  compatibilityDate: "2026-07-22",
+
+  modules: ["@pinia/nuxt"],
+
+  css: [
+    "~/assets/fonts.css",
+    "~/assets/colors.css",
+    "~/assets/style.css",
+  ],
+
+  app: {
+    head: {
+      link: [
+        {
+          rel: "stylesheet",
+          href: "https://fonts.googleapis.com/icon?family=Material+Icons",
+        },
+
+      ],
+    },
+  },
+
+  devtools: { enabled: true },
+});
