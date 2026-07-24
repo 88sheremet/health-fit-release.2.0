@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@pinia/nuxt": "^1.0.1",
+    "@supabase/supabase-js": "^2.110.8",
     "@vueuse/core": "^14.3.0",
     "chart.js": "^4.5.1",
     "nuxt": "^4.5.0",
