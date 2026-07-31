@@ -15,6 +15,7 @@
     "@vueuse/core": "^14.3.0",
     "chart.js": "^4.5.1",
     "nuxt": "^4.5.0",
+    "nuxt-quasar-ui": "^3.1.0",
     "pinia-plugin-persistedstate": "^4.7.1",
     "vue": "^3.5.40",
     "vue-chartjs": "^5.3.4"
