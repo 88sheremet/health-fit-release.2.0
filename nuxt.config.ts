@@ -3,10 +3,14 @@ export default defineNuxtConfig({
 
   modules: [
     "@pinia/nuxt",
-   
     "pinia-plugin-persistedstate/nuxt",
+    "nuxt-quasar-ui",
   ],
   css: ["~/assets/fonts.css", "~/assets/colors.css", "~/assets/style.css"],
+
+  quasar: {
+    plugins: ["Notify", "Dialog"],
+  },
 
   app: {
     head: {
