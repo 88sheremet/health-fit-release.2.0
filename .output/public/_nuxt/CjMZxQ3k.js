@@ -1,0 +1,1 @@
+var e={1:`😡`,2:`😞`,3:`😐`,4:`🙂`,5:`😄`},t=[{value:5,emoji:e[5],label:`Отлично`},{value:4,emoji:e[4],label:`Хорошо`},{value:3,emoji:e[3],label:`Нормально`},{value:2,emoji:e[2],label:`Плохо`},{value:1,emoji:e[1],label:`Тяжело`}];export{t as n,e as t};

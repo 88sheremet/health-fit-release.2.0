@@ -1,0 +1,77 @@
+import { _ as _plugin_vue_export_helper_default, n as navigateTo } from '../virtual/entry.mjs';
+import { r as routes } from './routes-D1jq-K_x.mjs';
+import { defineComponent, mergeProps, withCtx, createVNode, unref, useSSRContext } from 'vue';
+import { ssrRenderAttrs, ssrRenderComponent } from 'vue/server-renderer';
+import { Q as QCard } from '../_/QCard.mjs';
+import { Q as QBtn } from '../_/QBtn.mjs';
+import 'nostics';
+import 'nostics/formatters/ansi';
+import '../_/nitro.mjs';
+import 'node:http';
+import 'node:https';
+import 'node:events';
+import 'node:buffer';
+import 'node:fs';
+import 'node:path';
+import 'node:crypto';
+import 'node:url';
+import '../routes/renderer.mjs';
+import 'unhead/server';
+import 'unhead/legacy';
+import 'unhead/plugins';
+import 'vue-bundle-renderer/runtime';
+import 'devalue';
+import 'pinia';
+import 'vue-router';
+import '@vue/shared';
+import '@supabase/supabase-js';
+import 'unhead/utils';
+import '../_/render.mjs';
+
+//#region app/pages/welcome.vue?vue&type=script&setup=true&lang.ts
+var welcome_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
+	__name: "welcome",
+	__ssrInlineRender: true,
+	setup(__props) {
+		return (_ctx, _push, _parent, _attrs) => {
+			const _component_q_card = QCard;
+			const _component_q_btn = QBtn;
+			_push(`<div${ssrRenderAttrs(mergeProps({ class: "welcome-page flex flex-center" }, _attrs))} data-v-a67bb919><div class="welcome-container" data-v-a67bb919><div class="hero-section" data-v-a67bb919><div class="hero-icon" data-v-a67bb919><div class="glow" data-v-a67bb919></div><span class="icon-emoji" data-v-a67bb919>☀️</span></div><h1 class="title" data-v-a67bb919>Твое новое состояние создаеться здесь</h1><p class="subtitle" data-v-a67bb919> Простая система действий, которая помогает улучшать самочувствие и видеть прогресс каждый день </p></div>`);
+			_push(ssrRenderComponent(_component_q_card, {
+				flat: "",
+				class: "benefits-card"
+			}, {
+				default: withCtx((_, _push, _parent, _scopeId) => {
+					if (_push) _push(`<div class="benefit-item" data-v-a67bb919${_scopeId}><div class="benefit-icon" data-v-a67bb919${_scopeId}><span class="material-icons" data-v-a67bb919${_scopeId}>psychology</span></div><div class="benefit-text" data-v-a67bb919${_scopeId}>Узнай свой текущий уровень состояния</div></div><div class="benefit-item" data-v-a67bb919${_scopeId}><div class="benefit-icon" data-v-a67bb919${_scopeId}><span class="material-icons" data-v-a67bb919${_scopeId}>assignment_turned_in</span></div><div class="benefit-text" data-v-a67bb919${_scopeId}>Получай ежедневные персональные задания</div></div><div class="benefit-item" data-v-a67bb919${_scopeId}><div class="benefit-icon" data-v-a67bb919${_scopeId}><span class="material-icons" data-v-a67bb919${_scopeId}>trending_up</span></div><div class="benefit-text" data-v-a67bb919${_scopeId}>Отслеживай изменения и свой прогресс</div></div>`);
+					else return [
+						createVNode("div", { class: "benefit-item" }, [createVNode("div", { class: "benefit-icon" }, [createVNode("span", { class: "material-icons" }, "psychology")]), createVNode("div", { class: "benefit-text" }, "Узнай свой текущий уровень состояния")]),
+						createVNode("div", { class: "benefit-item" }, [createVNode("div", { class: "benefit-icon" }, [createVNode("span", { class: "material-icons" }, "assignment_turned_in")]), createVNode("div", { class: "benefit-text" }, "Получай ежедневные персональные задания")]),
+						createVNode("div", { class: "benefit-item" }, [createVNode("div", { class: "benefit-icon" }, [createVNode("span", { class: "material-icons" }, "trending_up")]), createVNode("div", { class: "benefit-text" }, "Отслеживай изменения и свой прогресс")])
+					];
+				}),
+				_: 1
+			}, _parent));
+			_push(`<div class="bottom-section" data-v-a67bb919>`);
+			_push(ssrRenderComponent(_component_q_btn, {
+				unelevated: "",
+				"no-caps": "",
+				class: "start-btn",
+				label: "Начать путь",
+				onClick: ($event) => ("navigateTo" in _ctx ? _ctx.navigateTo : unref(navigateTo))(unref(routes).onboarding.screening)
+			}, null, _parent));
+			_push(`<div class="hint-text" data-v-a67bb919>Это займет 2–3 минуты</div></div></div></div>`);
+		};
+	}
+});
+//#endregion
+//#region app/pages/welcome.vue
+var _sfc_setup = welcome_vue_vue_type_script_setup_true_lang_default.setup;
+welcome_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
+	const ssrContext = useSSRContext();
+	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("pages/welcome.vue");
+	return _sfc_setup ? _sfc_setup(props, ctx) : void 0;
+};
+var welcome_default = /*#__PURE__*/ _plugin_vue_export_helper_default(welcome_vue_vue_type_script_setup_true_lang_default, [["__scopeId", "data-v-a67bb919"]]);
+
+export { welcome_default as default };
+//# sourceMappingURL=welcome-CDbV8p8a.mjs.map

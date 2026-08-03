@@ -1,0 +1,9 @@
+//#region app/pages/[...slug].vue?vue&type=style&index=0&scoped=b213eac9&lang.scss?inline&used
+var ____slug__vue_vue_type_style_index_0_scoped_b213eac9_lang_default = ".not-found-page[data-v-b213eac9]{background:var(--bg-gradient-main);justify-content:center;align-items:center;min-height:100vh;padding:24px;display:flex}.content[data-v-b213eac9]{text-align:center;max-width:420px}.code[data-v-b213eac9]{color:var(--green);margin-bottom:16px;font-size:96px;font-weight:800;line-height:1}.title[data-v-b213eac9]{color:var(--black1);margin-bottom:12px;font-size:32px;font-weight:700}.subtitle[data-v-b213eac9]{color:var(--grey2);margin-bottom:32px;font-size:16px;line-height:1.6}.home-btn[data-v-b213eac9]{background:var(--start-btn);width:100%;height:56px;color:var(--white);border-radius:18px;font-size:16px;font-weight:700}";
+
+const ____slug_Styles_CTTQ2paw = [
+  ____slug__vue_vue_type_style_index_0_scoped_b213eac9_lang_default
+];
+
+export { ____slug_Styles_CTTQ2paw as default };
+//# sourceMappingURL=_...slug_-styles.CTTQ2paw.mjs.map

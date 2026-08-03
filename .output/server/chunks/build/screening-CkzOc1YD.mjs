@@ -1,0 +1,94 @@
+import { _ as _plugin_vue_export_helper_default, n as navigateTo } from '../virtual/entry.mjs';
+import { r as routes } from './routes-D1jq-K_x.mjs';
+import { u as useScreeningStore } from './screening-DvSbJSAX.mjs';
+import { defineComponent, mergeProps, withCtx, createVNode, useSSRContext } from 'vue';
+import { ssrRenderAttrs, ssrRenderComponent } from 'vue/server-renderer';
+import { Q as QCard } from '../_/QCard.mjs';
+import { Q as QBtn } from '../_/QBtn.mjs';
+import 'nostics';
+import 'nostics/formatters/ansi';
+import '../_/nitro.mjs';
+import 'node:http';
+import 'node:https';
+import 'node:events';
+import 'node:buffer';
+import 'node:fs';
+import 'node:path';
+import 'node:crypto';
+import 'node:url';
+import '../routes/renderer.mjs';
+import 'unhead/server';
+import 'unhead/legacy';
+import 'unhead/plugins';
+import 'vue-bundle-renderer/runtime';
+import 'devalue';
+import 'pinia';
+import 'vue-router';
+import '@vue/shared';
+import '@supabase/supabase-js';
+import 'unhead/utils';
+import '../_/render.mjs';
+
+//#region app/pages/screening.vue?vue&type=script&setup=true&lang.ts
+var screening_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
+	__name: "screening",
+	__ssrInlineRender: true,
+	setup(__props) {
+		const store = useScreeningStore();
+		const skip = () => {
+			store.completeScreening();
+			navigateTo(routes.recovery.menu);
+		};
+		const startQuestions = () => {
+			navigateTo(routes.onboarding.questions);
+		};
+		return (_ctx, _push, _parent, _attrs) => {
+			const _component_q_card = QCard;
+			const _component_q_btn = QBtn;
+			_push(`<div${ssrRenderAttrs(mergeProps({ class: "screening-page" }, _attrs))} data-v-38d01e9d><div class="screening-container" data-v-38d01e9d><div class="top-section" data-v-38d01e9d><div class="hero-icon" data-v-38d01e9d><div class="glow" data-v-38d01e9d></div><span class="material-icons main-icon" data-v-38d01e9d>psychology</span></div><div class="title" data-v-38d01e9d>Анализ состояния</div><div class="subtitle" data-v-38d01e9d> Ответь на несколько вопросов, чтобы получить персональный план восстановления </div></div>`);
+			_push(ssrRenderComponent(_component_q_card, {
+				flat: "",
+				class: "info-card"
+			}, {
+				default: withCtx((_, _push, _parent, _scopeId) => {
+					if (_push) _push(`<div class="info-item" data-v-38d01e9d${_scopeId}><div class="info-icon green" data-v-38d01e9d${_scopeId}><span class="material-icons" data-v-38d01e9d${_scopeId}>schedule</span></div><div class="info-content" data-v-38d01e9d${_scopeId}><div class="info-title" data-v-38d01e9d${_scopeId}>~2 минуты</div><div class="info-text" data-v-38d01e9d${_scopeId}>Быстрый анализ состояния</div></div></div><div class="info-item" data-v-38d01e9d${_scopeId}><div class="info-icon blue" data-v-38d01e9d${_scopeId}><span class="material-icons" data-v-38d01e9d${_scopeId}>monitoring</span></div><div class="info-content" data-v-38d01e9d${_scopeId}><div class="info-title" data-v-38d01e9d${_scopeId}>Персональный результат</div><div class="info-text" data-v-38d01e9d${_scopeId}>Узнай свои основные точки роста</div></div></div><div class="info-item" data-v-38d01e9d${_scopeId}><div class="info-icon orange" data-v-38d01e9d${_scopeId}><span class="material-icons" data-v-38d01e9d${_scopeId}>task_alt</span></div><div class="info-content" data-v-38d01e9d${_scopeId}><div class="info-title" data-v-38d01e9d${_scopeId}>Ежедневные задания</div><div class="info-text" data-v-38d01e9d${_scopeId}>Система подстроится под тебя</div></div></div>`);
+					else return [
+						createVNode("div", { class: "info-item" }, [createVNode("div", { class: "info-icon green" }, [createVNode("span", { class: "material-icons" }, "schedule")]), createVNode("div", { class: "info-content" }, [createVNode("div", { class: "info-title" }, "~2 минуты"), createVNode("div", { class: "info-text" }, "Быстрый анализ состояния")])]),
+						createVNode("div", { class: "info-item" }, [createVNode("div", { class: "info-icon blue" }, [createVNode("span", { class: "material-icons" }, "monitoring")]), createVNode("div", { class: "info-content" }, [createVNode("div", { class: "info-title" }, "Персональный результат"), createVNode("div", { class: "info-text" }, "Узнай свои основные точки роста")])]),
+						createVNode("div", { class: "info-item" }, [createVNode("div", { class: "info-icon orange" }, [createVNode("span", { class: "material-icons" }, "task_alt")]), createVNode("div", { class: "info-content" }, [createVNode("div", { class: "info-title" }, "Ежедневные задания"), createVNode("div", { class: "info-text" }, "Система подстроится под тебя")])])
+					];
+				}),
+				_: 1
+			}, _parent));
+			_push(`<div class="bottom-section" data-v-38d01e9d><div class="hint-text" data-v-38d01e9d> Твой путь начинается с понимания текущего состояния </div>`);
+			_push(ssrRenderComponent(_component_q_btn, {
+				unelevated: "",
+				"no-caps": "",
+				class: "start-btn",
+				label: "Начать скрининг",
+				onClick: startQuestions
+			}, null, _parent));
+			_push(ssrRenderComponent(_component_q_btn, {
+				flat: "",
+				"no-caps": "",
+				"text-color": "primary",
+				class: "skip-btn",
+				label: "Пропустить",
+				onClick: skip
+			}, null, _parent));
+			_push(`</div></div></div>`);
+		};
+	}
+});
+//#endregion
+//#region app/pages/screening.vue
+var _sfc_setup = screening_vue_vue_type_script_setup_true_lang_default.setup;
+screening_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
+	const ssrContext = useSSRContext();
+	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("pages/screening.vue");
+	return _sfc_setup ? _sfc_setup(props, ctx) : void 0;
+};
+var screening_default = /*#__PURE__*/ _plugin_vue_export_helper_default(screening_vue_vue_type_script_setup_true_lang_default, [["__scopeId", "data-v-38d01e9d"]]);
+
+export { screening_default as default };
+//# sourceMappingURL=screening-CkzOc1YD.mjs.map

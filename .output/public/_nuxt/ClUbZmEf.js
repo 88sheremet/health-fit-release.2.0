@@ -1,0 +1,1 @@
+import{R as e,p as t}from"./D1h5OiUR.js";import{t as n}from"./BDNMzG2s.js";var r={};function i(n,r){return e(),t(`div`,null,`Login page`)}var a=n(r,[[`render`,i]]);export{a as default};

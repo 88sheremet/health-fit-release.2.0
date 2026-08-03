@@ -1,0 +1,1 @@
+import{b as e}from"./D1h5OiUR.js";import{u as t}from"./NZDjm4Qn.js";var n=e({__name:`index`,setup(e){return t(`/welcome`,{redirectCode:301}),()=>{}}});export{n as default};
