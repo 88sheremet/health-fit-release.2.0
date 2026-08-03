@@ -8,7 +8,7 @@
       </div>
     </div>
 
-    <AppCard flat class="result-card">
+    <q-card flat class="result-card">
       <div class="card-title">⚡ Главная зона риска</div>
       <div class="card-main">Психологическое состояние</div>
       <div class="divider"></div>
@@ -19,26 +19,26 @@
         <div>• полное отсутствие сил</div>
         <div>• прокрастинация и потеря дисциплины</div>
       </div>
-    </AppCard>
+    </q-card>
 
-    <AppCard flat class="info-card">
+    <q-card flat class="info-card">
       <div class="info-title">💪 Как это связано с физическим состоянием</div>
       <div class="info-text">
         Постоянный стресс держит мышцы в напряжении. Появляются боли в спине и
         шее, хроническая усталость, слабая выносливость и ощущение "разбитости"
         с утра.
       </div>
-    </AppCard>
+    </q-card>
 
-    <AppCard flat class="info-card">
+    <q-card flat class="info-card">
       <div class="info-title">🍽️ Связь с питанием</div>
       <div class="info-text">
         Стресс запускает тягу к сладкому и переедание. Возникают резкие перепады
         энергии, питание "на автомате" и усталость после еды.
       </div>
-    </AppCard>
+    </q-card>
 
-    <AppCard flat class="recovery-card">
+    <q-card flat class="recovery-card">
       <div class="info-title">✨ Что восстановит все три сферы</div>
       <div class="card-list">
         <div>• снижение уровня стресса</div>
@@ -46,10 +46,10 @@
         <div>• расслабление физического тела</div>
         <div>• стабильное питание без скачков</div>
       </div>
-    </AppCard>
+    </q-card>
 
     <div class="bottom-action">
-      <AppBtn class="main-btn" label="Начать восстановление" @click="navigateTo(routes.recovery.daily)" />
+      <q-btn unelevated no-caps class="main-btn" label="Начать восстановление" @click="navigateTo(routes.recovery.daily)" />
     </div>
   </div>
 </template>

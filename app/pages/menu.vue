@@ -3,8 +3,10 @@
     <div class="header">
       <div class="title">Главное меню</div>
       <div class="subtitle">Твои инструменты восстановления и развития</div>
-      <AppBtn
+      <q-btn
         v-if="!screeningStore.screeningCompleted"
+        unelevated
+        no-caps
         class="test-btn"
         label="Пройти анализ состояния"
         @click="navigateTo(routes.onboarding.questions)"
@@ -32,18 +34,20 @@
 </template>
 
 <script setup lang="ts">
-import { useToast } from "~/utils/toast";
+import { useQuasar } from "quasar";
 import { useScreeningStore } from "~/stores/screening";
 import { routes } from "~/router/routes";
 
-const toast = useToast();
+const $q = useQuasar();
 const screeningStore = useScreeningStore();
 
 const showBlockedAlert = () => {
-  toast.show(
-    "Сначала пройди анализ состояния, чтобы открыть персональные задания и дневник",
-    { type: "warning", timeout: 2500 }
-  );
+  $q.notify({
+    message:
+      "Сначала пройди анализ состояния, чтобы открыть персональные задания и дневник",
+    type: "warning",
+    timeout: 2500,
+  });
 };
 
 const openTab = (tab: string) => {

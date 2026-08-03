@@ -6,7 +6,7 @@
       <div class="week-day">День {{ store.currentDayWithinWeek }} из 7</div>
     </div>
 
-    <AppCard class="task-card">
+    <q-card class="task-card">
       <div class="badge">🎯 Задание недели</div>
       <div class="task-title">{{ store.currentTask.nameProgram }}</div>
 
@@ -20,11 +20,13 @@
         <div class="text">{{ store.currentTask.whyDoing }}</div>
       </div>
 
-      <AppBtn
+      <q-btn
         v-if="!store.isCompleted()"
+        unelevated
+        no-caps
         class="complete-btn"
         label="Задание недели выполнено"
-        :disabled="!store.canComplete"
+        :disable="!store.canComplete"
         @click="completeWeeklyTask"
       />
       <div v-if="!store.canComplete && !store.isCompleted()" class="week-info">
@@ -33,7 +35,7 @@
       <div v-else class="success-banner">
         ✅ Задание недели выполнено
       </div>
-    </AppCard>
+    </q-card>
 
     <BottomNavigation />
   </div>

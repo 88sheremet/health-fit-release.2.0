@@ -8,7 +8,7 @@
       </div>
     </div>
 
-    <AppCard flat class="result-card">
+    <q-card flat class="result-card">
       <div class="card-title">🥗 Главная зона риска</div>
       <div class="card-main">Питание и пищевые привычки</div>
       <div class="divider"></div>
@@ -19,26 +19,26 @@
         <div>• постоянная нехватка воды</div>
         <div>• тяжесть и усталость после еды</div>
       </div>
-    </AppCard>
+    </q-card>
 
-    <AppCard flat class="info-card">
+    <q-card flat class="info-card">
       <div class="info-title">💪 Как это связано с физическим состоянием</div>
       <div class="info-text">
         Неправильное питание лишает тело строительных материалов. Появляется
         постоянная усталость, слабая выносливость, напряжение в мышцах и боли в
         спине/шее.
       </div>
-    </AppCard>
+    </q-card>
 
-    <AppCard flat class="info-card">
+    <q-card flat class="info-card">
       <div class="info-title">🧠 Связь с нервной системой</div>
       <div class="info-text">
         Скачки сахара и нехватка нутриентов усиливают стресс. Ухудшается сон,
         падает мотивация, появляется эмоциональное выгорание и прокрастинация.
       </div>
-    </AppCard>
+    </q-card>
 
-    <AppCard flat class="recovery-card">
+    <q-card flat class="recovery-card">
       <div class="info-title">✨ Что восстановит все три сферы</div>
       <div class="card-list">
         <div>• стабильный уровень энергии через питание</div>
@@ -46,10 +46,10 @@
         <div>• восстановление физических сил</div>
         <div>• поддержка нервной системы</div>
       </div>
-    </AppCard>
+    </q-card>
 
     <div class="bottom-action">
-      <AppBtn class="main-btn" label="Начать восстановление" @click="navigateTo(routes.recovery.daily)" />
+      <q-btn unelevated no-caps class="main-btn" label="Начать восстановление" @click="navigateTo(routes.recovery.daily)" />
     </div>
   </div>
 </template>

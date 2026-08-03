@@ -8,15 +8,15 @@
       <div class="streak-avatar">{{ store.streak }}</div>
     </div>
 
-    <AppCard class="energy-card">
+    <q-card class="energy-card">
       <div class="energy-row">
         <div>
           <div class="label">Энергия</div>
           <div class="value">{{ store.energy }} ⚡</div>
         </div>
-        <AppCircularProgress :value="store.energy" :max="1000" size="60px" color="var(--green)" />
+        <q-circular-progress :value="store.energy" :max="1000" size="60px" color="#4caf50" :thickness="6" />
       </div>
-    </AppCard>
+    </q-card>
 
     <div v-if="store.isRestDay" class="rest-card">
       <div class="emoji">🌿</div>
@@ -25,7 +25,7 @@
     </div>
 
     <div v-else class="tasks">
-      <AppCard
+      <q-card
         v-for="task in tasks"
         :key="task.id"
         class="task-card"
@@ -39,14 +39,18 @@
         </div>
         <div class="task-footer">
           <div class="reward">+{{ task.reward }} ресурса</div>
-          <AppBtn
+          <q-btn
             dense
+            no-caps
+            unelevated
+            background-color="#4caf50"
+            text-color="white"
             :label="store.isDone(task.id) ? 'Готово' : 'Выполнить'"
-            :disabled="store.isDone(task.id)"
+            :disable="store.isDone(task.id)"
             @click.stop="store.completeTask(task)"
           />
         </div>
-      </AppCard>
+      </q-card>
     </div>
 
     <TaskDetailsDialog v-model="showDialog" :task="selectedTask" />
@@ -104,7 +108,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   background: var(--green);
-  color: white;
+  color: var(--white);;
   font-weight: 700;
   font-size: 14px;
 }

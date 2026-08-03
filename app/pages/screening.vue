@@ -13,7 +13,7 @@
         </div>
       </div>
 
-      <AppCard flat class="info-card">
+      <q-card flat class="info-card">
         <div class="info-item">
           <div class="info-icon green">
             <span class="material-icons">schedule</span>
@@ -41,14 +41,14 @@
             <div class="info-text">Система подстроится под тебя</div>
           </div>
         </div>
-      </AppCard>
+      </q-card>
 
       <div class="bottom-section">
         <div class="hint-text">
           Твой путь начинается с понимания текущего состояния
         </div>
-        <AppBtn class="start-btn" label="Начать скрининг" @click="startQuestions" />
-        <AppBtn variant="text" class="skip-btn" label="Пропустить" @click="skip" />
+        <q-btn unelevated no-caps class="start-btn" label="Начать скрининг" @click="startQuestions" />
+        <q-btn flat no-caps class="skip-btn" label="Пропустить" @click="skip" />
       </div>
     </div>
   </div>

@@ -13,7 +13,7 @@
         </p>
       </div>
 
-      <AppCard flat class="benefits-card">
+      <q-card flat class="benefits-card">
         <div class="benefit-item">
           <div class="benefit-icon"><span class="material-icons">psychology</span></div>
           <div class="benefit-text">Узнай свой текущий уровень состояния</div>
@@ -26,10 +26,12 @@
           <div class="benefit-icon"><span class="material-icons">trending_up</span></div>
           <div class="benefit-text">Отслеживай изменения и свой прогресс</div>
         </div>
-      </AppCard>
+      </q-card>
 
       <div class="bottom-section">
-        <AppBtn
+        <q-btn
+          unelevated
+          no-caps
           class="start-btn"
           label="Начать путь"
           @click="navigateTo(routes.onboarding.screening)"

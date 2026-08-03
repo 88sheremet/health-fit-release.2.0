@@ -1,5 +1,5 @@
 <template>
-  <AppDialog :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)">
+  <q-dialog :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)">
     <div class="dialog">
       <div class="header">
         <button class="close-btn" @click="$emit('update:modelValue', false)">
@@ -39,7 +39,7 @@
         <div class="text">{{ task?.whyDoing }}</div>
       </div>
     </div>
-  </AppDialog>
+  </q-dialog>
 </template>
 
 <script setup lang="ts">
@@ -60,6 +60,7 @@ defineEmits(["update:modelValue"]);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  background: #fff;
 }
 .header {
   position: relative;

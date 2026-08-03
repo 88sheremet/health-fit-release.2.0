@@ -11,9 +11,10 @@
           {{ screeningStore.currentBlockData.questions.length }}
         </div>
       </div>
-      <AppLinearProgress
+      <q-linear-progress
         :value="screeningStore.progress"
-        color="var(--green)"
+        color="#4caf50"
+        track-color="#e0e0e0"
         rounded
         size="10px"
       />
@@ -25,7 +26,7 @@
     </div>
 
     <div class="questions-list">
-      <AppCard
+      <q-card
         v-for="(question, index) in screeningStore.currentBlockData.questions"
         :key="question.id"
         ref="questionRefs"
@@ -55,11 +56,13 @@
           <span>Хорошо</span>
           <span>Плохо</span>
         </div>
-      </AppCard>
+      </q-card>
     </div>
 
     <div class="footer">
-      <AppBtn
+      <q-btn
+        unelevated
+        no-caps
         class="next-btn"
         :label="screeningStore.isLastBlock() ? 'Завершить' : 'Следующий блок'"
         @click="goNext"
@@ -70,12 +73,12 @@
 
 <script setup lang="ts">
 import { computed, ref, nextTick } from "vue";
+import { useQuasar } from "quasar";
 import { useScreeningStore } from "~/stores/screening";
-import { useToast } from "~/utils/toast";
 import { routes } from "~/router/routes";
 
 const screeningStore = useScreeningStore();
-const toast = useToast();
+const $q = useQuasar();
 
 const pageRef = ref<HTMLElement | null>(null);
 const questionRefs = ref<any[]>([]);
@@ -101,7 +104,9 @@ const scrollToFirstEmpty = async () => {
 };
 
 const showValidationAlert = () => {
-  toast.show("Не все вопросы заполнены. Ответь на выделенный вопрос, чтобы продолжить.", {
+  $q.notify({
+    message:
+      "Не все вопросы заполнены. Ответь на выделенный вопрос, чтобы продолжить.",
     type: "warning",
     timeout: 2500,
   });

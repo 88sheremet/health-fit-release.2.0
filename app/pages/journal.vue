@@ -13,7 +13,7 @@
     </section>
 
     <div class="actions">
-      <AppCard flat class="action-card" @click="navigateTo('/journal-chart')">
+      <q-card flat class="action-card" @click="navigateTo('/journal-chart')">
         <div class="action-icon green-bg">
           <span class="material-icons icon-green">show_chart</span>
         </div>
@@ -22,9 +22,9 @@
           <div class="action-subtitle">Посмотри динамику своего состояния</div>
         </div>
         <span class="material-icons icon-green">chevron_right</span>
-      </AppCard>
+      </q-card>
 
-      <AppCard flat class="action-card note-card" @click="showNoteDialog = true">
+      <q-card flat class="action-card note-card" @click="showNoteDialog = true">
         <div class="action-icon orange-bg">
           <span class="material-icons icon-orange">edit</span>
         </div>
@@ -35,9 +35,9 @@
         <div class="plus-circle">
           <span class="material-icons icon-orange">add</span>
         </div>
-      </AppCard>
+      </q-card>
 
-      <AppCard flat class="action-card" @click="navigateTo(routes.recovery.journalArchive)">
+      <q-card flat class="action-card" @click="navigateTo(routes.recovery.journalArchive)">
         <div class="action-icon blue-bg">
           <span class="material-icons icon-blue">inventory_2</span>
         </div>
@@ -46,19 +46,25 @@
           <div class="action-subtitle">Просмотри сохраненные записи</div>
         </div>
         <span class="material-icons icon-blue">chevron_right</span>
-      </AppCard>
+      </q-card>
     </div>
 
-    <AppDialog v-model="showNoteDialog">
-      <div class="dialog-card">
+    <q-dialog v-model="showNoteDialog">
+      <q-card class="dialog-card">
         <div class="dialog-title">Новая заметка</div>
-        <AppInput v-model="note" autogrow placeholder="Напишите свои мысли или наблюдения..." />
+        <q-input
+          v-model="note"
+          type="textarea"
+          autogrow
+          outlined
+          placeholder="Напишите свои мысли или наблюдения..."
+        />
         <div class="dialog-actions">
-          <AppBtn variant="text" label="Отмена" @click="showNoteDialog = false" />
-          <AppBtn label="Сохранить" @click="saveNote" />
+          <q-btn flat no-caps text-color="#4caf50" label="Отмена" @click="showNoteDialog = false" />
+          <q-btn unelevated no-caps color="#4caf50" label="Сохранить" @click="saveNote" />
         </div>
-      </div>
-    </AppDialog>
+      </q-card>
+    </q-dialog>
 
     <BottomNavigation />
   </div>

@@ -6,7 +6,7 @@
       <div class="subtitle">
         Возможно, ссылка устарела или страница была перемещена.
       </div>
-      <AppBtn class="home-btn" label="На главную" @click="navigateTo(routes.recovery.daily)" />
+      <q-btn unelevated no-caps class="home-btn" label="На главную" @click="navigateTo(routes.recovery.daily)" />
     </div>
   </div>
 </template>

@@ -8,7 +8,7 @@
       </div>
     </div>
 
-    <AppCard flat class="result-card">
+    <q-card flat class="result-card">
       <div class="card-title">🔥 Главная зона риска</div>
       <div class="card-main">Физическое состояние</div>
       <div class="divider"></div>
@@ -19,26 +19,26 @@
         <div>• организм не успевает восстанавливаться</div>
         <div>• нехватка энергии с самого утра</div>
       </div>
-    </AppCard>
+    </q-card>
 
-    <AppCard flat class="info-card">
+    <q-card flat class="info-card">
       <div class="info-title">🍽️ Как это связано с питанием</div>
       <div class="info-text">
         Из-за физической перегрузки организм требует быстрых углеводов.
         Появляется тяга к сладкому, переедание, резкие скачки энергии и
         усталость после еды.
       </div>
-    </AppCard>
+    </q-card>
 
-    <AppCard flat class="info-card">
+    <q-card flat class="info-card">
       <div class="info-title">🧠 Связь с нервной системой</div>
       <div class="info-text">
         Физическое истощение усиливает стресс. Нарушается сон, падает мотивация,
         появляется прокрастинация и эмоциональное выгорание.
       </div>
-    </AppCard>
+    </q-card>
 
-    <AppCard flat class="recovery-card">
+    <q-card flat class="recovery-card">
       <div class="info-title">✨ Что восстановит все три сферы</div>
       <div class="card-list">
         <div>• мягкая физическая активность</div>
@@ -46,10 +46,10 @@
         <div>• снижение физической и нервной перегрузки</div>
         <div>• улучшение мобильности тела</div>
       </div>
-    </AppCard>
+    </q-card>
 
     <div class="bottom-action">
-      <AppBtn class="main-btn" label="Начать восстановление" @click="navigateTo(routes.recovery.daily)" />
+      <q-btn unelevated no-caps class="main-btn" label="Начать восстановление" @click="navigateTo(routes.recovery.daily)" />
     </div>
   </div>
 </template>

@@ -15,7 +15,7 @@
       </div>
     </div>
 
-    <AppCard
+    <q-card
       v-for="entry in entries"
       :key="entry.id"
       flat
@@ -26,7 +26,7 @@
         <div v-if="entry.mood" class="entry-mood">{{ getMoodEmoji(entry.mood) }}</div>
       </div>
       <div class="entry-note">{{ entry.note }}</div>
-    </AppCard>
+    </q-card>
   </div>
 </template>
 

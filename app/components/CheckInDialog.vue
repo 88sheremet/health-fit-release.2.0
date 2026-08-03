@@ -1,6 +1,6 @@
 <template>
-  <AppDialog :model-value="modelValue" persistent @update:model-value="$emit('update:modelValue', $event)">
-    <div class="checkin-card">
+  <q-dialog :model-value="modelValue" persistent @update:model-value="$emit('update:modelValue', $event)">
+    <q-card class="checkin-card">
       <div class="hero">
         <div class="title">
           Давай зафиксируем
@@ -27,9 +27,11 @@
 
       <div class="section-title">Опиши свое состояние</div>
 
-      <AppInput
+      <q-input
         v-model="note"
+        type="textarea"
         autogrow
+        outlined
         class="note-input"
         placeholder="Например: устал, нет энергии, тревога, много мыслей..."
       />
@@ -42,14 +44,18 @@
         </div>
       </div>
 
-      <AppBtn
+      <q-btn
+        unelevated
+        no-caps
+        color="#4caf50"
+        text-color="white"
         class="save-btn"
         label="Зафиксировать"
-        :disabled="!mood"
+        :disable="!mood"
         @click="save"
       />
-    </div>
-  </AppDialog>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup lang="ts">
@@ -83,6 +89,7 @@ function save() {
   width: 100%;
   max-width: 460px;
   padding: 28px;
+  border-radius: 24px;
   background: var(--grey-hover);
 }
 .hero { text-align: center; margin-bottom: 28px; }
