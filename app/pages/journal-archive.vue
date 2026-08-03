@@ -15,15 +15,12 @@
       </div>
     </div>
 
-    <q-card
-      v-for="entry in entries"
-      :key="entry.id"
-      flat
-      class="entry-card"
-    >
+    <q-card v-for="entry in entries" :key="entry.id" flat class="entry-card">
       <div class="entry-header">
         <div class="entry-date">{{ formatDate(entry.date) }}</div>
-        <div v-if="entry.mood" class="entry-mood">{{ getMoodEmoji(entry.mood) }}</div>
+        <div v-if="entry.mood" class="entry-mood">
+          {{ getMoodEmoji(entry.mood) }}
+        </div>
       </div>
       <div class="entry-note">{{ entry.note }}</div>
     </q-card>
@@ -83,21 +80,54 @@ function formatDate(date: string) {
   background: var(--grey-hover);
   border-color: var(--green);
 }
-.title { font-size: 28px; font-weight: 700; color: var(--black1); }
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--black1);
+}
 .entry-card {
-  padding: 20px; margin-bottom: 16px; border-radius: 24px;
-  background: var(--white); box-shadow: 0 10px 25px var(--shadow-md);
+  padding: 20px;
+  margin-bottom: 16px;
+  border-radius: 24px;
+  background: var(--white);
+  box-shadow: 0 10px 25px var(--shadow-md);
 }
 .entry-header {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
-.entry-date { font-size: 15px; font-weight: 600; color: var(--grey); }
-.entry-mood { font-size: 34px; }
-.entry-note { font-size: 16px; line-height: 1.7; color: var(--black1); }
-.empty-state { margin-top: 80px; text-align: center; }
-.empty-icon { font-size: 72px; }
-.empty-title { margin-top: 20px; font-size: 24px; font-weight: 700; }
-.empty-text { margin-top: 10px; color: var(--grey); line-height: 1.6; }
+.entry-date {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--grey);
+}
+.entry-mood {
+  font-size: 34px;
+}
+.entry-note {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--black1);
+}
+.empty-state {
+  margin-top: 80px;
+  text-align: center;
+}
+.empty-icon {
+  font-size: 72px;
+}
+.empty-title {
+  margin-top: 20px;
+  font-size: 24px;
+  font-weight: 700;
+}
+.empty-text {
+  margin-top: 10px;
+  color: var(--grey);
+  line-height: 1.6;
+}
 .back-btn > .material-icons {
   font-size: 27px;
 }
