@@ -37,8 +37,12 @@ ChartJS.register(
 
 const store = useJournalStore();
 
+const checkinEntries = computed(() =>
+  store.entries.filter((entry) => entry.mood != null)
+);
+
 const chartData = computed(() => ({
-  labels: store.entries.map((entry) =>
+  labels: checkinEntries.value.map((entry) =>
     new Date(entry.date).toLocaleDateString("ru-RU", {
       day: "2-digit",
       month: "2-digit",
@@ -46,7 +50,7 @@ const chartData = computed(() => ({
   ),
   datasets: [
     {
-      data: store.entries.map((entry) => entry.mood),
+      data: checkinEntries.value.map((entry) => entry.mood),
       borderColor: "#4caf50",
       backgroundColor: "#4caf50",
       tension: 0.4,
