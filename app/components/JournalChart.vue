@@ -39,7 +39,10 @@ const store = useJournalStore();
 
 const chartData = computed(() => ({
   labels: store.entries.map((entry) =>
-    new Date(entry.date).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })
+    new Date(entry.date).toLocaleDateString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+    })
   ),
   datasets: [
     {
@@ -47,7 +50,8 @@ const chartData = computed(() => ({
       borderColor: "#4caf50",
       backgroundColor: "#4caf50",
       tension: 0.4,
-      pointRadius: 6,
+      pointRadius: 9,
+      pointHoverRadius: 11,
     },
   ],
 }));
@@ -64,6 +68,7 @@ const chartOptions = {
       max: 5,
       ticks: {
         stepSize: 1,
+        font: { size: 20 },
         callback(value: number) {
           return moodEmojis[value] || "";
         },
@@ -96,7 +101,19 @@ const chartOptions = {
   justify-content: center;
   color: var(--black1);
 }
-.back-btn:hover { background: rgba(0,0,0,0.05); }
-.chart-card { padding: 24px; border-radius: 24px; }
-.title { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+.back-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+.chart-card {
+  padding: 24px;
+  border-radius: 24px;
+}
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.back-btn > .material-icons {
+  font-size: 34px;
+}
 </style>

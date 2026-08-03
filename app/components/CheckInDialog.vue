@@ -47,7 +47,7 @@
       <q-btn
         unelevated
         no-caps
-        color="#4caf50"
+        color="primary"
         text-color="white"
         class="save-btn"
         label="Зафиксировать"
@@ -86,11 +86,14 @@ function save() {
 
 <style>
 .checkin-card {
-  width: 100%;
-  max-width: 460px;
+  width: min(92vw, 460px);
   padding: 28px;
   border-radius: 24px;
   background: var(--grey-hover);
+}
+.note-input .q-field--outlined .q-field__control,
+.note-input .q-field--outlined .q-field__control:before {
+  border-radius: 14px;
 }
 .hero { text-align: center; margin-bottom: 28px; }
 .hero .title { font-size: 28px; font-weight: 700; line-height: 1.3; color: var(--black1); }
@@ -113,9 +116,9 @@ function save() {
 }
 .tip-title { font-weight: 700; margin-bottom: 8px; color: var(--green-deep); }
 .tip-text { font-size: 14px; line-height: 1.6; color: var(--green-deep); }
-.save-btn {
+.checkin-card .save-btn {
   width: 100%; height: 56px; border-radius: 18px; color: white;
   font-size: 16px; font-weight: 700; background: var(--gradient-green-bright);
 }
-.save-btn:disabled { opacity: 0.5; }
+.checkin-card .save-btn:disabled { opacity: 0.5; }
 </style>

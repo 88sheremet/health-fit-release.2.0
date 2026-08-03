@@ -98,4 +98,7 @@ function formatDate(date: string) {
 .empty-icon { font-size: 72px; }
 .empty-title { margin-top: 20px; font-size: 24px; font-weight: 700; }
 .empty-text { margin-top: 10px; color: var(--grey); line-height: 1.6; }
+.back-btn > .material-icons {
+  font-size: 27px;
+}
 </style>

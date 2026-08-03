@@ -47,8 +47,21 @@
         <div class="hint-text">
           Твой путь начинается с понимания текущего состояния
         </div>
-        <q-btn unelevated no-caps class="start-btn" label="Начать скрининг" @click="startQuestions" />
-        <q-btn flat no-caps class="skip-btn" label="Пропустить" @click="skip" />
+        <q-btn
+          unelevated
+          no-caps
+          class="start-btn"
+          label="Начать скрининг"
+          @click="startQuestions"
+        />
+        <q-btn
+          flat
+          no-caps
+          text-color="primary"
+          class="skip-btn"
+          label="Пропустить"
+          @click="skip"
+        />
       </div>
     </div>
   </div>
@@ -152,9 +165,23 @@ const startQuestions = () => {
   font-size: 24px;
   flex-shrink: 0;
 }
-.green { background: var(--icon-green-bg); color: var(--green); }
-.blue { background: var(--icon-blue-bg); color: var(--blue); }
-.orange { background: var(--icon-orange-bg); color: var(--orange); }
+.green {
+  background: var(--icon-green-bg);
+  color: var(--green);
+}
+.blue {
+  background: var(--icon-blue-bg);
+  color: var(--blue);
+  position: relative;
+}
+.orange {
+  background: var(--icon-orange-bg);
+  color: var(--orange);
+}
+.info-icon.blue .material-icons {
+  position: absolute;
+  left: 28%;
+}
 .info-title {
   font-size: 17px;
   font-weight: 600;
@@ -188,10 +215,22 @@ const startQuestions = () => {
   color: var(--white);
   box-shadow: var(--start-btn-shadow);
 }
-.skip-btn { margin-top: 8px; }
+.skip-btn {
+  margin-top: 8px;
+  width: 100%;
+}
 @keyframes pulse {
-  0% { transform: scale(1); opacity: 0.7; }
-  50% { transform: scale(1.15); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.7; }
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
 }
 </style>

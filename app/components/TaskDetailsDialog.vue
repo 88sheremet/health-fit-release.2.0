@@ -53,7 +53,7 @@ defineEmits(["update:modelValue"]);
 
 <style scoped>
 .dialog {
-  width: 100%;
+  width: min(92vw, 700px);
   max-width: 700px;
   max-height: 90vh;
   border-radius: 28px;

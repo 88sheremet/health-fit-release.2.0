@@ -13,8 +13,8 @@
       </div>
       <q-linear-progress
         :value="screeningStore.progress"
-        color="#4caf50"
-        track-color="#e0e0e0"
+        color="primary"
+        track-color="grey-4"
         rounded
         size="10px"
       />

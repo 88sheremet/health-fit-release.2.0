@@ -10,6 +10,11 @@ export default defineNuxtConfig({
 
   quasar: {
     plugins: ["Notify", "Dialog"],
+    config: {
+      brand: {
+        primary: "#4caf50",
+      },
+    },
   },
 
   app: {
