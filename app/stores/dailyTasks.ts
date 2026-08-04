@@ -53,9 +53,7 @@ function dbTasksForDay(rows: DbDailyTask[], dayIndex: number): Task[] {
   const result: Task[] = [];
 
   for (const type of TASK_TYPES) {
-    const list = (byType.get(type) ?? [])
-      .slice()
-      .sort((a, b) => a.day - b.day);
+    const list = (byType.get(type) ?? []).slice().sort((a, b) => a.day - b.day);
 
     if (!list.length) continue;
 
@@ -100,12 +98,12 @@ export const useTaskStore = defineStore("tasks", {
     },
 
     todayTasks(): Task[] {
-  if (this.isRestDay) {
-    return [];
-  }
+      if (this.isRestDay) {
+        return [];
+      }
 
-  return dbTasksForDay(this.tasks, this.dayIndex);
-},
+      return dbTasksForDay(this.tasks, this.dayIndex);
+    },
 
     completedCount(state): number {
       return Object.values(state.completed).filter(Boolean).length;
@@ -113,54 +111,50 @@ export const useTaskStore = defineStore("tasks", {
   },
 
   actions: {
-   async init() {
-  await this.loadTasks();
+    async init() {
+      await this.loadTasks();
 
-  const today = new Date().toDateString();
+      const today = new Date().toDateString();
 
-  if (!this.startDate) {
-    this.startDate = new Date().toISOString();
-    localStorage.setItem(
-      "recovery-start-date",
-      this.startDate
-    );
-  }
+      if (!this.startDate) {
+        this.startDate = new Date().toISOString();
+        localStorage.setItem("recovery-start-date", this.startDate);
+      }
 
-  if (!this.lastVisitDate) {
-    this.lastVisitDate = today;
-    this.streak = 1;
-    return;
-  }
+      if (!this.lastVisitDate) {
+        this.lastVisitDate = today;
+        this.streak = 1;
+        return;
+      }
 
-  const lastVisit = new Date(this.lastVisitDate);
-  const currentDate = new Date(today);
+      const lastVisit = new Date(this.lastVisitDate);
+      const currentDate = new Date(today);
 
-  const diffDays = Math.floor(
-    (currentDate.getTime() - lastVisit.getTime()) /
-      (1000 * 60 * 60 * 24)
-  );
+      const diffDays = Math.floor(
+        (currentDate.getTime() - lastVisit.getTime()) / (1000 * 60 * 60 * 24),
+      );
 
-  if (diffDays === 1) {
-    this.streak++;
-  } else if (diffDays > 1) {
-    this.streak = 1;
-  }
+      if (diffDays === 1) {
+        this.streak++;
+      } else if (diffDays > 1) {
+        this.streak = 1;
+      }
 
-  this.lastVisitDate = today;
-},
+      this.lastVisitDate = today;
+    },
 
-async loadTasks() {
-  this.loading = true;
+    async loadTasks() {
+      this.loading = true;
 
-  try {
-    this.tasks = await getDailyTasks();
-  } catch (e) {
-    console.error("Не удалось загрузить задачи", e);
-  } finally {
-    this.loading = false;
-    this.tasksLoaded = true;
-  }
-},
+      try {
+        this.tasks = await getDailyTasks();
+      } catch (e) {
+        console.error("Не удалось загрузить задачи", e);
+      } finally {
+        this.loading = false;
+        this.tasksLoaded = true;
+      }
+    },
 
     completeTask(task: Task) {
       if (this.completed[task.id]) {

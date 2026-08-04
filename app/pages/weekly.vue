@@ -42,6 +42,9 @@
 
 <script setup lang="ts">
 import { useWeeklyTaskStore } from "~/stores/weeklyTasks";
+const weeklyStore = useWeeklyTaskStore();
+
+await weeklyStore.init();
 
 const store = useWeeklyTaskStore();
 

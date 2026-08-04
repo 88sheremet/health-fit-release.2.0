@@ -108,34 +108,29 @@ export const useScreeningStore = defineStore("screening", {
     progress: (state) => (state.currentBlock + 1) / state.blocks.length,
 
     dominantProblem(state): string {
+      const physical = state.blockScores[1] || 0;
+      const food = state.blockScores[2] || 0;
+      const mind = state.blockScores[3] || 0;
 
-  const physical = state.blockScores[1] || 0
-  const food = state.blockScores[2] || 0
-  const mind = state.blockScores[3] || 0
+      const max = Math.max(physical, food, mind);
 
-  const max = Math.max(
-    physical,
-    food,
-    mind
-  )
+      if (max === physical) {
+        return "physical";
+      }
 
-  if (max === physical) {
-    return 'physical'
-  }
+      if (max === food) {
+        return "food";
+      }
 
-  if (max === food) {
-    return 'food'
-  }
-
-  return 'mind'
-},
+      return "mind";
+    },
   },
 
   actions: {
-     completeScreening() {
-      this.screeningCompleted = true
+    completeScreening() {
+      this.screeningCompleted = true;
     },
-    
+
     setAnswer(questionId: number, value: number) {
       this.answers[questionId] = value;
     },

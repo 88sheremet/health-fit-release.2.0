@@ -1,6 +1,11 @@
 import { defineStore } from "pinia";
-import weeklyTasks from "~/mocks/weeklyTasks/weeklyTasks.json";
+
 import { useTaskStore } from "./dailyTasks";
+
+import {
+  getWeeklyTasks,
+  type DbWeeklyTask,
+} from "~/services/weeklyTask.service";
 
 import type { WeeklyTask } from "../interfaces/WeeklyTask.interface";
 import type { WeeklyState } from "../interfaces/WeeklyState.interface";
@@ -8,27 +13,18 @@ import type { WeeklyState } from "../interfaces/WeeklyState.interface";
 export const useWeeklyTaskStore = defineStore("weeklyTasks", {
   state: (): WeeklyState => ({
     completed: {},
+    tasks: [],
+    tasksLoaded: false,
   }),
 
   getters: {
-    currentTask(): WeeklyTask {
-      const weekIndex = this.currentWeek - 1;
-
-      return weeklyTasks.weeklyTasks[
-        weekIndex % weeklyTasks.weeklyTasks.length
-      ];
-    },
-
     currentWeek(): number {
       const startDate = localStorage.getItem("recovery-start-date");
 
-      if (!startDate) {
-        return 1;
-      }
+      if (!startDate) return 1;
 
       const diffDays = Math.floor(
-        (Date.now() - new Date(startDate).getTime()) /
-          (1000 * 60 * 60 * 24)
+        (Date.now() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24),
       );
 
       return Math.floor(diffDays / 7) + 1;
@@ -37,27 +33,57 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
     currentDayWithinWeek(): number {
       const startDate = localStorage.getItem("recovery-start-date");
 
-      if (!startDate) {
-        return 1;
-      }
+      if (!startDate) return 1;
 
       const diffDays = Math.floor(
-        (Date.now() - new Date(startDate).getTime()) /
-          (1000 * 60 * 60 * 24)
+        (Date.now() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24),
       );
 
       return (diffDays % 7) + 1;
     },
 
+    currentTask(state): WeeklyTask {
+      const weekIndex = this.currentWeek - 1;
+
+      if (state.tasksLoaded && state.tasks.length) {
+        const row =
+          state.tasks.find((task) => task.week === this.currentWeek) ??
+          state.tasks[weekIndex % state.tasks.length];
+
+        return {
+          nameProgram: row.title,
+          whatDoing: row.what_doing,
+          whyDoing: row.why_doing,
+        };
+      }
+
+      return weeklyTasks.weeklyTasks[
+        weekIndex % weeklyTasks.weeklyTasks.length
+      ];
+    },
+
     canComplete(): boolean {
-      return (
-        this.currentDayWithinWeek >= 6 &&
-        this.currentDayWithinWeek <= 7
-      );
+      return this.currentDayWithinWeek >= 6 && this.currentDayWithinWeek <= 7;
     },
   },
 
   actions: {
+    async loadTasks() {
+      try {
+        this.tasks = await getWeeklyTasks();
+      } catch (e) {
+        console.error("Не удалось загрузить weekly_tasks", e);
+      } finally {
+        this.tasksLoaded = true;
+      }
+    },
+
+    async init() {
+      if (!this.tasksLoaded) {
+        await this.loadTasks();
+      }
+    },
+
     completeCurrentTask() {
       this.completed[this.currentWeek] = true;
     },
@@ -73,5 +99,7 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
     },
   },
 
-  persist: true,
+  persist: {
+    paths: ["completed"],
+  },
 });

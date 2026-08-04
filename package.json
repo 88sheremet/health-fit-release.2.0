@@ -8,7 +8,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare && node scripts/patch-nuxt-b2005.mjs",
-    "import:daily": "node scripts/importDailyTasks.mjs"
+    "import:daily": "node scripts/importDailyTasks.mjs",
+    "import:weekly": "node scripts/importWeeklyTasks.mjs"
   },
   "dependencies": {
     "@pinia/nuxt": "^1.0.1",
