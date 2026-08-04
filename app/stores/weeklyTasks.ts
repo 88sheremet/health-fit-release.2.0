@@ -2,10 +2,7 @@ import { defineStore } from "pinia";
 
 import { useTaskStore } from "./dailyTasks";
 
-import {
-  getWeeklyTasks,
-  type DbWeeklyTask,
-} from "~/services/weeklyTask.service";
+import { getWeeklyTasks } from "~/services/weeklyTask.service";
 
 import type { WeeklyTask } from "../interfaces/WeeklyTask.interface";
 import type { WeeklyState } from "../interfaces/WeeklyState.interface";
@@ -19,24 +16,30 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
 
   getters: {
     currentWeek(): number {
-      const startDate = localStorage.getItem("recovery-start-date");
+      const dailyStore = useTaskStore();
 
-      if (!startDate) return 1;
+      if (!dailyStore.startDate) {
+        return 1;
+      }
 
       const diffDays = Math.floor(
-        (Date.now() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24),
+        (Date.now() - new Date(dailyStore.startDate).getTime()) /
+          (1000 * 60 * 60 * 24),
       );
 
       return Math.floor(diffDays / 7) + 1;
     },
 
     currentDayWithinWeek(): number {
-      const startDate = localStorage.getItem("recovery-start-date");
+      const dailyStore = useTaskStore();
 
-      if (!startDate) return 1;
+      if (!dailyStore.startDate) {
+        return 1;
+      }
 
       const diffDays = Math.floor(
-        (Date.now() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24),
+        (Date.now() - new Date(dailyStore.startDate).getTime()) /
+          (1000 * 60 * 60 * 24),
       );
 
       return (diffDays % 7) + 1;
@@ -71,8 +74,8 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
     async loadTasks() {
       try {
         this.tasks = await getWeeklyTasks();
-      } catch (e) {
-        console.error("Не удалось загрузить weekly_tasks", e);
+      } catch (error) {
+        console.error("Не удалось загрузить weekly_tasks", error);
       } finally {
         this.tasksLoaded = true;
       }
