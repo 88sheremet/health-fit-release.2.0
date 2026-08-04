@@ -14,6 +14,10 @@ type HydrationStrategies = {
 type LazyComponent<T> = DefineComponent<HydrationStrategies, {}, {}, {}, {}, {}, {}, { hydrated: () => void }> & T
 
 interface _GlobalComponents {
+  BottomNavigation: typeof import("../../app/components/BottomNavigation.vue")['default']
+  CheckInDialog: typeof import("../../app/components/CheckInDialog.vue")['default']
+  JournalChart: typeof import("../../app/components/JournalChart.vue")['default']
+  TaskDetailsDialog: typeof import("../../app/components/TaskDetailsDialog.vue")['default']
   NuxtWelcome: typeof import("../../node_modules/nuxt/dist/app/components/welcome.vue")['default']
   NuxtLayout: typeof import("../../node_modules/nuxt/dist/app/components/nuxt-layout")['default']
   NuxtErrorBoundary: typeof import("../../node_modules/nuxt/dist/app/components/nuxt-error-boundary.vue")['default']
@@ -27,7 +31,130 @@ interface _GlobalComponents {
   NuxtAnnouncer: typeof import("../../node_modules/nuxt/dist/app/components/nuxt-announcer")['default']
   NuxtImg: typeof import("../../node_modules/nuxt/dist/app/components/nuxt-stubs")['NuxtImg']
   NuxtPicture: typeof import("../../node_modules/nuxt/dist/app/components/nuxt-stubs")['NuxtPicture']
-  NuxtPage: typeof import("../../node_modules/nuxt/dist/pages/runtime/page-placeholder")['default']
+  QAjaxBar: typeof import("quasar")['QAjaxBar']
+  QAvatar: typeof import("quasar")['QAvatar']
+  QBadge: typeof import("quasar")['QBadge']
+  QBanner: typeof import("quasar")['QBanner']
+  QBar: typeof import("quasar")['QBar']
+  QBreadcrumbs: typeof import("quasar")['QBreadcrumbs']
+  QBreadcrumbsEl: typeof import("quasar")['QBreadcrumbsEl']
+  QBtn: typeof import("quasar")['QBtn']
+  QBtnDropdown: typeof import("quasar")['QBtnDropdown']
+  QBtnGroup: typeof import("quasar")['QBtnGroup']
+  QBtnToggle: typeof import("quasar")['QBtnToggle']
+  QCard: typeof import("quasar")['QCard']
+  QCardActions: typeof import("quasar")['QCardActions']
+  QCardSection: typeof import("quasar")['QCardSection']
+  QCarousel: typeof import("quasar")['QCarousel']
+  QCarouselControl: typeof import("quasar")['QCarouselControl']
+  QCarouselSlide: typeof import("quasar")['QCarouselSlide']
+  QChatMessage: typeof import("quasar")['QChatMessage']
+  QCheckbox: typeof import("quasar")['QCheckbox']
+  QChip: typeof import("quasar")['QChip']
+  QCircularProgress: typeof import("quasar")['QCircularProgress']
+  QColor: typeof import("quasar")['QColor']
+  QDate: typeof import("quasar")['QDate']
+  QDialog: typeof import("quasar")['QDialog']
+  QDrawer: typeof import("quasar")['QDrawer']
+  QEditor: typeof import("quasar")['QEditor']
+  QExpansionItem: typeof import("quasar")['QExpansionItem']
+  QFab: typeof import("quasar")['QFab']
+  QFabAction: typeof import("quasar")['QFabAction']
+  QField: typeof import("quasar")['QField']
+  QFile: typeof import("quasar")['QFile']
+  QFooter: typeof import("quasar")['QFooter']
+  QForm: typeof import("quasar")['QForm']
+  QFormChildMixin: typeof import("quasar")['QFormChildMixin']
+  QHeader: typeof import("quasar")['QHeader']
+  QIcon: typeof import("quasar")['QIcon']
+  QImg: typeof import("quasar")['QImg']
+  QInfiniteScroll: typeof import("quasar")['QInfiniteScroll']
+  QInnerLoading: typeof import("quasar")['QInnerLoading']
+  QInput: typeof import("quasar")['QInput']
+  QIntersection: typeof import("quasar")['QIntersection']
+  QItem: typeof import("quasar")['QItem']
+  QItemLabel: typeof import("quasar")['QItemLabel']
+  QItemSection: typeof import("quasar")['QItemSection']
+  QList: typeof import("quasar")['QList']
+  QKnob: typeof import("quasar")['QKnob']
+  QLayout: typeof import("quasar")['QLayout']
+  QLinearProgress: typeof import("quasar")['QLinearProgress']
+  QMarkupTable: typeof import("quasar")['QMarkupTable']
+  QMenu: typeof import("quasar")['QMenu']
+  QNoSsr: typeof import("quasar")['QNoSsr']
+  QOptionGroup: typeof import("quasar")['QOptionGroup']
+  QPage: typeof import("quasar")['QPage']
+  QPageContainer: typeof import("quasar")['QPageContainer']
+  QPageScroller: typeof import("quasar")['QPageScroller']
+  QPageSticky: typeof import("quasar")['QPageSticky']
+  QPagination: typeof import("quasar")['QPagination']
+  QParallax: typeof import("quasar")['QParallax']
+  QPopupEdit: typeof import("quasar")['QPopupEdit']
+  QPopupProxy: typeof import("quasar")['QPopupProxy']
+  QPullToRefresh: typeof import("quasar")['QPullToRefresh']
+  QRadio: typeof import("quasar")['QRadio']
+  QRange: typeof import("quasar")['QRange']
+  QRating: typeof import("quasar")['QRating']
+  QResizeObserver: typeof import("quasar")['QResizeObserver']
+  QResponsive: typeof import("quasar")['QResponsive']
+  QScrollArea: typeof import("quasar")['QScrollArea']
+  QScrollObserver: typeof import("quasar")['QScrollObserver']
+  QSelect: typeof import("quasar")['QSelect']
+  QSeparator: typeof import("quasar")['QSeparator']
+  QSkeleton: typeof import("quasar")['QSkeleton']
+  QSlideItem: typeof import("quasar")['QSlideItem']
+  QSlideTransition: typeof import("quasar")['QSlideTransition']
+  QSlider: typeof import("quasar")['QSlider']
+  QSpace: typeof import("quasar")['QSpace']
+  QSpinner: typeof import("quasar")['QSpinner']
+  QSpinnerAudio: typeof import("quasar")['QSpinnerAudio']
+  QSpinnerBall: typeof import("quasar")['QSpinnerBall']
+  QSpinnerBars: typeof import("quasar")['QSpinnerBars']
+  QSpinnerBox: typeof import("quasar")['QSpinnerBox']
+  QSpinnerClock: typeof import("quasar")['QSpinnerClock']
+  QSpinnerComment: typeof import("quasar")['QSpinnerComment']
+  QSpinnerCube: typeof import("quasar")['QSpinnerCube']
+  QSpinnerDots: typeof import("quasar")['QSpinnerDots']
+  QSpinnerFacebook: typeof import("quasar")['QSpinnerFacebook']
+  QSpinnerGears: typeof import("quasar")['QSpinnerGears']
+  QSpinnerGrid: typeof import("quasar")['QSpinnerGrid']
+  QSpinnerHearts: typeof import("quasar")['QSpinnerHearts']
+  QSpinnerHourglass: typeof import("quasar")['QSpinnerHourglass']
+  QSpinnerInfinity: typeof import("quasar")['QSpinnerInfinity']
+  QSpinnerIos: typeof import("quasar")['QSpinnerIos']
+  QSpinnerOrbit: typeof import("quasar")['QSpinnerOrbit']
+  QSpinnerOval: typeof import("quasar")['QSpinnerOval']
+  QSpinnerPie: typeof import("quasar")['QSpinnerPie']
+  QSpinnerPuff: typeof import("quasar")['QSpinnerPuff']
+  QSpinnerRadio: typeof import("quasar")['QSpinnerRadio']
+  QSpinnerRings: typeof import("quasar")['QSpinnerRings']
+  QSpinnerTail: typeof import("quasar")['QSpinnerTail']
+  QSplitter: typeof import("quasar")['QSplitter']
+  QStep: typeof import("quasar")['QStep']
+  QStepper: typeof import("quasar")['QStepper']
+  QStepperNavigation: typeof import("quasar")['QStepperNavigation']
+  QTabPanel: typeof import("quasar")['QTabPanel']
+  QTabPanels: typeof import("quasar")['QTabPanels']
+  QTable: typeof import("quasar")['QTable']
+  QTd: typeof import("quasar")['QTd']
+  QTh: typeof import("quasar")['QTh']
+  QTr: typeof import("quasar")['QTr']
+  QRouteTab: typeof import("quasar")['QRouteTab']
+  QTab: typeof import("quasar")['QTab']
+  QTabs: typeof import("quasar")['QTabs']
+  QTime: typeof import("quasar")['QTime']
+  QTimeline: typeof import("quasar")['QTimeline']
+  QTimelineEntry: typeof import("quasar")['QTimelineEntry']
+  QToggle: typeof import("quasar")['QToggle']
+  QToolbar: typeof import("quasar")['QToolbar']
+  QToolbarTitle: typeof import("quasar")['QToolbarTitle']
+  QTooltip: typeof import("quasar")['QTooltip']
+  QTree: typeof import("quasar")['QTree']
+  QUploader: typeof import("quasar")['QUploader']
+  QUploaderAddTrigger: typeof import("quasar")['QUploaderAddTrigger']
+  QVideo: typeof import("quasar")['QVideo']
+  QVirtualScroll: typeof import("quasar")['QVirtualScroll']
+  NuxtPage: typeof import("../../node_modules/nuxt/dist/pages/runtime/page")['default']
   NoScript: typeof import("../../node_modules/nuxt/dist/head/runtime/components")['NoScript']
   Link: typeof import("../../node_modules/nuxt/dist/head/runtime/components")['Link']
   Base: typeof import("../../node_modules/nuxt/dist/head/runtime/components")['Base']
@@ -38,6 +165,10 @@ interface _GlobalComponents {
   Html: typeof import("../../node_modules/nuxt/dist/head/runtime/components")['Html']
   Body: typeof import("../../node_modules/nuxt/dist/head/runtime/components")['Body']
   NuxtIsland: typeof import("../../node_modules/nuxt/dist/app/components/nuxt-island")['default']
+  LazyBottomNavigation: LazyComponent<typeof import("../../app/components/BottomNavigation.vue")['default']>
+  LazyCheckInDialog: LazyComponent<typeof import("../../app/components/CheckInDialog.vue")['default']>
+  LazyJournalChart: LazyComponent<typeof import("../../app/components/JournalChart.vue")['default']>
+  LazyTaskDetailsDialog: LazyComponent<typeof import("../../app/components/TaskDetailsDialog.vue")['default']>
   LazyNuxtWelcome: LazyComponent<typeof import("../../node_modules/nuxt/dist/app/components/welcome.vue")['default']>
   LazyNuxtLayout: LazyComponent<typeof import("../../node_modules/nuxt/dist/app/components/nuxt-layout")['default']>
   LazyNuxtErrorBoundary: LazyComponent<typeof import("../../node_modules/nuxt/dist/app/components/nuxt-error-boundary.vue")['default']>
@@ -51,7 +182,130 @@ interface _GlobalComponents {
   LazyNuxtAnnouncer: LazyComponent<typeof import("../../node_modules/nuxt/dist/app/components/nuxt-announcer")['default']>
   LazyNuxtImg: LazyComponent<typeof import("../../node_modules/nuxt/dist/app/components/nuxt-stubs")['NuxtImg']>
   LazyNuxtPicture: LazyComponent<typeof import("../../node_modules/nuxt/dist/app/components/nuxt-stubs")['NuxtPicture']>
-  LazyNuxtPage: LazyComponent<typeof import("../../node_modules/nuxt/dist/pages/runtime/page-placeholder")['default']>
+  LazyQAjaxBar: LazyComponent<typeof import("quasar")['QAjaxBar']>
+  LazyQAvatar: LazyComponent<typeof import("quasar")['QAvatar']>
+  LazyQBadge: LazyComponent<typeof import("quasar")['QBadge']>
+  LazyQBanner: LazyComponent<typeof import("quasar")['QBanner']>
+  LazyQBar: LazyComponent<typeof import("quasar")['QBar']>
+  LazyQBreadcrumbs: LazyComponent<typeof import("quasar")['QBreadcrumbs']>
+  LazyQBreadcrumbsEl: LazyComponent<typeof import("quasar")['QBreadcrumbsEl']>
+  LazyQBtn: LazyComponent<typeof import("quasar")['QBtn']>
+  LazyQBtnDropdown: LazyComponent<typeof import("quasar")['QBtnDropdown']>
+  LazyQBtnGroup: LazyComponent<typeof import("quasar")['QBtnGroup']>
+  LazyQBtnToggle: LazyComponent<typeof import("quasar")['QBtnToggle']>
+  LazyQCard: LazyComponent<typeof import("quasar")['QCard']>
+  LazyQCardActions: LazyComponent<typeof import("quasar")['QCardActions']>
+  LazyQCardSection: LazyComponent<typeof import("quasar")['QCardSection']>
+  LazyQCarousel: LazyComponent<typeof import("quasar")['QCarousel']>
+  LazyQCarouselControl: LazyComponent<typeof import("quasar")['QCarouselControl']>
+  LazyQCarouselSlide: LazyComponent<typeof import("quasar")['QCarouselSlide']>
+  LazyQChatMessage: LazyComponent<typeof import("quasar")['QChatMessage']>
+  LazyQCheckbox: LazyComponent<typeof import("quasar")['QCheckbox']>
+  LazyQChip: LazyComponent<typeof import("quasar")['QChip']>
+  LazyQCircularProgress: LazyComponent<typeof import("quasar")['QCircularProgress']>
+  LazyQColor: LazyComponent<typeof import("quasar")['QColor']>
+  LazyQDate: LazyComponent<typeof import("quasar")['QDate']>
+  LazyQDialog: LazyComponent<typeof import("quasar")['QDialog']>
+  LazyQDrawer: LazyComponent<typeof import("quasar")['QDrawer']>
+  LazyQEditor: LazyComponent<typeof import("quasar")['QEditor']>
+  LazyQExpansionItem: LazyComponent<typeof import("quasar")['QExpansionItem']>
+  LazyQFab: LazyComponent<typeof import("quasar")['QFab']>
+  LazyQFabAction: LazyComponent<typeof import("quasar")['QFabAction']>
+  LazyQField: LazyComponent<typeof import("quasar")['QField']>
+  LazyQFile: LazyComponent<typeof import("quasar")['QFile']>
+  LazyQFooter: LazyComponent<typeof import("quasar")['QFooter']>
+  LazyQForm: LazyComponent<typeof import("quasar")['QForm']>
+  LazyQFormChildMixin: LazyComponent<typeof import("quasar")['QFormChildMixin']>
+  LazyQHeader: LazyComponent<typeof import("quasar")['QHeader']>
+  LazyQIcon: LazyComponent<typeof import("quasar")['QIcon']>
+  LazyQImg: LazyComponent<typeof import("quasar")['QImg']>
+  LazyQInfiniteScroll: LazyComponent<typeof import("quasar")['QInfiniteScroll']>
+  LazyQInnerLoading: LazyComponent<typeof import("quasar")['QInnerLoading']>
+  LazyQInput: LazyComponent<typeof import("quasar")['QInput']>
+  LazyQIntersection: LazyComponent<typeof import("quasar")['QIntersection']>
+  LazyQItem: LazyComponent<typeof import("quasar")['QItem']>
+  LazyQItemLabel: LazyComponent<typeof import("quasar")['QItemLabel']>
+  LazyQItemSection: LazyComponent<typeof import("quasar")['QItemSection']>
+  LazyQList: LazyComponent<typeof import("quasar")['QList']>
+  LazyQKnob: LazyComponent<typeof import("quasar")['QKnob']>
+  LazyQLayout: LazyComponent<typeof import("quasar")['QLayout']>
+  LazyQLinearProgress: LazyComponent<typeof import("quasar")['QLinearProgress']>
+  LazyQMarkupTable: LazyComponent<typeof import("quasar")['QMarkupTable']>
+  LazyQMenu: LazyComponent<typeof import("quasar")['QMenu']>
+  LazyQNoSsr: LazyComponent<typeof import("quasar")['QNoSsr']>
+  LazyQOptionGroup: LazyComponent<typeof import("quasar")['QOptionGroup']>
+  LazyQPage: LazyComponent<typeof import("quasar")['QPage']>
+  LazyQPageContainer: LazyComponent<typeof import("quasar")['QPageContainer']>
+  LazyQPageScroller: LazyComponent<typeof import("quasar")['QPageScroller']>
+  LazyQPageSticky: LazyComponent<typeof import("quasar")['QPageSticky']>
+  LazyQPagination: LazyComponent<typeof import("quasar")['QPagination']>
+  LazyQParallax: LazyComponent<typeof import("quasar")['QParallax']>
+  LazyQPopupEdit: LazyComponent<typeof import("quasar")['QPopupEdit']>
+  LazyQPopupProxy: LazyComponent<typeof import("quasar")['QPopupProxy']>
+  LazyQPullToRefresh: LazyComponent<typeof import("quasar")['QPullToRefresh']>
+  LazyQRadio: LazyComponent<typeof import("quasar")['QRadio']>
+  LazyQRange: LazyComponent<typeof import("quasar")['QRange']>
+  LazyQRating: LazyComponent<typeof import("quasar")['QRating']>
+  LazyQResizeObserver: LazyComponent<typeof import("quasar")['QResizeObserver']>
+  LazyQResponsive: LazyComponent<typeof import("quasar")['QResponsive']>
+  LazyQScrollArea: LazyComponent<typeof import("quasar")['QScrollArea']>
+  LazyQScrollObserver: LazyComponent<typeof import("quasar")['QScrollObserver']>
+  LazyQSelect: LazyComponent<typeof import("quasar")['QSelect']>
+  LazyQSeparator: LazyComponent<typeof import("quasar")['QSeparator']>
+  LazyQSkeleton: LazyComponent<typeof import("quasar")['QSkeleton']>
+  LazyQSlideItem: LazyComponent<typeof import("quasar")['QSlideItem']>
+  LazyQSlideTransition: LazyComponent<typeof import("quasar")['QSlideTransition']>
+  LazyQSlider: LazyComponent<typeof import("quasar")['QSlider']>
+  LazyQSpace: LazyComponent<typeof import("quasar")['QSpace']>
+  LazyQSpinner: LazyComponent<typeof import("quasar")['QSpinner']>
+  LazyQSpinnerAudio: LazyComponent<typeof import("quasar")['QSpinnerAudio']>
+  LazyQSpinnerBall: LazyComponent<typeof import("quasar")['QSpinnerBall']>
+  LazyQSpinnerBars: LazyComponent<typeof import("quasar")['QSpinnerBars']>
+  LazyQSpinnerBox: LazyComponent<typeof import("quasar")['QSpinnerBox']>
+  LazyQSpinnerClock: LazyComponent<typeof import("quasar")['QSpinnerClock']>
+  LazyQSpinnerComment: LazyComponent<typeof import("quasar")['QSpinnerComment']>
+  LazyQSpinnerCube: LazyComponent<typeof import("quasar")['QSpinnerCube']>
+  LazyQSpinnerDots: LazyComponent<typeof import("quasar")['QSpinnerDots']>
+  LazyQSpinnerFacebook: LazyComponent<typeof import("quasar")['QSpinnerFacebook']>
+  LazyQSpinnerGears: LazyComponent<typeof import("quasar")['QSpinnerGears']>
+  LazyQSpinnerGrid: LazyComponent<typeof import("quasar")['QSpinnerGrid']>
+  LazyQSpinnerHearts: LazyComponent<typeof import("quasar")['QSpinnerHearts']>
+  LazyQSpinnerHourglass: LazyComponent<typeof import("quasar")['QSpinnerHourglass']>
+  LazyQSpinnerInfinity: LazyComponent<typeof import("quasar")['QSpinnerInfinity']>
+  LazyQSpinnerIos: LazyComponent<typeof import("quasar")['QSpinnerIos']>
+  LazyQSpinnerOrbit: LazyComponent<typeof import("quasar")['QSpinnerOrbit']>
+  LazyQSpinnerOval: LazyComponent<typeof import("quasar")['QSpinnerOval']>
+  LazyQSpinnerPie: LazyComponent<typeof import("quasar")['QSpinnerPie']>
+  LazyQSpinnerPuff: LazyComponent<typeof import("quasar")['QSpinnerPuff']>
+  LazyQSpinnerRadio: LazyComponent<typeof import("quasar")['QSpinnerRadio']>
+  LazyQSpinnerRings: LazyComponent<typeof import("quasar")['QSpinnerRings']>
+  LazyQSpinnerTail: LazyComponent<typeof import("quasar")['QSpinnerTail']>
+  LazyQSplitter: LazyComponent<typeof import("quasar")['QSplitter']>
+  LazyQStep: LazyComponent<typeof import("quasar")['QStep']>
+  LazyQStepper: LazyComponent<typeof import("quasar")['QStepper']>
+  LazyQStepperNavigation: LazyComponent<typeof import("quasar")['QStepperNavigation']>
+  LazyQTabPanel: LazyComponent<typeof import("quasar")['QTabPanel']>
+  LazyQTabPanels: LazyComponent<typeof import("quasar")['QTabPanels']>
+  LazyQTable: LazyComponent<typeof import("quasar")['QTable']>
+  LazyQTd: LazyComponent<typeof import("quasar")['QTd']>
+  LazyQTh: LazyComponent<typeof import("quasar")['QTh']>
+  LazyQTr: LazyComponent<typeof import("quasar")['QTr']>
+  LazyQRouteTab: LazyComponent<typeof import("quasar")['QRouteTab']>
+  LazyQTab: LazyComponent<typeof import("quasar")['QTab']>
+  LazyQTabs: LazyComponent<typeof import("quasar")['QTabs']>
+  LazyQTime: LazyComponent<typeof import("quasar")['QTime']>
+  LazyQTimeline: LazyComponent<typeof import("quasar")['QTimeline']>
+  LazyQTimelineEntry: LazyComponent<typeof import("quasar")['QTimelineEntry']>
+  LazyQToggle: LazyComponent<typeof import("quasar")['QToggle']>
+  LazyQToolbar: LazyComponent<typeof import("quasar")['QToolbar']>
+  LazyQToolbarTitle: LazyComponent<typeof import("quasar")['QToolbarTitle']>
+  LazyQTooltip: LazyComponent<typeof import("quasar")['QTooltip']>
+  LazyQTree: LazyComponent<typeof import("quasar")['QTree']>
+  LazyQUploader: LazyComponent<typeof import("quasar")['QUploader']>
+  LazyQUploaderAddTrigger: LazyComponent<typeof import("quasar")['QUploaderAddTrigger']>
+  LazyQVideo: LazyComponent<typeof import("quasar")['QVideo']>
+  LazyQVirtualScroll: LazyComponent<typeof import("quasar")['QVirtualScroll']>
+  LazyNuxtPage: LazyComponent<typeof import("../../node_modules/nuxt/dist/pages/runtime/page")['default']>
   LazyNoScript: LazyComponent<typeof import("../../node_modules/nuxt/dist/head/runtime/components")['NoScript']>
   LazyLink: LazyComponent<typeof import("../../node_modules/nuxt/dist/head/runtime/components")['Link']>
   LazyBase: LazyComponent<typeof import("../../node_modules/nuxt/dist/head/runtime/components")['Base']>

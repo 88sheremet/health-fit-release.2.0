@@ -18,10 +18,10 @@
         "./types/nitro-imports"
       ],
       "~/*": [
-        "../*"
+        "../app/*"
       ],
       "@/*": [
-        "../*"
+        "../app/*"
       ],
       "~~/*": [
         "../*"
@@ -34,9 +34,6 @@
       ],
       "@nuxt/devtools": [
         "../node_modules/@nuxt/devtools"
-      ],
-      "vue": [
-        "../node_modules/vue"
       ],
       "@vue/runtime-core": [
         "../node_modules/@vue/runtime-core"
@@ -137,6 +134,9 @@
   "exclude": [
     "../node_modules",
     "../node_modules/nuxt/node_modules",
+    "../node_modules/@pinia/nuxt/node_modules",
+    "../node_modules/pinia-plugin-persistedstate/node_modules",
+    "../node_modules/nuxt-quasar-ui/node_modules",
     "../node_modules/@nuxt/devtools/node_modules",
     "../node_modules/@nuxt/telemetry/node_modules",
     "../dist"

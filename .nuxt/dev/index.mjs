@@ -655,7 +655,11 @@ const _inlineRuntimeConfig = {
       }
     }
   },
-  "public": {}
+  "public": {
+    "supabaseUrl": "https://nypmxuihlerrynxumpko.supabase.co",
+    "supabaseKey": "sb_publishable_S4I_uOzLAcxUwK8s4cDTPA_7ndfuIap",
+    "piniaPluginPersistedstate": {}
+  }
 };
 const envOptions = {
   prefix: "NITRO_",
@@ -2074,7 +2078,7 @@ const serverDiagnostics = /* #__PURE__ */ defineDiagnostics({
 	}
 });
 
-const appHead = {"meta":[{"name":"viewport","content":"width=device-width, initial-scale=1"},{"charset":"utf-8"}],"link":[],"style":[],"script":[],"noscript":[]};
+const appHead = {"meta":[{"name":"viewport","content":"width=device-width, initial-scale=1"},{"charset":"utf-8"}],"link":[{"rel":"stylesheet","href":"https://fonts.googleapis.com/icon?family=Material+Icons"}],"style":[],"script":[],"noscript":[]};
 
 const appRootTag = "div";
 

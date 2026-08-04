@@ -11,7 +11,11 @@ import { RuntimeConfig as UserRuntimeConfig, PublicRuntimeConfig as UserPublicRu
    },
   }
   interface SharedPublicRuntimeConfig {
+   supabaseUrl: string,
 
+   supabaseKey: string,
+
+   piniaPluginPersistedstate: any,
   }
 declare module '@nuxt/schema' {
   interface RuntimeConfig extends UserRuntimeConfig {}
