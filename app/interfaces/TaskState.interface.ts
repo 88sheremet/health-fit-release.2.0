@@ -4,4 +4,7 @@ export interface TaskState {
   energy: number;
   streak: number;
   lastVisitDate: string;
+  tasks: unknown[];
+  tasksLoaded: boolean;
+  loading: boolean;
 }

@@ -2282,12 +2282,12 @@ var virtual_nuxt_node_modules_2F_cache_2Fnuxt_2F_nuxt_2Froutes_default = [
 	{
 		name: "daily",
 		path: "/daily",
-		component: () => import('../build/daily-DDs1ELJi.mjs')
+		component: () => import('../build/daily-lgQSy80Z.mjs')
 	},
 	{
 		name: "food-result",
 		path: "/food-result",
-		component: () => import('../build/food-result-vizB4Jye.mjs')
+		component: () => import('../build/food-result-BYUI6_xZ.mjs')
 	},
 	{
 		name: "journal",
@@ -2297,12 +2297,12 @@ var virtual_nuxt_node_modules_2F_cache_2Fnuxt_2F_nuxt_2Froutes_default = [
 	{
 		name: "journal-archive",
 		path: "/journal-archive",
-		component: () => import('../build/journal-archive-BNzqE2GQ.mjs')
+		component: () => import('../build/journal-archive-CYmT7Xgr.mjs')
 	},
 	{
 		name: "journal-chart",
 		path: "/journal-chart",
-		component: () => import('../build/journal-chart-Cbgr0JJv.mjs')
+		component: () => import('../build/journal-chart-D9qezMJd.mjs')
 	},
 	{
 		name: "login",
@@ -2312,7 +2312,7 @@ var virtual_nuxt_node_modules_2F_cache_2Fnuxt_2F_nuxt_2Froutes_default = [
 	{
 		name: "menu",
 		path: "/menu",
-		component: () => import('../build/menu-CPdD2JQt.mjs')
+		component: () => import('../build/menu-DN03JvCi.mjs')
 	},
 	{
 		name: "mind-result",
@@ -2332,7 +2332,7 @@ var virtual_nuxt_node_modules_2F_cache_2Fnuxt_2F_nuxt_2Froutes_default = [
 	{
 		name: "screening",
 		path: "/screening",
-		component: () => import('../build/screening-CkzOc1YD.mjs')
+		component: () => import('../build/screening-DL4iicqB.mjs')
 	},
 	{
 		name: "test",
@@ -2342,12 +2342,12 @@ var virtual_nuxt_node_modules_2F_cache_2Fnuxt_2F_nuxt_2Froutes_default = [
 	{
 		name: "test-db",
 		path: "/test-db",
-		component: () => import('../build/test-db-DpqFNKPz.mjs')
+		component: () => import('../build/test-db-DnsMJfA_.mjs')
 	},
 	{
 		name: "weekly",
 		path: "/weekly",
-		component: () => import('../build/weekly-D-sMNU1h.mjs')
+		component: () => import('../build/weekly-CzKiDate.mjs')
 	},
 	{
 		name: "welcome",
