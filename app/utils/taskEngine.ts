@@ -1,5 +1,11 @@
 export const DAY_COUNT = 30;
 
+export const MILLISECONDS_IN_DAY = 24 * 60 * 60 * 1000;
+
+export function getDaysSince(date: Date | string): number {
+  return Math.floor((Date.now() - new Date(date).getTime()) / MILLISECONDS_IN_DAY);
+}
+
 export function getTodayKey() {
   return new Date().toISOString().split("T")[0];
 }

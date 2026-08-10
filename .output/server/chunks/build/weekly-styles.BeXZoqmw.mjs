@@ -1,9 +1,0 @@
-//#region app/pages/weekly.vue?vue&type=style&index=0&scoped=82458c52&lang.css?inline&used
-var weekly_vue_vue_type_style_index_0_scoped_82458c52_lang_default = ".page[data-v-82458c52]{background:var(--bg-gradient-main);min-height:100vh;padding:20px 20px 100px}.header[data-v-82458c52]{margin-bottom:20px}.title[data-v-82458c52]{font-size:30px;font-weight:700}.subtitle[data-v-82458c52]{color:var(--grey);margin-top:4px}.task-card[data-v-82458c52]{border-radius:24px;padding:24px}.badge[data-v-82458c52]{background:var(--green-bg);color:var(--green-deep);border-radius:999px;align-items:center;gap:6px;margin-bottom:20px;padding:8px 14px;font-weight:600;display:inline-flex}.task-title[data-v-82458c52]{font-size:24px;font-weight:700}.section[data-v-82458c52],.task-title[data-v-82458c52]{margin-bottom:24px}.section-title[data-v-82458c52]{margin-bottom:10px;font-size:18px;font-weight:700}.text[data-v-82458c52]{color:var(--grey-dark);white-space:pre-line;line-height:1.7}.complete-btn[data-v-82458c52]{border-radius:16px;width:100%;height:54px}.success-banner[data-v-82458c52]{background:var(--green-bg);color:var(--green-deep);text-align:center;border-radius:12px;padding:12px 16px;font-weight:600}.week-day[data-v-82458c52]{color:var(--green);margin-top:6px;font-size:14px}.week-info[data-v-82458c52]{text-align:center;color:var(--grey);margin-top:12px;font-size:14px}";
-
-const weeklyStyles_BeXZoqmw = [
-  weekly_vue_vue_type_style_index_0_scoped_82458c52_lang_default
-];
-
-export { weeklyStyles_BeXZoqmw as default };
-//# sourceMappingURL=weekly-styles.BeXZoqmw.mjs.map

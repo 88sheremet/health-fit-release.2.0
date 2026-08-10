@@ -7,13 +7,16 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare && node scripts/patch-nuxt-b2005.mjs"
+    "postinstall": "nuxt prepare && node scripts/patch-nuxt-b2005.mjs",
+    "import:daily": "node scripts/importDailyTasks.mjs",
+    "import:weekly": "node scripts/importWeeklyTasks.mjs"
   },
   "dependencies": {
     "@pinia/nuxt": "^1.0.1",
     "@supabase/supabase-js": "^2.110.8",
     "@vueuse/core": "^14.3.0",
     "chart.js": "^4.5.1",
+    "dotenv": "^17.4.2",
     "nuxt": "^4.5.0",
     "nuxt-quasar-ui": "^3.1.0",
     "pinia-plugin-persistedstate": "^4.7.1",

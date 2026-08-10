@@ -1,6 +1,6 @@
 import { getCurrentInstance, watch, onMounted, ref, computed, onDeactivated, onBeforeUnmount, nextTick, h, onBeforeUpdate, inject, onActivated, Transition } from 'vue';
 import { a as noop, c as createComponent, b as client, i as isRuntimeSsrPreHydration, H as History, l as listenOpts, f as formKey, s as stopAndPrevent, p as prevent, d as stop } from '../virtual/entry.mjs';
-import { v as vmHasRouter, b as vmIsDestroyed, i as isKeyCode, c as QIcon, d as QSpinner, s as shouldIgnoreKey } from './QBtn.mjs';
+import { v as vmHasRouter, c as vmIsDestroyed, i as isKeyCode, d as QIcon, Q as QSpinner, s as shouldIgnoreKey } from './QBtn.mjs';
 import { u as useDarkProps, a as useDark } from './QCard.mjs';
 import { a as hSlot } from './render.mjs';
 

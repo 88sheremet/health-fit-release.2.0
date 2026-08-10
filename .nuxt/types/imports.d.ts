@@ -4,6 +4,7 @@ declare global {
   const $fetch: typeof import('../fetch.mjs').$fetch
   const DAY_COUNT: typeof import('../../app/utils/taskEngine').DAY_COUNT
   const Dialog: typeof import('../../node_modules/quasar').Dialog
+  const MILLISECONDS_IN_DAY: typeof import('../../app/utils/taskEngine').MILLISECONDS_IN_DAY
   const Notify: typeof import('../../node_modules/quasar').Notify
   const abortNavigation: typeof import('../../node_modules/nuxt/dist/app/composables/router').abortNavigation
   const acceptHMRUpdate: typeof import('../../node_modules/@pinia/nuxt/dist/runtime/composables').acceptHMRUpdate
@@ -37,6 +38,7 @@ declare global {
   const getCurrentInstance: typeof import('vue').getCurrentInstance
   const getCurrentScope: typeof import('vue').getCurrentScope
   const getDayIndex: typeof import('../../app/utils/taskEngine').getDayIndex
+  const getDaysSince: typeof import('../../app/utils/taskEngine').getDaysSince
   const getRouteRules: typeof import('../../node_modules/nuxt/dist/app/composables/manifest').getRouteRules
   const getTodayKey: typeof import('../../app/utils/taskEngine').getTodayKey
   const h: typeof import('vue').h
@@ -237,6 +239,7 @@ declare module 'vue' {
     readonly $fetch: UnwrapRef<typeof import('../fetch.mjs')['$fetch']>
     readonly DAY_COUNT: UnwrapRef<typeof import('../../app/utils/taskEngine')['DAY_COUNT']>
     readonly Dialog: UnwrapRef<typeof import('../../node_modules/quasar')['Dialog']>
+    readonly MILLISECONDS_IN_DAY: UnwrapRef<typeof import('../../app/utils/taskEngine')['MILLISECONDS_IN_DAY']>
     readonly Notify: UnwrapRef<typeof import('../../node_modules/quasar')['Notify']>
     readonly abortNavigation: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/router')['abortNavigation']>
     readonly acceptHMRUpdate: UnwrapRef<typeof import('../../node_modules/@pinia/nuxt/dist/runtime/composables')['acceptHMRUpdate']>
@@ -270,6 +273,7 @@ declare module 'vue' {
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly getDayIndex: UnwrapRef<typeof import('../../app/utils/taskEngine')['getDayIndex']>
+    readonly getDaysSince: UnwrapRef<typeof import('../../app/utils/taskEngine')['getDaysSince']>
     readonly getRouteRules: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/manifest')['getRouteRules']>
     readonly getTodayKey: UnwrapRef<typeof import('../../app/utils/taskEngine')['getTodayKey']>
     readonly h: UnwrapRef<typeof import('vue')['h']>

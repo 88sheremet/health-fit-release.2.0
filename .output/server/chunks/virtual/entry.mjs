@@ -2282,27 +2282,27 @@ var virtual_nuxt_node_modules_2F_cache_2Fnuxt_2F_nuxt_2Froutes_default = [
 	{
 		name: "daily",
 		path: "/daily",
-		component: () => import('../build/daily-DDs1ELJi.mjs')
+		component: () => import('../build/daily-CP37RvFh.mjs')
 	},
 	{
 		name: "food-result",
 		path: "/food-result",
-		component: () => import('../build/food-result-vizB4Jye.mjs')
+		component: () => import('../build/food-result-BH2Axkii.mjs')
 	},
 	{
 		name: "journal",
 		path: "/journal",
-		component: () => import('../build/journal-vbio9Kql.mjs')
+		component: () => import('../build/journal-D7RvzbDb.mjs')
 	},
 	{
 		name: "journal-archive",
 		path: "/journal-archive",
-		component: () => import('../build/journal-archive-BNzqE2GQ.mjs')
+		component: () => import('../build/journal-archive-CYmT7Xgr.mjs')
 	},
 	{
 		name: "journal-chart",
 		path: "/journal-chart",
-		component: () => import('../build/journal-chart-Cbgr0JJv.mjs')
+		component: () => import('../build/journal-chart-D9qezMJd.mjs')
 	},
 	{
 		name: "login",
@@ -2312,27 +2312,27 @@ var virtual_nuxt_node_modules_2F_cache_2Fnuxt_2F_nuxt_2Froutes_default = [
 	{
 		name: "menu",
 		path: "/menu",
-		component: () => import('../build/menu-CPdD2JQt.mjs')
+		component: () => import('../build/menu-BAYKXJ1_.mjs')
 	},
 	{
 		name: "mind-result",
 		path: "/mind-result",
-		component: () => import('../build/mind-result-T551fCci.mjs')
+		component: () => import('../build/mind-result-CHddcq9R.mjs')
 	},
 	{
 		name: "physical-result",
 		path: "/physical-result",
-		component: () => import('../build/physical-result-CfWjsDDj.mjs')
+		component: () => import('../build/physical-result-CvJOUNB0.mjs')
 	},
 	{
 		name: "questions",
 		path: "/questions",
-		component: () => import('../build/questions-D_RT6CkF.mjs')
+		component: () => import('../build/questions-DPrmVB3T.mjs')
 	},
 	{
 		name: "screening",
 		path: "/screening",
-		component: () => import('../build/screening-CkzOc1YD.mjs')
+		component: () => import('../build/screening-8WZOIopG.mjs')
 	},
 	{
 		name: "test",
@@ -2342,27 +2342,27 @@ var virtual_nuxt_node_modules_2F_cache_2Fnuxt_2F_nuxt_2Froutes_default = [
 	{
 		name: "test-db",
 		path: "/test-db",
-		component: () => import('../build/test-db-DpqFNKPz.mjs')
+		component: () => import('../build/test-db-DnsMJfA_.mjs')
 	},
 	{
 		name: "weekly",
 		path: "/weekly",
-		component: () => import('../build/weekly-D-sMNU1h.mjs')
+		component: () => import('../build/weekly-CRsDGT9M.mjs')
 	},
 	{
 		name: "welcome",
 		path: "/welcome",
-		component: () => import('../build/welcome-CDbV8p8a.mjs')
+		component: () => import('../build/welcome-BUPksfyn.mjs')
 	},
 	{
 		name: "slug",
 		path: "/:slug(.*)*",
-		component: () => import('../build/_...slug_-DVJF3xxk.mjs')
+		component: () => import('../build/_...slug_-CVMFqAca.mjs')
 	},
 	{
 		name: "index",
 		path: "/",
-		component: () => import('../build/pages-D226kIVd.mjs')
+		component: () => import('../build/pages-DFKMFVHF.mjs')
 	}
 ];
 //#endregion
@@ -3806,8 +3806,8 @@ var _sfc_main$1 = {
 		const statusText = _error.statusMessage ?? (is404 ? "Page Not Found" : "Internal Server Error");
 		const description = _error.message || _error.toString();
 		const stack = void 0;
-		const _Error404 = defineAsyncComponent(() => import('../build/error-404-DgrpgbKS.mjs'));
-		const _Error = defineAsyncComponent(() => import('../build/error-500-DBN03HI5.mjs'));
+		const _Error404 = defineAsyncComponent(() => import('../build/error-404-Co_NOcZj.mjs'));
+		const _Error = defineAsyncComponent(() => import('../build/error-500-CZkkGM2d.mjs'));
 		const ErrorTemplate = is404 ? _Error404 : _Error;
 		return (_ctx, _push, _parent, _attrs) => {
 			_push(ssrRenderComponent(unref(ErrorTemplate), mergeProps({
