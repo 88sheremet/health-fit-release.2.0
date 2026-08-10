@@ -1,13 +1,5 @@
 import { useSupabase } from "~/composables/useSupabase";
-
-export interface DbWeeklyTask {
-  id: string;
-  week: number;
-  title: string;
-  what_doing: string;
-  why_doing: string;
-  reward: number;
-}
+import type { DbWeeklyTask } from "~/interfaces/DbWeeklyTask.interface";
 
 export async function getWeeklyTasks(): Promise<DbWeeklyTask[]> {
   const supabase = useSupabase();

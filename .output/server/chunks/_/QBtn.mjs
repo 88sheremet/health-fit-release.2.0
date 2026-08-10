@@ -1289,5 +1289,5 @@ const QBtn = createComponent({
   }
 });
 
-export { QBtn as Q, useSize as a, vmIsDestroyed as b, QIcon as c, QSpinner as d, isKeyCode as i, shouldIgnoreKey as s, useSizeProps as u, vmHasRouter as v };
+export { QSpinner as Q, useSize as a, QBtn as b, vmIsDestroyed as c, QIcon as d, isKeyCode as i, shouldIgnoreKey as s, useSizeProps as u, vmHasRouter as v };
 //# sourceMappingURL=QBtn.mjs.map

@@ -4,23 +4,17 @@ import { getDayIndex, isRestDayByDate } from "~/utils/taskEngine";
 import { getDailyTasks } from "~/services/dailyTask.service";
 
 import type { Task } from "~/interfaces/Task.interface";
+import type { DbDailyTask } from "~/interfaces/DbDailyTask.interface";
 import type { TaskState } from "~/interfaces/TaskState.interface";
 
 const DAY_COUNT = 30;
 const TASK_TYPES = ["food", "mental", "physical"] as const;
 
-interface DbDailyTask {
-  id: string;
-  day: number;
-  type: (typeof TASK_TYPES)[number];
-  title: string;
-  what_doing: unknown;
-  why_doing: string;
-  reward: number | null;
-}
+const STANDARD_TASK_REWARD = 10;
+const PHYSICAL_TASK_REWARD = 15;
 
 function rewardForType(type: string): number {
-  return type === "physical" ? 15 : 10;
+  return type === "physical" ? PHYSICAL_TASK_REWARD : STANDARD_TASK_REWARD;
 }
 
 function normalizeWhatDoing(value: unknown): unknown {

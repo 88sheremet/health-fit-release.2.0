@@ -1,1 +1,0 @@
-import{a as e}from"./Cwrg6B__.js";import{F as t,R as n,b as r,p as i}from"./D1h5OiUR.js";var a=r({__name:`test`,setup(r){let{$supabase:a}=e();return t(async()=>{console.log(a)}),(e,t)=>(n(),i(`div`,null,`Supabase Test`))}});export{a as default};

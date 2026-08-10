@@ -1,6 +1,7 @@
 import { useSupabase } from "~/composables/useSupabase";
+import type { DbDailyTask } from "~/interfaces/DbDailyTask.interface";
 
-export async function getDailyTasks() {
+export async function getDailyTasks(): Promise<DbDailyTask[]> {
   const supabase = useSupabase();
 
   const { data, error } = await supabase
@@ -12,5 +13,5 @@ export async function getDailyTasks() {
     throw error;
   }
 
-  return data ?? [];
+  return (data ?? []) as DbDailyTask[];
 }
