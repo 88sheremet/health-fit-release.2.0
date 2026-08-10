@@ -4,6 +4,8 @@ import { useTaskStore } from "./dailyTasks";
 
 import { getWeeklyTasks } from "~/services/weeklyTask.service";
 
+import { getDaysSince } from "~/utils/taskEngine";
+
 import type { WeeklyTask } from "../interfaces/WeeklyTask.interface";
 import type { WeeklyState } from "../interfaces/WeeklyState.interface";
 
@@ -22,12 +24,7 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
         return 1;
       }
 
-      const diffDays = Math.floor(
-        (Date.now() - new Date(dailyStore.startDate).getTime()) /
-          (1000 * 60 * 60 * 24),
-      );
-
-      return Math.floor(diffDays / 7) + 1;
+      return Math.floor(getDaysSince(dailyStore.startDate) / 7) + 1;
     },
 
     currentDayWithinWeek(): number {
@@ -37,12 +34,7 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
         return 1;
       }
 
-      const diffDays = Math.floor(
-        (Date.now() - new Date(dailyStore.startDate).getTime()) /
-          (1000 * 60 * 60 * 24),
-      );
-
-      return (diffDays % 7) + 1;
+      return (getDaysSince(dailyStore.startDate) % 7) + 1;
     },
 
     currentTask(state): WeeklyTask {

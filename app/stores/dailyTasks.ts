@@ -44,12 +44,10 @@ function dbTasksForDay(rows: DbDailyTask[], dayIndex: number): Task[] {
     byType.set(row.type, list);
   }
 
-  const result: Task[] = [];
-
-  for (const type of TASK_TYPES) {
+  return TASK_TYPES.reduce<Task[]>((result, type) => {
     const list = (byType.get(type) ?? []).slice().sort((a, b) => a.day - b.day);
 
-    if (!list.length) continue;
+    if (!list.length) return result;
 
     const row =
       list.find((item) => item.day === targetDay) ??
@@ -63,9 +61,9 @@ function dbTasksForDay(rows: DbDailyTask[], dayIndex: number): Task[] {
       whatDoing: normalizeWhatDoing(row.what_doing),
       whyDoing: row.why_doing,
     });
-  }
 
-  return result;
+    return result;
+  }, []);
 }
 
 export const useTaskStore = defineStore("tasks", {

@@ -75,6 +75,7 @@
 import { computed, ref, nextTick } from "vue";
 import { useQuasar } from "quasar";
 import { useScreeningStore } from "~/stores/screening";
+import { DominantProblem } from "~/enums/DominantProblem.enum";
 import { routes } from "~/router/routes";
 
 const screeningStore = useScreeningStore();
@@ -124,9 +125,9 @@ const goNext = async () => {
     screeningStore.calculateCurrentBlockScore();
     screeningStore.completeScreening();
     const result = screeningStore.dominantProblem;
-    if (result === "physical") {
+    if (result === DominantProblem.Physical) {
       navigateTo(routes.results.physical);
-    } else if (result === "food") {
+    } else if (result === DominantProblem.Food) {
       navigateTo(routes.results.food);
     } else {
       navigateTo(routes.results.mind);

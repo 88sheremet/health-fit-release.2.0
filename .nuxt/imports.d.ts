@@ -34,7 +34,7 @@ export { setInterval } from '#app/compat/interval';
 export { definePageMeta, PageMeta } from '#app/composables/pages';
 export { defineLazyHydrationComponent } from '#app/composables/lazy-hydration';
 export { useSupabase } from '../app/composables/useSupabase';
-export { DAY_COUNT, getTodayKey, getDayIndex, isRestDayByDate, isRestDay } from '../app/utils/taskEngine';
+export { DAY_COUNT, MILLISECONDS_IN_DAY, getDaysSince, getTodayKey, getDayIndex, isRestDayByDate, isRestDay } from '../app/utils/taskEngine';
 export { useTaskStore } from '../app/stores/dailyTasks';
 export { useJournalStore } from '../app/stores/journal';
 export { useScreeningStore } from '../app/stores/screening';

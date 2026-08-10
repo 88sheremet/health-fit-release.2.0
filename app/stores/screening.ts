@@ -1,5 +1,7 @@
 import { defineStore } from "pinia";
 
+import { DominantProblem } from "../enums/DominantProblem.enum";
+
 import type { Question } from "../interfaces/Question.interface";
 import type { Block } from "../interfaces/Block.interface";
 import type { Answers } from "../interfaces/Answers.interface";
@@ -107,7 +109,7 @@ export const useScreeningStore = defineStore("screening", {
 
     progress: (state) => (state.currentBlock + 1) / state.blocks.length,
 
-    dominantProblem(state): string {
+    dominantProblem(state): DominantProblem {
       const physical = state.blockScores[1] || 0;
       const food = state.blockScores[2] || 0;
       const mind = state.blockScores[3] || 0;
@@ -115,14 +117,14 @@ export const useScreeningStore = defineStore("screening", {
       const max = Math.max(physical, food, mind);
 
       if (max === physical) {
-        return "physical";
+        return DominantProblem.Physical;
       }
 
       if (max === food) {
-        return "food";
+        return DominantProblem.Food;
       }
 
-      return "mind";
+      return DominantProblem.Mind;
     },
   },
 

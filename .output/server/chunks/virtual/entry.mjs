@@ -2282,7 +2282,7 @@ var virtual_nuxt_node_modules_2F_cache_2Fnuxt_2F_nuxt_2Froutes_default = [
 	{
 		name: "daily",
 		path: "/daily",
-		component: () => import('../build/daily-CQKlsIyi.mjs')
+		component: () => import('../build/daily-DMEUs6Eq.mjs')
 	},
 	{
 		name: "food-result",
@@ -2312,7 +2312,7 @@ var virtual_nuxt_node_modules_2F_cache_2Fnuxt_2F_nuxt_2Froutes_default = [
 	{
 		name: "menu",
 		path: "/menu",
-		component: () => import('../build/menu-whde5BnI.mjs')
+		component: () => import('../build/menu-BAYKXJ1_.mjs')
 	},
 	{
 		name: "mind-result",
@@ -2327,12 +2327,12 @@ var virtual_nuxt_node_modules_2F_cache_2Fnuxt_2F_nuxt_2Froutes_default = [
 	{
 		name: "questions",
 		path: "/questions",
-		component: () => import('../build/questions-DU6rAcYu.mjs')
+		component: () => import('../build/questions-DPrmVB3T.mjs')
 	},
 	{
 		name: "screening",
 		path: "/screening",
-		component: () => import('../build/screening-C3R8N_rr.mjs')
+		component: () => import('../build/screening-8WZOIopG.mjs')
 	},
 	{
 		name: "test",
@@ -2347,7 +2347,7 @@ var virtual_nuxt_node_modules_2F_cache_2Fnuxt_2F_nuxt_2Froutes_default = [
 	{
 		name: "weekly",
 		path: "/weekly",
-		component: () => import('../build/weekly-Dw0A_QiX.mjs')
+		component: () => import('../build/weekly-v0ESx6X6.mjs')
 	},
 	{
 		name: "welcome",
