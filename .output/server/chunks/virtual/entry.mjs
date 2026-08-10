@@ -2282,7 +2282,7 @@ var virtual_nuxt_node_modules_2F_cache_2Fnuxt_2F_nuxt_2Froutes_default = [
 	{
 		name: "daily",
 		path: "/daily",
-		component: () => import('../build/daily-DMEUs6Eq.mjs')
+		component: () => import('../build/daily-CP37RvFh.mjs')
 	},
 	{
 		name: "food-result",
@@ -2347,7 +2347,7 @@ var virtual_nuxt_node_modules_2F_cache_2Fnuxt_2F_nuxt_2Froutes_default = [
 	{
 		name: "weekly",
 		path: "/weekly",
-		component: () => import('../build/weekly-v0ESx6X6.mjs')
+		component: () => import('../build/weekly-CRsDGT9M.mjs')
 	},
 	{
 		name: "welcome",

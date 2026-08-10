@@ -31,16 +31,12 @@
       <div class="rest-text">Восстановление — это тоже прогресс</div>
     </div>
 
-    <div
-  v-if="store.loading"
-  class="flex justify-center q-pa-xl"
->
-  <q-spinner
-    color="primary"
-    size="40px"
-  />
-</div>
-
+    <div v-else-if="store.loading" class="flex justify-center q-pa-xl">
+      <q-spinner
+        color="primary"
+        size="40px"
+      />
+    </div>
 
     <div v-else class="tasks">
       <q-card

@@ -41,14 +41,18 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
       const weekIndex = this.currentWeek - 1;
 
       if (state.tasksLoaded && state.tasks.length) {
-        const row =
-          state.tasks.find((task) => task.week === this.currentWeek) ??
-          state.tasks[weekIndex % state.tasks.length];
+        const currentWeekTask = state.tasks.find(
+          (task) => task.week === this.currentWeek,
+        );
+
+        const fallbackTask = state.tasks[weekIndex % state.tasks.length];
+
+        const task = currentWeekTask ?? fallbackTask;
 
         return {
-          nameProgram: row.title,
-          whatDoing: row.what_doing,
-          whyDoing: row.why_doing,
+          nameProgram: task.title,
+          whatDoing: task.what_doing,
+          whyDoing: task.why_doing,
         };
       }
 
