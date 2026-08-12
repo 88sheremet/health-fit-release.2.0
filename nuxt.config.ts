@@ -5,11 +5,28 @@ export default defineNuxtConfig({
     "@pinia/nuxt",
     "pinia-plugin-persistedstate/nuxt",
     "nuxt-quasar-ui",
+    "@nuxtjs/supabase",
   ],
+
+  alias: {
+    cookie: "cookie-es",
+  },
+
+  nitro: {
+    alias: {
+      cookie: "cookie-es",
+    },
+  },
+
   css: ["~/assets/fonts.css", "~/assets/colors.css", "~/assets/style.css"],
+
+  supabase: {
+    redirect: false,
+  },
 
   quasar: {
     plugins: ["Notify", "Dialog"],
+
     config: {
       brand: {
         primary: "#4caf50",
@@ -28,13 +45,7 @@ export default defineNuxtConfig({
     },
   },
 
-    runtimeConfig: {
-    public: {
-      supabaseUrl: process.env.SUPABASE_URL,
-      supabaseKey: process.env.SUPABASE_KEY,
-    },
+  devtools: {
+    enabled: true,
   },
-  
-  devtools: { enabled: true },
 });
-//  "@nuxtjs/supabase",

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-const { $supabase } = useNuxtApp()
+const supabase = useSupabaseClient()
 
 const check = async () => {
-  console.log($supabase)
+  console.log(supabase)
 }
 
 onMounted(check)

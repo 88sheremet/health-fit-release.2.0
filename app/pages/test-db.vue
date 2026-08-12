@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const supabase = useSupabase()
+const supabase = useSupabaseClient()
 
 const rows = ref<any[]>([])
 const loading = ref(true)

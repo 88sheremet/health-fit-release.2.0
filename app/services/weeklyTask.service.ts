@@ -1,17 +1,17 @@
-import { useSupabase } from "~/composables/useSupabase";
 import type { DbWeeklyTask } from "~/interfaces/DbWeeklyTask.interface";
 
 export async function getWeeklyTasks(): Promise<DbWeeklyTask[]> {
-  const supabase = useSupabase();
+  const supabase = useSupabaseClient();
 
   const { data, error } = await supabase
     .from("weekly_tasks")
     .select("*")
-    .order("week");
+    .order("week", { ascending: true });
 
   if (error) {
+    console.error("Ошибка загрузки weekly_tasks:", error);
     throw error;
   }
 
-  return data as DbWeeklyTask[];
+  return data ?? [];
 }
