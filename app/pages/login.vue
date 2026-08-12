@@ -42,6 +42,9 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  middleware: 'guest',
+})
 const supabase = useSupabaseClient();
 const router = useRouter();
 
@@ -50,6 +53,17 @@ const password = ref("");
 
 const loading = ref(false);
 const errorMessage = ref("");
+
+const checkSession = async () => {
+  const { data, error } = await supabase.auth.getSession();
+
+  console.log('SESSION:', data.session);
+  console.log('ERROR:', error);
+};
+
+onMounted(() => {
+  checkSession();
+});
 
 const login = async () => {
   errorMessage.value = "";
@@ -74,7 +88,9 @@ const login = async () => {
   }
 
   await router.push("/daily");
+  
 };
+
 </script>
 
 <style scoped>

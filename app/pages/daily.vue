@@ -83,7 +83,10 @@ import { onMounted } from "vue";
 import { useTaskStore } from "~/stores/dailyTasks";
 import { useJournalStore } from "~/stores/journal";
 import click from "~/assets/click.png";
-
+definePageMeta({
+  middleware: "auth",
+  layout: "authenticated",
+});
 const store = useTaskStore();
 const journalStore = useJournalStore();
 

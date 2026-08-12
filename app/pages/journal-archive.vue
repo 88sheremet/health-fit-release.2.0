@@ -32,7 +32,10 @@ import { computed } from "vue";
 import { useJournalStore } from "~/stores/journal";
 import { routes } from "~/router/routes";
 import { moodEmojis } from "~/constants/moods";
-
+definePageMeta({
+  layout: "authenticated",
+  middleware: "auth",
+});
 const store = useJournalStore();
 
 const entries = computed(() => [...store.entries].reverse());

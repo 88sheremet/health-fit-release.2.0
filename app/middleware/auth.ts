@@ -1,7 +1,17 @@
-export default defineNuxtRouteMiddleware(() => {
-  const user = useSupabaseUser()
+export default defineNuxtRouteMiddleware(async () => {
+  const supabase = useSupabaseClient();
 
-  if (!user.value) {
-    return navigateTo('/login')
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
+
+  if (error) {
+    console.error("[auth middleware] Session error:", error);
+    return navigateTo("/login");
   }
-})
+
+  if (!session) {
+    return navigateTo("/login");
+  }
+});

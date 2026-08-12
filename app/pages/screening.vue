@@ -70,7 +70,10 @@
 <script setup lang="ts">
 import { useScreeningStore } from "~/stores/screening";
 import { routes } from "~/router/routes";
-
+definePageMeta({
+  layout: "authenticated",
+  middleware: "auth",
+});
 const store = useScreeningStore();
 
 const skip = () => {

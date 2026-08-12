@@ -54,83 +54,84 @@
       <div class="register-links">
         <span>Уже есть аккаунт?</span>
 
-        <NuxtLink to="/login">
-          Войти
-        </NuxtLink>
+        <NuxtLink to="/login"> Войти </NuxtLink>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-const supabase = useSupabaseClient()
-const router = useRouter()
+definePageMeta({
+  middleware: "guest",
+});
+const supabase = useSupabaseClient();
+const router = useRouter();
 
-const email = ref('')
-const password = ref('')
-const confirmPassword = ref('')
+const email = ref("");
+const password = ref("");
+const confirmPassword = ref("");
 
-const loading = ref(false)
-const errorMessage = ref('')
-const successMessage = ref('')
+const loading = ref(false);
+const errorMessage = ref("");
+const successMessage = ref("");
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const register = async () => {
-  errorMessage.value = ''
-  successMessage.value = ''
+  errorMessage.value = "";
+  successMessage.value = "";
 
-  const emailValue = email.value.trim()
+  const emailValue = email.value.trim();
 
   if (!emailValue || !password.value || !confirmPassword.value) {
-    errorMessage.value = 'Заполните все поля'
-    return
+    errorMessage.value = "Заполните все поля";
+    return;
   }
 
   if (!emailRegex.test(emailValue)) {
-    errorMessage.value = 'Введите корректный email'
-    return
+    errorMessage.value = "Введите корректный email";
+    return;
   }
 
   if (password.value.length < 6) {
-    errorMessage.value = 'Пароль должен содержать минимум 6 символов'
-    return
+    errorMessage.value = "Пароль должен содержать минимум 6 символов";
+    return;
   }
 
   if (password.value !== confirmPassword.value) {
-    errorMessage.value = 'Пароли не совпадают'
-    return
+    errorMessage.value = "Пароли не совпадают";
+    return;
   }
 
-  loading.value = true
+  loading.value = true;
 
   try {
     const { data, error } = await supabase.auth.signUp({
       email: emailValue,
       password: password.value,
-    })
+    });
 
     if (error) {
-      errorMessage.value = error.message
-      return
+      errorMessage.value = error.message;
+      return;
     }
 
     if (data.session) {
-      await router.push('/daily')
-      return
+      await router.push("/daily");
+      return;
     }
 
     successMessage.value =
-      'Регистрация прошла успешно. Проверьте email для подтверждения аккаунта.'
+      "Регистрация прошла успешно. Проверьте email для подтверждения аккаунта.";
   } catch (error) {
-    console.error('Registration error:', error)
+    console.error("Registration error:", error);
 
     errorMessage.value =
-      'Не удалось выполнить регистрацию. Попробуйте ещё раз.'
+      "Не удалось выполнить регистрацию. Попробуйте ещё раз.";
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 </script>
 
 <style scoped>

@@ -90,7 +90,10 @@
 import { useJournalStore } from "~/stores/journal";
 import { routes } from "~/router/routes";
 import { ref } from "vue";
-
+definePageMeta({
+  middleware: "auth",
+  layout: "authenticated",
+});
 const journalStore = useJournalStore();
 
 const showNoteDialog = ref(false);

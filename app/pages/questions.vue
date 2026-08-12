@@ -77,7 +77,10 @@ import { useQuasar } from "quasar";
 import { useScreeningStore } from "~/stores/screening";
 import { DominantProblem } from "~/enums/DominantProblem.enum";
 import { routes } from "~/router/routes";
-
+definePageMeta({
+  layout: "authenticated",
+  middleware: "auth",
+});
 const screeningStore = useScreeningStore();
 const $q = useQuasar();
 

@@ -30,6 +30,9 @@
         <div class="tab-text">Отслеживай состояние и прогресс</div>
       </div>
     </div>
+     <div class="logout-wrapper">
+      <LogoutButton />
+    </div>
   </div>
 </template>
 
@@ -37,7 +40,11 @@
 import { useQuasar } from "quasar";
 import { useScreeningStore } from "~/stores/screening";
 import { routes } from "~/router/routes";
-
+import LogoutButton from "~/components/auth/LogoutButton.vue";
+definePageMeta({
+  middleware: "auth",
+  layout: "authenticated",
+});
 const $q = useQuasar();
 const screeningStore = useScreeningStore();
 
@@ -125,5 +132,16 @@ const openTab = (tab: string) => {
   font-size: 15px;
   line-height: 1.5;
   color: var(--grey2);
+}
+.logout-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+  padding: 0 20px 32px;
+}
+
+.logout-wrapper :deep(.q-btn) {
+  width: 100%;
+  max-width: 400px;
 }
 </style>

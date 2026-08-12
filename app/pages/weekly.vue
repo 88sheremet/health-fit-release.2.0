@@ -41,6 +41,10 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  middleware: "auth",
+  layout: "authenticated",
+});
 import { useWeeklyTaskStore } from "~/stores/weeklyTasks";
 const weeklyStore = useWeeklyTaskStore();
 
