@@ -12,10 +12,12 @@
     "import:weekly": "node scripts/importWeeklyTasks.mjs"
   },
   "dependencies": {
+    "@nuxtjs/supabase": "^2.0.10",
     "@pinia/nuxt": "^1.0.1",
     "@supabase/supabase-js": "^2.110.8",
     "@vueuse/core": "^14.3.0",
     "chart.js": "^4.5.1",
+    "cookie-es": "^3.1.1",
     "dotenv": "^17.4.2",
     "nuxt": "^4.5.0",
     "nuxt-quasar-ui": "^3.1.0",
