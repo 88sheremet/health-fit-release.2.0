@@ -1,14 +1,14 @@
 <template>
   <div class="menu-page">
     <div class="header">
-      <div class="title">Главное меню</div>
-      <div class="subtitle">Твои инструменты восстановления и развития</div>
+      <div class="title">{{ $t("menu.title") }}</div>
+      <div class="subtitle">{{ $t("menu.subtitle") }}</div>
       <q-btn
         v-if="!screeningStore.screeningCompleted"
         unelevated
         no-caps
         class="test-btn"
-        label="Пройти анализ состояния"
+        :label="$t('menu.analysis')"
         @click="navigateTo(routes.onboarding.questions)"
       />
     </div>
@@ -16,18 +16,18 @@
     <div class="tabs">
       <div class="tab-card" @click="openTab('daily')">
         <span class="material-icons tab-icon">task_alt</span>
-        <div class="tab-title">Ежедневные задания</div>
-        <div class="tab-text">Маленькие шаги каждый день</div>
+        <div class="tab-title">{{ $t("menu.dailyTitle") }}</div>
+        <div class="tab-text">{{ $t("menu.dailyText") }}</div>
       </div>
       <div class="tab-card" @click="openTab('weekly')">
         <span class="material-icons tab-icon">event_note</span>
-        <div class="tab-title">Еженедельное задание</div>
-        <div class="tab-text">Глубокая работа над собой</div>
+        <div class="tab-title">{{ $t("menu.weeklyTitle") }}</div>
+        <div class="tab-text">{{ $t("menu.weeklyText") }}</div>
       </div>
       <div class="tab-card" @click="openTab('journal')">
         <span class="material-icons tab-icon">menu_book</span>
-        <div class="tab-title">Дневник</div>
-        <div class="tab-text">Отслеживай состояние и прогресс</div>
+        <div class="tab-title">{{ $t("menu.journalTitle") }}</div>
+        <div class="tab-text">{{ $t("menu.journalText") }}</div>
       </div>
     </div>
      <div class="logout-wrapper">
@@ -46,12 +46,12 @@ definePageMeta({
   layout: "authenticated",
 });
 const $q = useQuasar();
+const { t } = useI18n();
 const screeningStore = useScreeningStore();
 
 const showBlockedAlert = () => {
   $q.notify({
-    message:
-      "Сначала пройди анализ состояния, чтобы открыть персональные задания и дневник",
+    message: t("menu.blockedAlert"),
     type: "warning",
     timeout: 2500,
   });

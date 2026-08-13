@@ -1,11 +1,11 @@
 <template>
   <div class="register-page">
     <div class="register-card">
-      <h1>Регистрация</h1>
+      <h1>{{ $t("auth.registerTitle") }}</h1>
 
       <q-input
         v-model="email"
-        label="Email"
+        :label="$t('auth.email')"
         type="email"
         outlined
         autocomplete="email"
@@ -15,7 +15,7 @@
 
       <q-input
         v-model="password"
-        label="Пароль"
+        :label="$t('auth.password')"
         type="password"
         outlined
         autocomplete="new-password"
@@ -25,7 +25,7 @@
 
       <q-input
         v-model="confirmPassword"
-        label="Повторите пароль"
+        :label="$t('auth.confirmPassword')"
         type="password"
         outlined
         autocomplete="new-password"
@@ -42,7 +42,7 @@
       </div>
 
       <q-btn
-        label="Зарегистрироваться"
+        :label="$t('auth.registerBtn')"
         color="primary"
         unelevated
         class="full-width"
@@ -52,9 +52,9 @@
       />
 
       <div class="register-links">
-        <span>Уже есть аккаунт?</span>
+        <span>{{ $t("auth.haveAccount") }}</span>
 
-        <NuxtLink to="/login"> Войти </NuxtLink>
+        <NuxtLink to="/login"> {{ $t("auth.loginBtn") }} </NuxtLink>
       </div>
     </div>
   </div>
@@ -74,6 +74,7 @@ const confirmPassword = ref("");
 const loading = ref(false);
 const errorMessage = ref("");
 const successMessage = ref("");
+const { t } = useI18n();
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -84,22 +85,22 @@ const register = async () => {
   const emailValue = email.value.trim();
 
   if (!emailValue || !password.value || !confirmPassword.value) {
-    errorMessage.value = "Заполните все поля";
+    errorMessage.value = t("auth.fillAllFields");
     return;
   }
 
   if (!emailRegex.test(emailValue)) {
-    errorMessage.value = "Введите корректный email";
+    errorMessage.value = t("auth.invalidEmail");
     return;
   }
 
   if (password.value.length < 6) {
-    errorMessage.value = "Пароль должен содержать минимум 6 символов";
+    errorMessage.value = t("auth.minPassword");
     return;
   }
 
   if (password.value !== confirmPassword.value) {
-    errorMessage.value = "Пароли не совпадают";
+    errorMessage.value = t("auth.passwordMismatch");
     return;
   }
 
@@ -121,13 +122,11 @@ const register = async () => {
       return;
     }
 
-    successMessage.value =
-      "Регистрация прошла успешно. Проверьте email для подтверждения аккаунта.";
+    successMessage.value = t("auth.registerSuccess");
   } catch (error) {
     console.error("Registration error:", error);
 
-    errorMessage.value =
-      "Не удалось выполнить регистрацию. Попробуйте ещё раз.";
+    errorMessage.value = t("auth.registerError");
   } finally {
     loading.value = false;
   }

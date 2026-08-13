@@ -2,54 +2,44 @@
   <div class="result-page">
     <div class="hero">
       <div class="hero-icon">🧠</div>
-      <div class="hero-title">Твоя нервная система на пределе</div>
+      <div class="hero-title">{{ $t("results.mind.heroTitle") }}</div>
       <div class="hero-subtitle">
-        Хронический стресс разрушает тело и питание
+        {{ $t("results.mind.heroSubtitle") }}
       </div>
     </div>
 
     <q-card flat class="result-card">
-      <div class="card-title">⚡ Главная зона риска</div>
-      <div class="card-main">Психологическое состояние</div>
+      <div class="card-title">{{ $t("results.mind.cardTitle") }}</div>
+      <div class="card-main">{{ $t("results.mind.cardMain") }}</div>
       <div class="divider"></div>
       <div class="card-list">
-        <div>• высокий уровень стресса</div>
-        <div>• эмоциональное выгорание</div>
-        <div>• проблемы со сном</div>
-        <div>• полное отсутствие сил</div>
-        <div>• прокрастинация и потеря дисциплины</div>
+        <div v-for="item in 5" :key="item">{{ $t("results.mind.list." + (item - 1)) }}</div>
       </div>
     </q-card>
 
     <q-card flat class="info-card">
-      <div class="info-title">💪 Как это связано с физическим состоянием</div>
+      <div class="info-title">{{ $t("results.mind.physicalTitle") }}</div>
       <div class="info-text">
-        Постоянный стресс держит мышцы в напряжении. Появляются боли в спине и
-        шее, хроническая усталость, слабая выносливость и ощущение "разбитости"
-        с утра.
+        {{ $t("results.mind.physicalText") }}
       </div>
     </q-card>
 
     <q-card flat class="info-card">
-      <div class="info-title">🍽️ Связь с питанием</div>
+      <div class="info-title">{{ $t("results.mind.foodTitle") }}</div>
       <div class="info-text">
-        Стресс запускает тягу к сладкому и переедание. Возникают резкие перепады
-        энергии, питание "на автомате" и усталость после еды.
+        {{ $t("results.mind.foodText") }}
       </div>
     </q-card>
 
     <q-card flat class="recovery-card">
-      <div class="info-title">✨ Что восстановит все три сферы</div>
+      <div class="info-title">{{ $t("results.mind.recoveryTitle") }}</div>
       <div class="card-list">
-        <div>• снижение уровня стресса</div>
-        <div>• восстановление сна и энергии</div>
-        <div>• расслабление физического тела</div>
-        <div>• стабильное питание без скачков</div>
+        <div v-for="item in 4" :key="item">{{ $t("results.mind.recoveryList." + (item - 1)) }}</div>
       </div>
     </q-card>
 
     <div class="bottom-action">
-      <q-btn unelevated no-caps class="main-btn" label="Начать восстановление" @click="navigateTo(routes.recovery.daily)" />
+      <q-btn unelevated no-caps class="main-btn" :label="$t('results.startRecovery')" @click="navigateTo(routes.recovery.daily)" />
     </div>
   </div>
 </template>

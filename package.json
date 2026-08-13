@@ -12,6 +12,7 @@
     "import:weekly": "node scripts/importWeeklyTasks.mjs"
   },
   "dependencies": {
+    "@nuxtjs/i18n": "^10.6.0",
     "@nuxtjs/supabase": "^2.0.10",
     "@pinia/nuxt": "^1.0.1",
     "@supabase/supabase-js": "^2.110.8",

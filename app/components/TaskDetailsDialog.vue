@@ -6,13 +6,13 @@
           <span class="material-icons">close</span>
         </button>
         <div class="title">{{ task?.title }}</div>
-        <span class="reward-chip">+{{ task?.reward }} энергии</span>
+        <span class="reward-chip">{{ $t("taskDetails.reward", { n: task?.reward }) }}</span>
       </div>
 
       <hr class="separator" />
 
       <div class="content">
-        <div class="section-title">Что делать</div>
+        <div class="section-title">{{ $t("taskDetails.whatToDo") }}</div>
 
         <template v-if="task?.type !== 'physical'">
           <div class="text">{{ task?.whatDoing }}</div>
@@ -20,22 +20,22 @@
 
         <template v-else>
           <div class="exercise-block">
-            <div class="exercise-title">Спина</div>
+            <div class="exercise-title">{{ $t("taskDetails.back") }}</div>
             <div class="text">{{ task?.whatDoing?.back }}</div>
           </div>
           <div class="exercise-block">
-            <div class="exercise-title">Ноги</div>
+            <div class="exercise-title">{{ $t("taskDetails.legs") }}</div>
             <div class="text">{{ task?.whatDoing?.legs }}</div>
           </div>
           <div class="exercise-block">
-            <div class="exercise-title">Пресс</div>
+            <div class="exercise-title">{{ $t("taskDetails.abs") }}</div>
             <div class="text">{{ task?.whatDoing?.abs }}</div>
           </div>
         </template>
 
         <hr class="separator" />
 
-        <div class="section-title">Зачем делать</div>
+        <div class="section-title">{{ $t("taskDetails.whyToDo") }}</div>
         <div class="text">{{ task?.whyDoing }}</div>
       </div>
     </div>

@@ -6,7 +6,7 @@
       @click="navigateTo(routes.recovery.daily)"
     >
       <span class="material-icons">task_alt</span>
-      <span class="nav-label">Ежедневные<br />задания</span>
+      <span class="nav-label">{{ $t("nav.daily") }}</span>
     </div>
     <div
       class="nav-item"
@@ -14,7 +14,7 @@
       @click="navigateTo(routes.recovery.weekly)"
     >
       <span class="material-icons">event_note</span>
-      <span class="nav-label">Еженедельное<br />задание</span>
+      <span class="nav-label">{{ $t("nav.weekly") }}</span>
     </div>
     <div
       class="nav-item"
@@ -22,7 +22,7 @@
       @click="navigateTo(routes.recovery.journal)"
     >
       <span class="material-icons">menu_book</span>
-      <span class="nav-label">Дневник</span>
+      <span class="nav-label">{{ $t("nav.journal") }}</span>
     </div>
   </div>
 </template>

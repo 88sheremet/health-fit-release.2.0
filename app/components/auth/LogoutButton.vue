@@ -1,6 +1,6 @@
 <template>
   <q-btn
-    label="Выйти из аккаунта"
+    :label="$t('auth.logout')"
     flat
     no-caps
     class="logout-btn"

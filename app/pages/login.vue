@@ -1,11 +1,11 @@
 <template>
   <div class="login-page">
     <div class="login-card">
-      <h1>Вход</h1>
+      <h1>{{ $t("auth.loginTitle") }}</h1>
 
       <q-input
         v-model="email"
-        label="Email"
+        :label="$t('auth.email')"
         type="email"
         outlined
         class="q-mb-md"
@@ -13,7 +13,7 @@
 
       <q-input
         v-model="password"
-        label="Пароль"
+        :label="$t('auth.password')"
         type="password"
         outlined
         class="q-mb-md"
@@ -24,7 +24,7 @@
       </div>
 
       <q-btn
-        label="Войти"
+        :label="$t('auth.loginBtn')"
         color="primary"
         unelevated
         class="full-width"
@@ -33,9 +33,9 @@
       />
 
       <div class="login-links">
-        <NuxtLink to="/register"> Регистрация </NuxtLink>
+        <NuxtLink to="/register"> {{ $t("auth.registerLink") }} </NuxtLink>
 
-        <NuxtLink to="/forgot-password"> Забыли пароль? </NuxtLink>
+        <NuxtLink to="/forgot-password"> {{ $t("auth.forgotPassword") }} </NuxtLink>
       </div>
     </div>
   </div>
@@ -53,6 +53,7 @@ const password = ref("");
 
 const loading = ref(false);
 const errorMessage = ref("");
+const { t } = useI18n();
 
 const checkSession = async () => {
   const { data, error } = await supabase.auth.getSession();
@@ -69,7 +70,7 @@ const login = async () => {
   errorMessage.value = "";
 
   if (!email.value || !password.value) {
-    errorMessage.value = "Введите email и пароль";
+    errorMessage.value = t("auth.loginError");
     return;
   }
 

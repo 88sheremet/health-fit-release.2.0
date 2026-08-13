@@ -2,15 +2,11 @@
   <q-dialog :model-value="modelValue" persistent @update:model-value="$emit('update:modelValue', $event)">
     <q-card class="checkin-card">
       <div class="hero">
-        <div class="title">
-          Давай зафиксируем
-          <br />
-          свое состояние
-        </div>
-        <div class="subtitle">Это займет меньше минуты</div>
+        <div class="title">{{ $t("checkin.title") }}</div>
+        <div class="subtitle">{{ $t("checkin.subtitle") }}</div>
       </div>
 
-      <div class="section-title">Как ты себя чувствуешь?</div>
+      <div class="section-title">{{ $t("checkin.moodTitle") }}</div>
 
       <div class="moods">
         <button
@@ -21,11 +17,11 @@
           @click="mood = item.value"
         >
           <div class="emoji">{{ item.emoji }}</div>
-          <div class="emoji-label">{{ item.label }}</div>
+          <div class="emoji-label">{{ $t(item.labelKey) }}</div>
         </button>
       </div>
 
-      <div class="section-title">Опиши свое состояние</div>
+      <div class="section-title">{{ $t("checkin.noteTitle") }}</div>
 
       <q-input
         v-model="note"
@@ -33,15 +29,12 @@
         autogrow
         outlined
         class="note-input"
-        placeholder="Например: устал, нет энергии, тревога, много мыслей..."
+        :placeholder="$t('checkin.notePlaceholder')"
       />
 
       <div class="tip-card">
-        <div class="tip-title">📈 Зачем это нужно?</div>
-        <div class="tip-text">
-          Мы будем строить график состояния и показывать, как меняется твое
-          самочувствие день за днем.
-        </div>
+        <div class="tip-title">{{ $t("checkin.tipTitle") }}</div>
+        <div class="tip-text">{{ $t("checkin.tipText") }}</div>
       </div>
 
       <q-btn
@@ -50,7 +43,7 @@
         color="primary"
         text-color="white"
         class="save-btn"
-        label="Зафиксировать"
+        :label="$t('checkin.saveBtn')"
         :disable="!mood"
         @click="save"
       />

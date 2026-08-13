@@ -2,49 +2,39 @@
   <div class="result-page">
     <div class="hero">
       <div class="hero-icon">⚡</div>
-      <div class="hero-title">Питание крадет твою энергию</div>
+      <div class="hero-title">{{ $t("results.food.heroTitle") }}</div>
       <div class="hero-subtitle">
-        Еда не восстанавливает, а истощает тело и нервную систему
+        {{ $t("results.food.heroSubtitle") }}
       </div>
     </div>
 
     <q-card flat class="result-card">
-      <div class="card-title">🥗 Главная зона риска</div>
-      <div class="card-main">Питание и пищевые привычки</div>
+      <div class="card-title">{{ $t("results.food.cardTitle") }}</div>
+      <div class="card-main">{{ $t("results.food.cardMain") }}</div>
       <div class="divider"></div>
       <div class="card-list">
-        <div>• резкие перепады энергии в течение дня</div>
-        <div>• сильная тяга к сладкому и мучному</div>
-        <div>• переедание и питание "на автомате"</div>
-        <div>• постоянная нехватка воды</div>
-        <div>• тяжесть и усталость после еды</div>
+        <div v-for="item in 5" :key="item">{{ $t("results.food.list." + (item - 1)) }}</div>
       </div>
     </q-card>
 
     <q-card flat class="info-card">
-      <div class="info-title">💪 Как это связано с физическим состоянием</div>
+      <div class="info-title">{{ $t("results.food.physicalTitle") }}</div>
       <div class="info-text">
-        Неправильное питание лишает тело строительных материалов. Появляется
-        постоянная усталость, слабая выносливость, напряжение в мышцах и боли в
-        спине/шее.
+        {{ $t("results.food.physicalText") }}
       </div>
     </q-card>
 
     <q-card flat class="info-card">
-      <div class="info-title">🧠 Связь с нервной системой</div>
+      <div class="info-title">{{ $t("results.food.mindTitle") }}</div>
       <div class="info-text">
-        Скачки сахара и нехватка нутриентов усиливают стресс. Ухудшается сон,
-        падает мотивация, появляется эмоциональное выгорание и прокрастинация.
+        {{ $t("results.food.mindText") }}
       </div>
     </q-card>
 
     <q-card flat class="recovery-card">
-      <div class="info-title">✨ Что восстановит все три сферы</div>
+      <div class="info-title">{{ $t("results.food.recoveryTitle") }}</div>
       <div class="card-list">
-        <div>• стабильный уровень энергии через питание</div>
-        <div>• снижение тяги к сладкому</div>
-        <div>• восстановление физических сил</div>
-        <div>• поддержка нервной системы</div>
+        <div v-for="item in 4" :key="item">{{ $t("results.food.recoveryList." + (item - 1)) }}</div>
       </div>
     </q-card>
 
@@ -53,7 +43,7 @@
         unelevated
         no-caps
         class="main-btn"
-        label="Начать восстановление"
+        :label="$t('results.startRecovery')"
         @click="navigateTo(routes.recovery.daily)"
       />
     </div>

@@ -1,22 +1,22 @@
 <template>
   <div class="page">
     <div class="header">
-      <div class="title">Еженедельное задание</div>
-      <div class="subtitle">Неделя {{ store.currentWeek }}</div>
-      <div class="week-day">День {{ store.currentDayWithinWeek }} из 7</div>
+      <div class="title">{{ $t("weekly.title") }}</div>
+      <div class="subtitle">{{ $t("weekly.week", { n: store.currentWeek }) }}</div>
+      <div class="week-day">{{ $t("weekly.dayOfWeek", { n: store.currentDayWithinWeek }) }}</div>
     </div>
 
     <q-card class="task-card">
-      <div class="badge">🎯 Задание недели</div>
+      <div class="badge">{{ $t("weekly.badge") }}</div>
       <div class="task-title">{{ store.currentTask.nameProgram }}</div>
 
       <div class="section">
-        <div class="section-title">Что делать</div>
+        <div class="section-title">{{ $t("weekly.whatToDo") }}</div>
         <div class="text">{{ store.currentTask.whatDoing }}</div>
       </div>
 
       <div class="section">
-        <div class="section-title">Зачем это нужно</div>
+        <div class="section-title">{{ $t("weekly.whyNeeded") }}</div>
         <div class="text">{{ store.currentTask.whyDoing }}</div>
       </div>
 
@@ -26,14 +26,14 @@
         unelevated
         no-caps
         class="complete-btn"
-        label="Задание недели выполнено"
+        :label="$t('weekly.completedBtn')"
         :disable="!store.canComplete"
         @click="completeWeeklyTask"
       />
       <div v-if="!store.canComplete && !store.isCompleted()" class="week-info">
-        Выполнить задание можно на 6–7 день недели
+        {{ $t("weekly.info") }}
       </div>
-      <div v-else class="success-banner">✅ Задание недели выполнено</div>
+      <div v-else class="success-banner">{{ $t("weekly.successBanner") }}</div>
     </q-card>
 
     <BottomNavigation />
