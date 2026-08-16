@@ -9,6 +9,18 @@ const config: CapacitorConfig = {
   // SPA-режимі (`ssr: false`) збирає статику саме сюди.
   webDir: ".output/public",
 
+  plugins: {
+    SplashScreen: {
+      // Без цього нативна заставка зникає, щойно з'явиться вікно застосунку,
+      // а WebView до того моменту ще не встиг нічого намалювати — користувач
+      // бачить білий екран. Ховаємо заставку вручну з app/plugins, коли
+      // перша сторінка вже відрендерилась.
+      launchAutoHide: false,
+      backgroundColor: "#ffffff",
+      showSpinner: false,
+    },
+  },
+
   server: {
     // Походження всередині WebView: https://localhost на Android і
     // capacitor://localhost на iOS. Від нього залежать redirect URL для
