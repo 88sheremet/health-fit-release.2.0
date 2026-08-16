@@ -75,6 +75,18 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      meta: [
+        {
+          // WKWebView на iOS зумить сторінку при фокусі в інпут, якщо його
+          // font-size менший за 16px. Quasar ставить 14px, тож на кожному
+          // вході масштаб стрибав на 16/14 і після blur не відкочувався —
+          // верстка виглядала обрізаною з обох боків. maximum-scale=1 знімає
+          // це в корені: зумити понад 1× більше нíяк.
+          name: "viewport",
+          content: "width=device-width, initial-scale=1, maximum-scale=1",
+        },
+      ],
+
       link: [
         {
           rel: "stylesheet",
