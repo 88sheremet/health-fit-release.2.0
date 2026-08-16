@@ -87,12 +87,11 @@ export default defineNuxtConfig({
         },
       ],
 
-      link: [
-        {
-          rel: "stylesheet",
-          href: "https://fonts.googleapis.com/icon?family=Material+Icons",
-        },
-      ],
+      // Посилання на fonts.googleapis.com тут більше немає: nuxt-quasar-ui
+      // за замовчуванням має iconSet "material-icons" і autoIncludeIconSet,
+      // тобто той самий шрифт уже лежить у бандлі локально з @quasar/extras.
+      // Зовнішній <link> лише вантажив його вдруге — і був єдиним, через що
+      // застосунок у WebView залежав від мережі на першому кадрі.
     },
   },
 
