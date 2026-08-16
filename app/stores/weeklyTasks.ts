@@ -99,6 +99,6 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
   },
 
   persist: {
-    paths: ["completed"],
+    pick: ["completed"],
   },
 });

@@ -164,6 +164,6 @@ export const useTaskStore = defineStore("tasks", {
   },
 
   persist: {
-    paths: ["startDate", "completed", "energy", "streak", "lastVisitDate"],
+    pick: ["startDate", "completed", "energy", "streak", "lastVisitDate"],
   },
 });
