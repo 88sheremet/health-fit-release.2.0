@@ -2,6 +2,13 @@ export const routes = {
   onboarding: {
     screening: "/screening",
     questions: "/questions",
+    welcome: "/welcome",
+  },
+  auth: {
+    login: "/login",
+    register: "/register",
+    forgotPassword: "/forgot-password",
+    resetPassword: "/reset-password",
   },
   results: {
     physical: "/physical-result",
@@ -14,5 +21,6 @@ export const routes = {
     weekly: "/weekly",
     journal: "/journal",
     journalArchive: "/journal-archive",
+    journalChart: "/journal-chart",
   },
 } as const;

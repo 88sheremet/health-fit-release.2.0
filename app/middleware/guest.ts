@@ -1,3 +1,5 @@
+import { routes } from "~/router/routes";
+
 export default defineNuxtRouteMiddleware(async () => {
   const supabase = useSupabaseClient();
 
@@ -12,6 +14,6 @@ export default defineNuxtRouteMiddleware(async () => {
   }
 
   if (session) {
-    return navigateTo("/daily");
+    return navigateTo(routes.recovery.daily);
   }
 });

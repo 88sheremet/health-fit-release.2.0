@@ -1,3 +1,5 @@
 <script setup lang="ts">
-navigateTo("/welcome", { redirectCode: 301 });
+import { routes } from "~/router/routes";
+
+navigateTo(routes.onboarding.welcome, { redirectCode: 301 });
 </script>
