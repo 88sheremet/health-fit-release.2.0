@@ -5,7 +5,7 @@
         <button class="back-btn" @click="navigateTo(routes.recovery.journal)">
           <span class="material-icons">arrow_back</span>
         </button>
-        <div class="title">График состояния</div>
+        <div class="title">{{ $t("journal.chart.header") }}</div>
       </div>
       <Line :data="chartData" :options="chartOptions" />
     </div>
@@ -36,6 +36,7 @@ ChartJS.register(
 );
 
 const store = useJournalStore();
+const { locale } = useI18n();
 
 const checkinEntries = computed(() =>
   store.entries.filter((entry) => entry.mood != null)
@@ -43,7 +44,7 @@ const checkinEntries = computed(() =>
 
 const chartData = computed(() => ({
   labels: checkinEntries.value.map((entry) =>
-    new Date(entry.date).toLocaleDateString("ru-RU", {
+    new Date(entry.date).toLocaleDateString(locale.value, {
       day: "2-digit",
       month: "2-digit",
     })
@@ -60,13 +61,15 @@ const chartData = computed(() => ({
   ],
 }));
 
-const chartOptions = {
+const { t } = useI18n();
+
+const chartOptions = computed(() => ({
   responsive: true,
   plugins: {
     legend: { display: false },
   },
   scales: {
-    x: { title: { display: true, text: "Дни" } },
+    x: { title: { display: true, text: t("journal.chart.days") } },
     y: {
       min: 1,
       max: 5,
@@ -79,7 +82,7 @@ const chartOptions = {
       },
     },
   },
-};
+}));
 </script>
 
 <style scoped>

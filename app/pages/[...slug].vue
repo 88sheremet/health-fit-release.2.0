@@ -2,11 +2,11 @@
   <div class="not-found-page">
     <div class="content">
       <div class="code">404</div>
-      <div class="title">Страница не найдена</div>
+      <div class="title">{{ $t("notFound.title") }}</div>
       <div class="subtitle">
-        Возможно, ссылка устарела или страница была перемещена.
+        {{ $t("notFound.subtitle") }}
       </div>
-      <q-btn unelevated no-caps class="home-btn" label="На главную" @click="navigateTo(routes.recovery.daily)" />
+      <q-btn unelevated no-caps class="home-btn" :label="$t('notFound.homeBtn')" @click="navigateTo(routes.recovery.daily)" />
     </div>
   </div>
 </template>

@@ -7,9 +7,9 @@ export const moodEmojis: Record<number, string> = {
 };
 
 export const moodOptions = [
-  { value: 5, emoji: moodEmojis[5], label: "Отлично" },
-  { value: 4, emoji: moodEmojis[4], label: "Хорошо" },
-  { value: 3, emoji: moodEmojis[3], label: "Нормально" },
-  { value: 2, emoji: moodEmojis[2], label: "Плохо" },
-  { value: 1, emoji: moodEmojis[1], label: "Тяжело" },
+  { value: 5, emoji: moodEmojis[5], labelKey: "moods.great" },
+  { value: 4, emoji: moodEmojis[4], labelKey: "moods.good" },
+  { value: 3, emoji: moodEmojis[3], labelKey: "moods.normal" },
+  { value: 2, emoji: moodEmojis[2], labelKey: "moods.bad" },
+  { value: 1, emoji: moodEmojis[1], labelKey: "moods.hard" },
 ];

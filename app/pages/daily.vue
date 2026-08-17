@@ -2,8 +2,8 @@
   <div class="page">
     <div class="header">
       <div>
-        <div class="title">Привет 👋</div>
-        <div class="subtitle">День {{ store.dayIndex }}</div>
+        <div class="title">{{ $t("daily.greeting") }}</div>
+        <div class="subtitle">{{ $t("daily.day", { n: store.dayIndex }) }}</div>
       </div>
       <div class="streak-avatar">{{ store.streak }}</div>
     </div>
@@ -11,7 +11,7 @@
     <q-card class="energy-card">
       <div class="energy-row">
         <div>
-          <div class="label">Энергия</div>
+          <div class="label">{{ $t("daily.energy") }}</div>
           <div class="value">{{ store.energy }} ⚡</div>
         </div>
         <q-circular-progress
@@ -27,8 +27,8 @@
 
     <div v-if="store.isRestDay" class="rest-card">
       <div class="emoji">🌿</div>
-      <div class="rest-title">Сегодня полный отдых</div>
-      <div class="rest-text">Восстановление — это тоже прогресс</div>
+      <div class="rest-title">{{ $t("daily.restTitle") }}</div>
+      <div class="rest-text">{{ $t("daily.restText") }}</div>
     </div>
 
     <div v-else-if="store.loading" class="flex justify-center q-pa-xl">
@@ -52,7 +52,7 @@
           </button>
         </div>
         <div class="task-footer">
-          <div class="reward">+{{ task.reward }} ресурса</div>
+          <div class="reward">{{ $t("daily.reward", { n: task.reward }) }}</div>
           <q-btn
             class="select-btn"
             dense
@@ -60,7 +60,7 @@
             unelevated
             color="primary"
             text-color="white"
-            :label="store.isDone(task.id) ? 'Готово' : 'Выполнить'"
+            :label="store.isDone(task.id) ? $t('daily.done') : $t('daily.complete')"
             :disable="store.isDone(task.id)"
             @click.stop="store.completeTask(task)"
           />
@@ -83,7 +83,10 @@ import { onMounted } from "vue";
 import { useTaskStore } from "~/stores/dailyTasks";
 import { useJournalStore } from "~/stores/journal";
 import click from "~/assets/click.png";
-
+definePageMeta({
+  middleware: "auth",
+  layout: "authenticated",
+});
 const store = useTaskStore();
 const journalStore = useJournalStore();
 

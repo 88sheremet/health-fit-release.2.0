@@ -2,54 +2,44 @@
   <div class="result-page physical">
     <div class="hero">
       <div class="hero-icon">⚠️</div>
-      <div class="hero-title">Твое тело работает на износ</div>
+      <div class="hero-title">{{ $t("results.physical.heroTitle") }}</div>
       <div class="hero-subtitle">
-        Физическая перегрузка разрушает энергию, питание и нервы
+        {{ $t("results.physical.heroSubtitle") }}
       </div>
     </div>
 
     <q-card flat class="result-card">
-      <div class="card-title">🔥 Главная зона риска</div>
-      <div class="card-main">Физическое состояние</div>
+      <div class="card-title">{{ $t("results.physical.cardTitle") }}</div>
+      <div class="card-main">{{ $t("results.physical.cardMain") }}</div>
       <div class="divider"></div>
       <div class="card-list">
-        <div>• постоянная усталость и "разбитость"</div>
-        <div>• низкая выносливость</div>
-        <div>• напряжение и боли в спине/шее</div>
-        <div>• организм не успевает восстанавливаться</div>
-        <div>• нехватка энергии с самого утра</div>
+        <div v-for="item in 5" :key="item">{{ $t("results.physical.list." + (item - 1)) }}</div>
       </div>
     </q-card>
 
     <q-card flat class="info-card">
-      <div class="info-title">🍽️ Как это связано с питанием</div>
+      <div class="info-title">{{ $t("results.physical.foodTitle") }}</div>
       <div class="info-text">
-        Из-за физической перегрузки организм требует быстрых углеводов.
-        Появляется тяга к сладкому, переедание, резкие скачки энергии и
-        усталость после еды.
+        {{ $t("results.physical.foodText") }}
       </div>
     </q-card>
 
     <q-card flat class="info-card">
-      <div class="info-title">🧠 Связь с нервной системой</div>
+      <div class="info-title">{{ $t("results.physical.mindTitle") }}</div>
       <div class="info-text">
-        Физическое истощение усиливает стресс. Нарушается сон, падает мотивация,
-        появляется прокрастинация и эмоциональное выгорание.
+        {{ $t("results.physical.mindText") }}
       </div>
     </q-card>
 
     <q-card flat class="recovery-card">
-      <div class="info-title">✨ Что восстановит все три сферы</div>
+      <div class="info-title">{{ $t("results.physical.recoveryTitle") }}</div>
       <div class="card-list">
-        <div>• мягкая физическая активность</div>
-        <div>• восстановление энергии через питание</div>
-        <div>• снижение физической и нервной перегрузки</div>
-        <div>• улучшение мобильности тела</div>
+        <div v-for="item in 4" :key="item">{{ $t("results.physical.recoveryList." + (item - 1)) }}</div>
       </div>
     </q-card>
 
     <div class="bottom-action">
-      <q-btn unelevated no-caps class="main-btn" label="Начать восстановление" @click="navigateTo(routes.recovery.daily)" />
+      <q-btn unelevated no-caps class="main-btn" :label="$t('results.startRecovery')" @click="navigateTo(routes.recovery.daily)" />
     </div>
   </div>
 </template>

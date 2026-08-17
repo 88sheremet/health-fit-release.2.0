@@ -7,6 +7,56 @@ import type { Block } from "../interfaces/Block.interface";
 import type { Answers } from "../interfaces/Answers.interface";
 import type { BlockScores } from "../interfaces/BlockScores.interface";
 
+const SCREENING_BLOCKS: Block[] = [
+  {
+    id: 1,
+    title: "screeningBlocks.physical.title",
+    questions: [
+      { id: 101, text: "screeningBlocks.physical.q101" },
+      { id: 102, text: "screeningBlocks.physical.q102" },
+      { id: 103, text: "screeningBlocks.physical.q103" },
+      { id: 104, text: "screeningBlocks.physical.q104" },
+      { id: 105, text: "screeningBlocks.physical.q105" },
+      { id: 106, text: "screeningBlocks.physical.q106" },
+      { id: 107, text: "screeningBlocks.physical.q107" },
+      { id: 108, text: "screeningBlocks.physical.q108" },
+      { id: 109, text: "screeningBlocks.physical.q109" },
+    ],
+  },
+
+  {
+    id: 2,
+    title: "screeningBlocks.food.title",
+    questions: [
+      { id: 201, text: "screeningBlocks.food.q201" },
+      { id: 202, text: "screeningBlocks.food.q202" },
+      { id: 203, text: "screeningBlocks.food.q203" },
+      { id: 204, text: "screeningBlocks.food.q204" },
+      { id: 205, text: "screeningBlocks.food.q205" },
+      { id: 206, text: "screeningBlocks.food.q206" },
+      { id: 207, text: "screeningBlocks.food.q207" },
+      { id: 208, text: "screeningBlocks.food.q208" },
+      { id: 209, text: "screeningBlocks.food.q209" },
+    ],
+  },
+
+  {
+    id: 3,
+    title: "screeningBlocks.mind.title",
+    questions: [
+      { id: 301, text: "screeningBlocks.mind.q301" },
+      { id: 302, text: "screeningBlocks.mind.q302" },
+      { id: 303, text: "screeningBlocks.mind.q303" },
+      { id: 304, text: "screeningBlocks.mind.q304" },
+      { id: 305, text: "screeningBlocks.mind.q305" },
+      { id: 306, text: "screeningBlocks.mind.q306" },
+      { id: 307, text: "screeningBlocks.mind.q307" },
+      { id: 308, text: "screeningBlocks.mind.q308" },
+      { id: 309, text: "screeningBlocks.mind.q309" },
+    ],
+  },
+];
+
 export const useScreeningStore = defineStore("screening", {
   state: () => ({
     screeningCompleted: false,
@@ -16,98 +66,16 @@ export const useScreeningStore = defineStore("screening", {
     answers: {} as Answers,
 
     blockScores: {} as BlockScores,
-
-    blocks: [
-      {
-        id: 1,
-        title: "Энергия и физическое состояние",
-        questions: [
-          {
-            id: 101,
-            text: "Насколько плохое у тебя общее физическое состояние?",
-          },
-          {
-            id: 102,
-            text: "Насколько низкий у тебя уровень энергии в течение дня?",
-          },
-          { id: 103, text: "Насколько у тебя сидячий образ жизни?" },
-          {
-            id: 104,
-            text: "Насколько сильная физическая усталость к концу рабочего дня?",
-          },
-          { id: 105, text: "Насколько выражены боли в спине, шее или плечах?" },
-          {
-            id: 106,
-            text: "Насколько низкий у тебя уровень силы и выносливости?",
-          },
-          { id: 107, text: "Насколько выражена скованность/зажатость в теле?" },
-          {
-            id: 108,
-            text: "Насколько долго ты восстанавливаешься после нагрузки?",
-          },
-          { id: 109, text: "Насколько ты недоволен своей физической формой?" },
-        ],
-      },
-
-      {
-        id: 2,
-        title: "Питание и пищевые привычки",
-        questions: [
-          { id: 201, text: "Насколько плохое качество твоего питания?" },
-          { id: 202, text: "Насколько нестабилен твой режим питания?" },
-          { id: 203, text: "Насколько ты склонен к перееданию?" },
-          { id: 204, text: "Насколько выражены перепады энергии после еды?" },
-          {
-            id: 205,
-            text: "Насколько часто ты ешь “на автомате” без контроля?",
-          },
-          {
-            id: 206,
-            text: "Насколько часто ты забываешь пить воду в течение дня?",
-          },
-          {
-            id: 207,
-            text: "Насколько выражена зависимость от сладкого или фастфуда?",
-          },
-          { id: 208, text: "Насколько неосознанно ты питаешься?" },
-          {
-            id: 209,
-            text: "Насколько часто ты ешь в состоянии стресса или усталости?",
-          },
-        ],
-      },
-
-      {
-        id: 3,
-        title: "Психологическое состояние и поведение",
-        questions: [
-          { id: 301, text: "Насколько высокий уровень стресса в твоей жизни?" },
-          {
-            id: 302,
-            text: "Насколько тебе тяжело соблюдать дисциплину и постоянство?",
-          },
-          { id: 303, text: "Насколько часто ты откладываешь важные действия?" },
-          { id: 304, text: "Насколько сильно ощущение “нет времени на себя”?" },
-          {
-            id: 305,
-            text: "Насколько ты склонен быстро “сходить с дистанции”?",
-          },
-          { id: 306, text: "Насколько сложно тебе засыпать?" },
-          { id: 307, text: "Насколько нестабилен твой режим сна?" },
-          { id: 308, text: "Насколько плохое качество твоего сна?" },
-          {
-            id: 309,
-            text: "Насколько тебе сложно контролировать свои привычки и состояние?",
-          },
-        ],
-      },
-    ],
   }),
 
   getters: {
-    currentBlockData: (state) => state.blocks[state.currentBlock],
+    blocks: () => SCREENING_BLOCKS,
 
-    progress: (state) => (state.currentBlock + 1) / state.blocks.length,
+    currentBlockData(): Block {
+      return SCREENING_BLOCKS[this.currentBlock];
+    },
+
+    progress: (state) => (state.currentBlock + 1) / SCREENING_BLOCKS.length,
 
     dominantProblem(state): DominantProblem {
       const physical = state.blockScores[1] || 0;

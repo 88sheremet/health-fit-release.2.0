@@ -4,14 +4,14 @@
       <button class="back-btn" @click="navigateTo(routes.recovery.journal)">
         <span class="material-icons">arrow_back</span>
       </button>
-      <div class="title">Архив состояния</div>
+      <div class="title">{{ $t("journal.archive.header") }}</div>
     </div>
 
     <div v-if="!entries.length" class="empty-state">
       <div class="empty-icon">📔</div>
-      <div class="empty-title">Пока нет записей</div>
+      <div class="empty-title">{{ $t("journal.archive.emptyTitle") }}</div>
       <div class="empty-text">
-        Пройди ежедневный чек-ин, чтобы появилась история состояния
+        {{ $t("journal.archive.emptyText") }}
       </div>
     </div>
 
@@ -32,8 +32,12 @@ import { computed } from "vue";
 import { useJournalStore } from "~/stores/journal";
 import { routes } from "~/router/routes";
 import { moodEmojis } from "~/constants/moods";
-
+definePageMeta({
+  layout: "authenticated",
+  middleware: "auth",
+});
 const store = useJournalStore();
+const { locale } = useI18n();
 
 const entries = computed(() => [...store.entries].reverse());
 
@@ -42,7 +46,7 @@ function getMoodEmoji(mood: number) {
 }
 
 function formatDate(date: string) {
-  return new Date(date).toLocaleDateString("ru-RU", {
+  return new Date(date).toLocaleDateString(locale.value, {
     day: "numeric",
     month: "long",
     year: "numeric",

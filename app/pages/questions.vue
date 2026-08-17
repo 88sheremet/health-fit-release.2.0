@@ -3,8 +3,7 @@
     <div class="header">
       <div class="header-top">
         <div class="block-counter">
-          Блок {{ screeningStore.currentBlock + 1 }} из
-          {{ screeningStore.blocks.length }}
+          {{ $t("questions.block", { current: screeningStore.currentBlock + 1, total: screeningStore.blocks.length }) }}
         </div>
         <div class="questions-counter">
           {{ answeredQuestions }} /
@@ -21,8 +20,8 @@
     </div>
 
     <div class="title-section">
-      <div class="title">{{ screeningStore.currentBlockData.title }}</div>
-      <div class="subtitle">Оцени каждое утверждение по шкале от 1 до 5</div>
+      <div class="title">{{ $t(screeningStore.currentBlockData.title) }}</div>
+      <div class="subtitle">{{ $t("questions.subtitle") }}</div>
     </div>
 
     <div class="questions-list">
@@ -39,7 +38,7 @@
       >
         <div class="question-top">
           <div class="question-number">{{ index + 1 }}</div>
-          <div class="question-text">{{ question.text }}</div>
+          <div class="question-text">{{ $t(question.text) }}</div>
         </div>
         <div class="answers">
           <button
@@ -53,8 +52,8 @@
           </button>
         </div>
         <div class="scale-labels">
-          <span>Хорошо</span>
-          <span>Плохо</span>
+          <span>{{ $t("questions.scaleGood") }}</span>
+          <span>{{ $t("questions.scaleBad") }}</span>
         </div>
       </q-card>
     </div>
@@ -64,7 +63,7 @@
         unelevated
         no-caps
         class="next-btn"
-        :label="screeningStore.isLastBlock() ? 'Завершить' : 'Следующий блок'"
+        :label="screeningStore.isLastBlock() ? $t('common.finish') : $t('questions.next')"
         @click="goNext"
       />
     </div>
@@ -77,9 +76,13 @@ import { useQuasar } from "quasar";
 import { useScreeningStore } from "~/stores/screening";
 import { DominantProblem } from "~/enums/DominantProblem.enum";
 import { routes } from "~/router/routes";
-
+definePageMeta({
+  layout: "authenticated",
+  middleware: "auth",
+});
 const screeningStore = useScreeningStore();
 const $q = useQuasar();
+const { t } = useI18n();
 
 const pageRef = ref<HTMLElement | null>(null);
 const questionRefs = ref<any[]>([]);
@@ -106,8 +109,7 @@ const scrollToFirstEmpty = async () => {
 
 const showValidationAlert = () => {
   $q.notify({
-    message:
-      "Не все вопросы заполнены. Ответь на выделенный вопрос, чтобы продолжить.",
+    message: t("screening.validationText"),
     type: "warning",
     timeout: 2500,
   });

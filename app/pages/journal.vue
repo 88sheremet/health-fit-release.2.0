@@ -2,9 +2,9 @@
   <div class="journal-page">
     <section class="hero">
       <div class="hero-content">
-        <h1 class="hero-title">Дневник</h1>
+        <h1 class="hero-title">{{ $t("journal.title") }}</h1>
         <p class="hero-subtitle">
-          Фиксируй свои мысли и состояние, чтобы видеть изменения со временем
+          {{ $t("journal.subtitle") }}
         </p>
       </div>
       <div class="hero-book">
@@ -13,13 +13,13 @@
     </section>
 
     <div class="actions">
-      <q-card flat class="action-card" @click="navigateTo('/journal-chart')">
+      <q-card flat class="action-card" @click="navigateTo(routes.recovery.journalChart)">
         <div class="action-icon green-bg">
           <span class="material-icons icon-green">show_chart</span>
         </div>
         <div class="action-content">
-          <div class="action-title">Смотреть график</div>
-          <div class="action-subtitle">Посмотри динамику своего состояния</div>
+          <div class="action-title">{{ $t("journal.chartAction") }}</div>
+          <div class="action-subtitle">{{ $t("journal.chartActionSubtitle") }}</div>
         </div>
         <span class="material-icons icon-green">chevron_right</span>
       </q-card>
@@ -29,8 +29,8 @@
           <span class="material-icons icon-orange">edit</span>
         </div>
         <div class="action-content">
-          <div class="action-title">Сделать заметку</div>
-          <div class="action-subtitle">Запиши свои мысли или наблюдения</div>
+          <div class="action-title">{{ $t("journal.noteAction") }}</div>
+          <div class="action-subtitle">{{ $t("journal.noteActionSubtitle") }}</div>
         </div>
         <div class="plus-circle">
           <span class="material-icons icon-orange">add</span>
@@ -46,8 +46,8 @@
           <span class="material-icons icon-blue">inventory_2</span>
         </div>
         <div class="action-content">
-          <div class="action-title">Архив</div>
-          <div class="action-subtitle">Просмотри сохраненные записи</div>
+          <div class="action-title">{{ $t("journal.archiveAction") }}</div>
+          <div class="action-subtitle">{{ $t("journal.archiveActionSubtitle") }}</div>
         </div>
         <span class="material-icons icon-blue">chevron_right</span>
       </q-card>
@@ -55,27 +55,27 @@
 
     <q-dialog v-model="showNoteDialog">
       <q-card class="dialog-card">
-        <div class="dialog-title">Новая заметка</div>
+        <div class="dialog-title">{{ $t("journal.newNote") }}</div>
         <q-input
           v-model="note"
           type="textarea"
           autogrow
           outlined
-          placeholder="Напишите свои мысли или наблюдения..."
+          :placeholder="$t('journal.notePlaceholder')"
         />
         <div class="dialog-actions">
           <q-btn
             flat
             no-caps
             text-color="primary"
-            label="Отмена"
+            :label="$t('common.cancel')"
             @click="showNoteDialog = false"
           />
           <q-btn
             unelevated
             no-caps
             color="primary"
-            label="Сохранить"
+            :label="$t('common.save')"
             @click="saveNote"
           />
         </div>
@@ -90,7 +90,10 @@
 import { useJournalStore } from "~/stores/journal";
 import { routes } from "~/router/routes";
 import { ref } from "vue";
-
+definePageMeta({
+  middleware: "auth",
+  layout: "authenticated",
+});
 const journalStore = useJournalStore();
 
 const showNoteDialog = ref(false);

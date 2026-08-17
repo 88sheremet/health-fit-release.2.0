@@ -6,10 +6,9 @@
           <div class="glow"></div>
           <span class="material-icons main-icon">psychology</span>
         </div>
-        <div class="title">Анализ состояния</div>
+        <div class="title">{{ $t("screening.title") }}</div>
         <div class="subtitle">
-          Ответь на несколько вопросов, чтобы получить персональный план
-          восстановления
+          {{ $t("screening.subtitle") }}
         </div>
       </div>
 
@@ -19,8 +18,8 @@
             <span class="material-icons">schedule</span>
           </div>
           <div class="info-content">
-            <div class="info-title">~2 минуты</div>
-            <div class="info-text">Быстрый анализ состояния</div>
+            <div class="info-title">{{ $t("screening.infoMinutes") }}</div>
+            <div class="info-text">{{ $t("screening.infoMinutesText") }}</div>
           </div>
         </div>
         <div class="info-item">
@@ -28,8 +27,8 @@
             <span class="material-icons">monitoring</span>
           </div>
           <div class="info-content">
-            <div class="info-title">Персональный результат</div>
-            <div class="info-text">Узнай свои основные точки роста</div>
+            <div class="info-title">{{ $t("screening.infoResult") }}</div>
+            <div class="info-text">{{ $t("screening.infoResultText") }}</div>
           </div>
         </div>
         <div class="info-item">
@@ -37,21 +36,21 @@
             <span class="material-icons">task_alt</span>
           </div>
           <div class="info-content">
-            <div class="info-title">Ежедневные задания</div>
-            <div class="info-text">Система подстроится под тебя</div>
+            <div class="info-title">{{ $t("screening.infoTasks") }}</div>
+            <div class="info-text">{{ $t("screening.infoTasksText") }}</div>
           </div>
         </div>
       </q-card>
 
       <div class="bottom-section">
         <div class="hint-text">
-          Твой путь начинается с понимания текущего состояния
+          {{ $t("screening.hint") }}
         </div>
         <q-btn
           unelevated
           no-caps
           class="start-btn"
-          label="Начать скрининг"
+          :label="$t('screening.startBtn')"
           @click="startQuestions"
         />
         <q-btn
@@ -59,7 +58,7 @@
           no-caps
           text-color="primary"
           class="skip-btn"
-          label="Пропустить"
+          :label="$t('common.skip')"
           @click="skip"
         />
       </div>
@@ -70,7 +69,10 @@
 <script setup lang="ts">
 import { useScreeningStore } from "~/stores/screening";
 import { routes } from "~/router/routes";
-
+definePageMeta({
+  layout: "authenticated",
+  middleware: "auth",
+});
 const store = useScreeningStore();
 
 const skip = () => {

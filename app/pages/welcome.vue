@@ -6,25 +6,24 @@
           <div class="glow"></div>
           <span class="icon-emoji">☀️</span>
         </div>
-        <h1 class="title">Твое новое состояние создаеться здесь</h1>
+        <h1 class="title">{{ $t("welcome.title") }}</h1>
         <p class="subtitle">
-          Простая система действий, которая помогает улучшать самочувствие и
-          видеть прогресс каждый день
+          {{ $t("welcome.subtitle") }}
         </p>
       </div>
 
       <q-card flat class="benefits-card">
         <div class="benefit-item">
           <div class="benefit-icon"><span class="material-icons">psychology</span></div>
-          <div class="benefit-text">Узнай свой текущий уровень состояния</div>
+          <div class="benefit-text">{{ $t("welcome.benefit1") }}</div>
         </div>
         <div class="benefit-item">
           <div class="benefit-icon"><span class="material-icons">assignment_turned_in</span></div>
-          <div class="benefit-text">Получай ежедневные персональные задания</div>
+          <div class="benefit-text">{{ $t("welcome.benefit2") }}</div>
         </div>
         <div class="benefit-item">
           <div class="benefit-icon"><span class="material-icons">trending_up</span></div>
-          <div class="benefit-text">Отслеживай изменения и свой прогресс</div>
+          <div class="benefit-text">{{ $t("welcome.benefit3") }}</div>
         </div>
       </q-card>
 
@@ -33,10 +32,10 @@
           unelevated
           no-caps
           class="start-btn"
-          label="Начать путь"
+          :label="$t('welcome.startBtn')"
           @click="navigateTo(routes.onboarding.screening)"
         />
-        <div class="hint-text">Это займет 2–3 минуты</div>
+        <div class="hint-text">{{ $t("welcome.hint") }}</div>
       </div>
     </div>
   </div>
