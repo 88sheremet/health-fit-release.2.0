@@ -2,7 +2,6 @@ import { defineStore } from "pinia";
 
 import { DominantProblem } from "../enums/DominantProblem.enum";
 
-import type { Question } from "../interfaces/Question.interface";
 import type { Block } from "../interfaces/Block.interface";
 import type { Answers } from "../interfaces/Answers.interface";
 import type { BlockScores } from "../interfaces/BlockScores.interface";
@@ -79,7 +78,8 @@ export const useScreeningStore = defineStore("screening", {
       return SCREENING_BLOCKS[this.currentBlock];
     },
 
-    progress: (state) => (state.currentBlock + 1) / SCREENING_BLOCKS.length,
+    progress: (state) =>
+      (state.currentBlock + 1) / SCREENING_BLOCKS.length,
 
     dominantProblem(state): DominantProblem {
       const physical = state.blockScores[1] || 0;
@@ -122,9 +122,25 @@ export const useScreeningStore = defineStore("screening", {
           return;
         }
 
+        console.log(
+          "[Screening] Загружаем результат пользователя:",
+          user.id,
+        );
+
         const { data, error } = await supabase
           .from("screening_results")
-          .select("*")
+          .select(
+            `
+              user_id,
+              answers,
+              physical_score,
+              food_score,
+              mind_score,
+              dominant_problem,
+              completed_at,
+              updated_at
+            `,
+          )
           .eq("user_id", user.id)
           .maybeSingle();
 
@@ -133,6 +149,10 @@ export const useScreeningStore = defineStore("screening", {
         }
 
         if (!data) {
+          console.log(
+            "[Screening] Результат не найден — скрининг не пройден",
+          );
+
           this.resetScreening();
           return;
         }
@@ -146,11 +166,23 @@ export const useScreeningStore = defineStore("screening", {
         } as BlockScores;
 
         this.screeningCompleted = true;
+
+        this.currentBlock = 0;
+
+        console.log("[Screening] Результат успешно загружен", {
+          physical: this.blockScores[1],
+          food: this.blockScores[2],
+          mind: this.blockScores[3],
+          dominantProblem: data.dominant_problem,
+        });
       } catch (error: any) {
         console.error("[Screening] Ошибка загрузки:", error);
 
         this.error =
-          error?.message || "Не удалось загрузить результат скрининга";
+          error?.message ||
+          "Не удалось загрузить результат скрининга";
+
+        this.screeningCompleted = false;
       } finally {
         this.loading = false;
       }
@@ -176,24 +208,37 @@ export const useScreeningStore = defineStore("screening", {
           throw new Error("Пользователь не авторизован");
         }
 
-        const { error } = await supabase.from("screening_results").upsert(
-          {
-            user_id: user.id,
+        const now = new Date().toISOString();
 
-            answers: this.answers,
+        const dominantProblem = this.dominantProblem;
 
-            physical_score: this.blockScores[1] || 0,
-            food_score: this.blockScores[2] || 0,
-            mind_score: this.blockScores[3] || 0,
+        const { error } = await supabase
+          .from("screening_results")
+          .upsert(
+            {
+              user_id: user.id,
 
-            completed_at: new Date().toISOString(),
+              answers: this.answers,
 
-            updated_at: new Date().toISOString(),
-          },
-          {
-            onConflict: "user_id",
-          },
-        );
+              physical_score:
+                this.blockScores[1] || 0,
+
+              food_score:
+                this.blockScores[2] || 0,
+
+              mind_score:
+                this.blockScores[3] || 0,
+
+              dominant_problem: dominantProblem,
+
+              completed_at: now,
+
+              updated_at: now,
+            },
+            {
+              onConflict: "user_id",
+            },
+          );
 
         if (error) {
           throw error;
@@ -201,12 +246,24 @@ export const useScreeningStore = defineStore("screening", {
 
         this.screeningCompleted = true;
 
-        console.log("[Screening] Результат сохранён в Supabase");
+        console.log(
+          "[Screening] Результат сохранён в Supabase",
+          {
+            physical: this.blockScores[1],
+            food: this.blockScores[2],
+            mind: this.blockScores[3],
+            dominantProblem,
+          },
+        );
       } catch (error: any) {
-        console.error("[Screening] Ошибка сохранения:", error);
+        console.error(
+          "[Screening] Ошибка сохранения:",
+          error,
+        );
 
         this.error =
-          error?.message || "Не удалось сохранить результат скрининга";
+          error?.message ||
+          "Не удалось сохранить результат скрининга";
 
         throw error;
       } finally {
@@ -215,15 +272,23 @@ export const useScreeningStore = defineStore("screening", {
     },
 
     async completeScreening() {
+      this.calculateCurrentBlockScore();
+
       await this.saveScreening();
     },
 
-    setAnswer(questionId: number, value: number) {
+    setAnswer(
+      questionId: number,
+      value: number,
+    ) {
       this.answers[questionId] = value;
     },
 
     validateCurrentBlock() {
-      return this.currentBlockData.questions.every((q) => this.answers[q.id]);
+      return this.currentBlockData.questions.every(
+        (question) =>
+          this.answers[question.id] !== undefined,
+      );
     },
 
     calculateCurrentBlockScore() {
@@ -231,8 +296,8 @@ export const useScreeningStore = defineStore("screening", {
 
       let total = 0;
 
-      block.questions.forEach((q) => {
-        total += this.answers[q.id] || 0;
+      block.questions.forEach((question) => {
+        total += this.answers[question.id] || 0;
       });
 
       this.blockScores[block.id] = total;
@@ -241,20 +306,30 @@ export const useScreeningStore = defineStore("screening", {
     nextBlock() {
       this.calculateCurrentBlockScore();
 
-      if (this.currentBlock < this.blocks.length - 1) {
+      if (
+        this.currentBlock <
+        this.blocks.length - 1
+      ) {
         this.currentBlock++;
       }
     },
 
     isLastBlock() {
-      return this.currentBlock === this.blocks.length - 1;
+      return (
+        this.currentBlock ===
+        this.blocks.length - 1
+      );
     },
 
     resetScreening() {
       this.screeningCompleted = false;
+
       this.currentBlock = 0;
+
       this.answers = {};
+
       this.blockScores = {};
+
       this.error = null;
     },
   },

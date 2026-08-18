@@ -2,11 +2,11 @@
   <q-layout view="lHh Lpr lFf">
     <q-header class="app-header">
       <q-toolbar>
-        <div class="logo-wrapper">
-          <img :src="logo" alt="Health Fit Release" class="app-logo" />
-        </div>
-
-        <q-space />
+        <img
+          :src="logo"
+          alt="Health Fit"
+          class="app-logo"
+        />
 
         <LogoutButton />
       </q-toolbar>
@@ -19,8 +19,16 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from "vue";
 import LogoutButton from "~/components/auth/LogoutButton.vue";
+import { useScreeningStore } from "~/stores/screening";
 import logo from "~/assets/main-logo.png";
+
+const screeningStore = useScreeningStore();
+
+onMounted(async () => {
+  await screeningStore.loadScreening();
+});
 </script>
 
 <style scoped>
@@ -31,26 +39,21 @@ import logo from "~/assets/main-logo.png";
 }
 
 .q-toolbar {
-  min-height: 64px;
-  padding: 0 16px;
-}
-
-.logo-wrapper {
+  min-height: 56px;
   display: flex;
   align-items: center;
-  height: 100%;
 }
 
 .app-logo {
-  display: block;
-  width: 115px;
-  height: auto;
+  width: 140px;
+  height: 42px;
   object-fit: contain;
-  border-radius: 8px;
+  object-position: left center;
 }
 
 :deep(.logout-btn) {
   width: auto;
   max-width: none;
+  margin-left: auto;
 }
 </style>
