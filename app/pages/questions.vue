@@ -3,7 +3,12 @@
     <div class="header">
       <div class="header-top">
         <div class="block-counter">
-          {{ $t("questions.block", { current: screeningStore.currentBlock + 1, total: screeningStore.blocks.length }) }}
+          {{
+            $t("questions.block", {
+              current: screeningStore.currentBlock + 1,
+              total: screeningStore.blocks.length,
+            })
+          }}
         </div>
         <div class="questions-counter">
           {{ answeredQuestions }} /
@@ -63,7 +68,11 @@
         unelevated
         no-caps
         class="next-btn"
-        :label="screeningStore.isLastBlock() ? $t('common.finish') : $t('questions.next')"
+        :label="
+          screeningStore.isLastBlock()
+            ? $t('common.finish')
+            : $t('questions.next')
+        "
         @click="goNext"
       />
     </div>
@@ -117,29 +126,54 @@ const showValidationAlert = () => {
 
 const goNext = async () => {
   showValidation.value = true;
+
   const isValid = screeningStore.validateCurrentBlock();
+
   if (!isValid) {
     showValidationAlert();
     await scrollToFirstEmpty();
     return;
   }
+
   if (screeningStore.isLastBlock()) {
     screeningStore.calculateCurrentBlockScore();
-    screeningStore.completeScreening();
-    const result = screeningStore.dominantProblem;
-    if (result === DominantProblem.Physical) {
-      navigateTo(routes.results.physical);
-    } else if (result === DominantProblem.Food) {
-      navigateTo(routes.results.food);
-    } else {
-      navigateTo(routes.results.mind);
+
+    try {
+      await screeningStore.completeScreening();
+
+      // Только после успешного сохранения определяем результат
+      const result = screeningStore.dominantProblem;
+
+      if (result === DominantProblem.Physical) {
+        await navigateTo(routes.results.physical);
+      } else if (result === DominantProblem.Food) {
+        await navigateTo(routes.results.food);
+      } else {
+        await navigateTo(routes.results.mind);
+      }
+    } catch (error) {
+      console.error("[Questions] Не удалось сохранить скрининг:", error);
+
+      $q.notify({
+        message: "Не удалось сохранить результат. Попробуйте ещё раз.",
+        type: "negative",
+        timeout: 3000,
+      });
     }
+
     return;
   }
+
   screeningStore.nextBlock();
+
   showValidation.value = false;
+
   await nextTick();
-  pageRef.value?.scrollTo({ top: 0, behavior: "smooth" });
+
+  pageRef.value?.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
 };
 </script>
 
@@ -148,8 +182,13 @@ const goNext = async () => {
   height: 100vh;
   overflow-y: auto;
   padding: 24px 20px 140px;
-  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: radial-gradient(circle at 10% 0%, rgba(76, 175, 80, 0.12), transparent 45%),
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  background: radial-gradient(
+      circle at 10% 0%,
+      rgba(76, 175, 80, 0.12),
+      transparent 45%
+    ),
     radial-gradient(circle at 90% 20%, rgba(33, 150, 243, 0.1), transparent 40%),
     linear-gradient(180deg, #f8fbff 0%, #eef7f2 100%);
 }
@@ -227,7 +266,11 @@ const goNext = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05));
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.15),
+    rgba(34, 197, 94, 0.05)
+  );
   color: var(--green-dark);
   font-size: 14px;
   font-weight: 900;
@@ -302,14 +345,30 @@ const goNext = async () => {
   transform: scale(0.98);
 }
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes shake {
-  0% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  50% { transform: translateX(4px); }
-  75% { transform: translateX(-4px); }
-  100% { transform: translateX(0); }
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+  75% {
+    transform: translateX(-4px);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 </style>

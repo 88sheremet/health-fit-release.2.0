@@ -66,6 +66,10 @@ export const useScreeningStore = defineStore("screening", {
     answers: {} as Answers,
 
     blockScores: {} as BlockScores,
+
+    loading: false,
+
+    error: null as string | null,
   }),
 
   getters: {
@@ -97,8 +101,121 @@ export const useScreeningStore = defineStore("screening", {
   },
 
   actions: {
-    completeScreening() {
-      this.screeningCompleted = true;
+    async loadScreening() {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        const supabase = useSupabaseClient();
+
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError) {
+          throw userError;
+        }
+
+        if (!user) {
+          this.resetScreening();
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("screening_results")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (error) {
+          throw error;
+        }
+
+        if (!data) {
+          this.resetScreening();
+          return;
+        }
+
+        this.answers = (data.answers || {}) as Answers;
+
+        this.blockScores = {
+          1: Number(data.physical_score || 0),
+          2: Number(data.food_score || 0),
+          3: Number(data.mind_score || 0),
+        } as BlockScores;
+
+        this.screeningCompleted = true;
+      } catch (error: any) {
+        console.error("[Screening] Ошибка загрузки:", error);
+
+        this.error =
+          error?.message || "Не удалось загрузить результат скрининга";
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async saveScreening() {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        const supabase = useSupabaseClient();
+
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError) {
+          throw userError;
+        }
+
+        if (!user) {
+          throw new Error("Пользователь не авторизован");
+        }
+
+        const { error } = await supabase.from("screening_results").upsert(
+          {
+            user_id: user.id,
+
+            answers: this.answers,
+
+            physical_score: this.blockScores[1] || 0,
+            food_score: this.blockScores[2] || 0,
+            mind_score: this.blockScores[3] || 0,
+
+            completed_at: new Date().toISOString(),
+
+            updated_at: new Date().toISOString(),
+          },
+          {
+            onConflict: "user_id",
+          },
+        );
+
+        if (error) {
+          throw error;
+        }
+
+        this.screeningCompleted = true;
+
+        console.log("[Screening] Результат сохранён в Supabase");
+      } catch (error: any) {
+        console.error("[Screening] Ошибка сохранения:", error);
+
+        this.error =
+          error?.message || "Не удалось сохранить результат скрининга";
+
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async completeScreening() {
+      await this.saveScreening();
     },
 
     setAnswer(questionId: number, value: number) {
@@ -111,6 +228,7 @@ export const useScreeningStore = defineStore("screening", {
 
     calculateCurrentBlockScore() {
       const block = this.currentBlockData;
+
       let total = 0;
 
       block.questions.forEach((q) => {
@@ -133,9 +251,11 @@ export const useScreeningStore = defineStore("screening", {
     },
 
     resetScreening() {
+      this.screeningCompleted = false;
       this.currentBlock = 0;
       this.answers = {};
       this.blockScores = {};
+      this.error = null;
     },
   },
 
