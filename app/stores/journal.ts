@@ -32,32 +32,126 @@ export const useJournalStore = defineStore("journal", {
   },
 
   actions: {
-    init() {
+    async init() {
+      await this.loadEntries();
+
       const today = new Date().toISOString().split("T")[0];
 
-      const lastCheckinDate = localStorage.getItem("last-checkin-date");
+      const todayEntry = this.entries.find((entry) => entry.date === today);
 
-      this.showCheckin = lastCheckinDate !== today;
+      this.showCheckin = !todayEntry;
     },
 
-    saveCheckin(payload: { mood: 1 | 2 | 3 | 4 | 5; note: string }) {
-      const today = new Date().toISOString().split("T")[0];
+    async loadEntries() {
+      const supabase = useSupabaseClient();
 
-      const existingEntry = this.entries.find((entry) => entry.date === today);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      if (existingEntry) {
-        existingEntry.mood = payload.mood;
-        existingEntry.note = payload.note;
-      } else {
-        this.entries.push({
-          id: crypto.randomUUID(),
-          date: today,
-          mood: payload.mood,
-          note: payload.note,
-        });
+      if (!user) {
+        this.entries = [];
+        return;
       }
 
-      localStorage.setItem("last-checkin-date", today);
+      const { data, error } = await supabase
+        .from("journal_entries")
+        .select(
+          `
+              id,
+              date,
+              mood,
+              note
+            `,
+        )
+        .eq("user_id", user.id)
+        .order("date", {
+          ascending: true,
+        });
+
+      if (error) {
+        console.error("[Journal] Ошибка загрузки:", error);
+
+        throw error;
+      }
+
+      this.entries = (data ?? []).map((entry) => ({
+        id: entry.id,
+
+        date: entry.date,
+
+        mood: entry.mood as 1 | 2 | 3 | 4 | 5 | undefined,
+
+        note: entry.note ?? "",
+      }));
+    },
+
+    async saveCheckin(payload: { mood: 1 | 2 | 3 | 4 | 5; note: string }) {
+      const supabase = useSupabaseClient();
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error("Пользователь не авторизован");
+      }
+
+      const today = new Date().toISOString().split("T")[0];
+
+      const { data, error } = await supabase
+        .from("journal_entries")
+        .upsert(
+          {
+            user_id: user.id,
+
+            date: today,
+
+            mood: payload.mood,
+
+            note: payload.note,
+
+            updated_at: new Date().toISOString(),
+          },
+          {
+            onConflict: "user_id,date",
+          },
+        )
+        .select(
+          `
+              id,
+              date,
+              mood,
+              note
+            `,
+        )
+        .single();
+
+      if (error) {
+        console.error("[Journal] Ошибка сохранения:", error);
+
+        throw error;
+      }
+
+      const entry: JournalEntry = {
+        id: data.id,
+
+        date: data.date,
+
+        mood: data.mood as 1 | 2 | 3 | 4 | 5,
+
+        note: data.note ?? "",
+      };
+
+      const existingIndex = this.entries.findIndex(
+        (item) => item.date === today,
+      );
+
+      if (existingIndex !== -1) {
+        this.entries[existingIndex] = entry;
+      } else {
+        this.entries.push(entry);
+      }
 
       this.showCheckin = false;
     },
@@ -70,18 +164,100 @@ export const useJournalStore = defineStore("journal", {
       return this.entries.find((entry) => entry.date === date);
     },
 
-    deleteEntry(id: string) {
+    async deleteEntry(id: string) {
+      const supabase = useSupabaseClient();
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error("Пользователь не авторизован");
+      }
+
+      const { error } = await supabase
+        .from("journal_entries")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", user.id);
+
+      if (error) {
+        console.error("[Journal] Ошибка удаления:", error);
+
+        throw error;
+      }
+
       this.entries = this.entries.filter((entry) => entry.id !== id);
     },
-    addNote(note: string) {
-  const today = new Date().toISOString().split("T")[0];
-  this.entries.push({
-    id: crypto.randomUUID(),
-    date: today,
-    note,
-  });
-},
-  },
 
-  persist: true,
+    async addNote(note: string) {
+      const supabase = useSupabaseClient();
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error("Пользователь не авторизован");
+      }
+
+      const today = new Date().toISOString().split("T")[0];
+
+      const existingEntry = this.entries.find((entry) => entry.date === today);
+
+      const { data, error } = await supabase
+        .from("journal_entries")
+        .upsert(
+          {
+            user_id: user.id,
+
+            date: today,
+
+            mood: existingEntry?.mood ?? null,
+
+            note,
+
+            updated_at: new Date().toISOString(),
+          },
+          {
+            onConflict: "user_id,date",
+          },
+        )
+        .select(
+          `
+              id,
+              date,
+              mood,
+              note
+            `,
+        )
+        .single();
+
+      if (error) {
+        console.error("[Journal] Ошибка добавления заметки:", error);
+
+        throw error;
+      }
+
+      const entry: JournalEntry = {
+        id: data.id,
+
+        date: data.date,
+
+        mood: data.mood as 1 | 2 | 3 | 4 | 5 | undefined,
+
+        note: data.note ?? "",
+      };
+
+      const existingIndex = this.entries.findIndex(
+        (item) => item.date === today,
+      );
+
+      if (existingIndex !== -1) {
+        this.entries[existingIndex] = entry;
+      } else {
+        this.entries.push(entry);
+      }
+    },
+  },
 });
