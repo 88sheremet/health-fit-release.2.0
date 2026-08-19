@@ -367,6 +367,36 @@ export const useTaskStore = defineStore("tasks", {
       }
     },
 
+    async addEnergy(amount: number) {
+      const supabase = useSupabaseClient();
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error("Пользователь не авторизован");
+      }
+
+      const newEnergy = this.energy + amount;
+
+      const { error } = await supabase
+        .from("user_progress")
+        .update({
+          energy: newEnergy,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", user.id);
+
+      if (error) {
+        console.error("[DailyTasks] Ошибка обновления энергии:", error);
+
+        throw error;
+      }
+
+      this.energy = newEnergy;
+    },
+
     isDone(id: string) {
       return !!this.completed[id];
     },

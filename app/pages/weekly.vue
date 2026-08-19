@@ -57,12 +57,9 @@ const store = useWeeklyTaskStore();
 await store.init();
 
 async function completeWeeklyTask() {
-  if (!store.canComplete) {
-    return;
-  }
+  if (!store.canComplete) return;
 
   await store.completeCurrentTask();
-  store.rewardEnergy();
 }
 </script>
 

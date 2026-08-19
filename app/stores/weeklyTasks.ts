@@ -54,6 +54,7 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
         const task = currentWeekTask ?? fallbackTask;
 
         return {
+          id: task.id,
           nameProgram: task.title,
           whatDoing: task.what_doing,
           whyDoing: task.why_doing,
@@ -61,6 +62,7 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
       }
 
       return {
+        id: "",
         nameProgram: "",
         whatDoing: "",
         whyDoing: "",
@@ -77,7 +79,10 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
       try {
         this.tasks = await getWeeklyTasks();
       } catch (error) {
-        console.error("Не удалось загрузить weekly_tasks", error);
+        console.error(
+          "[WeeklyTasks] Не удалось загрузить weekly_tasks:",
+          error,
+        );
       } finally {
         this.tasksLoaded = true;
       }
@@ -93,7 +98,10 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
           this.completed[week] = true;
         });
       } catch (error) {
-        console.error("Не удалось загрузить weekly completions", error);
+        console.error(
+          "[WeeklyTasks] Не удалось загрузить weekly completions:",
+          error,
+        );
       }
     },
 
@@ -102,18 +110,14 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
     },
 
     async completeCurrentTask() {
-      if (!this.canComplete) {
-        return;
-      }
-
       if (this.isCompleted()) {
         return;
       }
 
-      const task = this.tasks.find((item) => item.week === this.currentWeek);
+      const task = this.currentTask;
 
-      if (!task) {
-        console.error("[Weekly] Задание текущей недели не найдено");
+      if (!task.id) {
+        console.error("[WeeklyTasks] Не удалось определить ID задания");
 
         return;
       }
@@ -122,8 +126,18 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
         await saveWeeklyCompletion(task.id, this.currentWeek);
 
         this.completed[this.currentWeek] = true;
+
+        const dailyStore = useTaskStore();
+
+        await dailyStore.addEnergy(100);
+
+        console.log("[WeeklyTasks] Задание выполнено:", {
+          week: this.currentWeek,
+          taskId: task.id,
+          reward: 100,
+        });
       } catch (error) {
-        console.error("[Weekly] Ошибка выполнения задания:", error);
+        console.error("[WeeklyTasks] Ошибка выполнения задания:", error);
 
         throw error;
       }
@@ -131,12 +145,6 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
 
     isCompleted(): boolean {
       return !!this.completed[this.currentWeek];
-    },
-
-    rewardEnergy() {
-      const dailyStore = useTaskStore();
-
-      dailyStore.energy += 100;
     },
   },
 });
