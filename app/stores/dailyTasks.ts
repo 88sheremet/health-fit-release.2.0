@@ -58,7 +58,6 @@ function dbTasksForDay(rows: DbDailyTask[], dayIndex: number): Task[] {
       list[(targetDay - 1) % list.length];
 
     result.push({
-      // Используем настоящий ID из Supabase
       id: row.id,
 
       type,
@@ -98,10 +97,14 @@ export const useTaskStore = defineStore("tasks", {
   getters: {
     dayIndex(state) {
       if (!state.startDate) {
+        console.log("[DailyTasks] Нет startDate → day 1");
+
         return 1;
       }
 
-      return getDayIndex(state.startDate);
+      const day = getDayIndex(state.startDate);
+
+      return day;
     },
 
     isRestDay(): boolean {
@@ -122,14 +125,6 @@ export const useTaskStore = defineStore("tasks", {
   },
 
   actions: {
-    /**
-     * Инициализация store.
-     *
-     * Загружает:
-     * - пользовательский progress;
-     * - daily tasks;
-     * - выполненные задания.
-     */
     async init() {
       this.loading = true;
 
