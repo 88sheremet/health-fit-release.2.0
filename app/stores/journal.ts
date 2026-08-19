@@ -13,7 +13,11 @@ export const useJournalStore = defineStore("journal", {
     chartData(state) {
       return state.entries
         .slice()
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .sort(
+          (a, b) =>
+            new Date(a.date).getTime() -
+            new Date(b.date).getTime(),
+        )
         .map((entry, index) => ({
           day: index + 1,
           mood: entry.mood,
@@ -35,11 +39,17 @@ export const useJournalStore = defineStore("journal", {
     async init() {
       await this.loadEntries();
 
-      const today = new Date().toISOString().split("T")[0];
+      const today = new Date()
+        .toISOString()
+        .split("T")[0];
 
-      const todayEntry = this.entries.find((entry) => entry.date === today);
+      const todayCheckin = this.entries.find(
+        (entry) =>
+          entry.date === today &&
+          entry.mood !== undefined,
+      );
 
-      this.showCheckin = !todayEntry;
+      this.showCheckin = !todayCheckin;
     },
 
     async loadEntries() {
@@ -58,11 +68,11 @@ export const useJournalStore = defineStore("journal", {
         .from("journal_entries")
         .select(
           `
-              id,
-              date,
-              mood,
-              note
-            `,
+            id,
+            date,
+            mood,
+            note
+          `,
         )
         .eq("user_id", user.id)
         .order("date", {
@@ -70,23 +80,34 @@ export const useJournalStore = defineStore("journal", {
         });
 
       if (error) {
-        console.error("[Journal] Ошибка загрузки:", error);
+        console.error(
+          "[Journal] Ошибка загрузки:",
+          error,
+        );
 
         throw error;
       }
 
-      this.entries = (data ?? []).map((entry) => ({
-        id: entry.id,
-
-        date: entry.date,
-
-        mood: entry.mood as 1 | 2 | 3 | 4 | 5 | undefined,
-
-        note: entry.note ?? "",
-      }));
+      this.entries = (data ?? []).map(
+        (entry): JournalEntry => ({
+          id: entry.id,
+          date: entry.date,
+          mood: entry.mood as
+            | 1
+            | 2
+            | 3
+            | 4
+            | 5
+            | undefined,
+          note: entry.note ?? "",
+        }),
+      );
     },
 
-    async saveCheckin(payload: { mood: 1 | 2 | 3 | 4 | 5; note: string }) {
+    async saveCheckin(payload: {
+      mood: 1 | 2 | 3 | 4 | 5;
+      note: string;
+    }) {
       const supabase = useSupabaseClient();
 
       const {
@@ -94,64 +115,55 @@ export const useJournalStore = defineStore("journal", {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        throw new Error("Пользователь не авторизован");
+        throw new Error(
+          "Пользователь не авторизован",
+        );
       }
 
-      const today = new Date().toISOString().split("T")[0];
+      const today = new Date()
+        .toISOString()
+        .split("T")[0];
 
       const { data, error } = await supabase
         .from("journal_entries")
-        .upsert(
-          {
-            user_id: user.id,
-
-            date: today,
-
-            mood: payload.mood,
-
-            note: payload.note,
-
-            updated_at: new Date().toISOString(),
-          },
-          {
-            onConflict: "user_id,date",
-          },
-        )
+        .insert({
+          user_id: user.id,
+          date: today,
+          mood: payload.mood,
+          note: payload.note,
+        })
         .select(
           `
-              id,
-              date,
-              mood,
-              note
-            `,
+            id,
+            date,
+            mood,
+            note
+          `,
         )
         .single();
 
       if (error) {
-        console.error("[Journal] Ошибка сохранения:", error);
+        console.error(
+          "[Journal] Ошибка сохранения Check-in:",
+          error,
+        );
 
         throw error;
       }
 
       const entry: JournalEntry = {
         id: data.id,
-
         date: data.date,
-
-        mood: data.mood as 1 | 2 | 3 | 4 | 5,
-
+        mood: data.mood as
+          | 1
+          | 2
+          | 3
+          | 4
+          | 5,
         note: data.note ?? "",
       };
 
-      const existingIndex = this.entries.findIndex(
-        (item) => item.date === today,
-      );
-
-      if (existingIndex !== -1) {
-        this.entries[existingIndex] = entry;
-      } else {
-        this.entries.push(entry);
-      }
+      this.entries.push(entry);
 
       this.showCheckin = false;
     },
@@ -161,7 +173,9 @@ export const useJournalStore = defineStore("journal", {
     },
 
     getEntryByDate(date: string) {
-      return this.entries.find((entry) => entry.date === date);
+      return this.entries.find(
+        (entry) => entry.date === date,
+      );
     },
 
     async deleteEntry(id: string) {
@@ -172,7 +186,9 @@ export const useJournalStore = defineStore("journal", {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        throw new Error("Пользователь не авторизован");
+        throw new Error(
+          "Пользователь не авторизован",
+        );
       }
 
       const { error } = await supabase
@@ -182,12 +198,17 @@ export const useJournalStore = defineStore("journal", {
         .eq("user_id", user.id);
 
       if (error) {
-        console.error("[Journal] Ошибка удаления:", error);
+        console.error(
+          "[Journal] Ошибка удаления:",
+          error,
+        );
 
         throw error;
       }
 
-      this.entries = this.entries.filter((entry) => entry.id !== id);
+      this.entries = this.entries.filter(
+        (entry) => entry.id !== id,
+      );
     },
 
     async addNote(note: string) {
@@ -198,66 +219,62 @@ export const useJournalStore = defineStore("journal", {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        throw new Error("Пользователь не авторизован");
+        throw new Error(
+          "Пользователь не авторизован",
+        );
       }
 
-      const today = new Date().toISOString().split("T")[0];
+      const trimmedNote = note.trim();
 
-      const existingEntry = this.entries.find((entry) => entry.date === today);
+      if (!trimmedNote) {
+        return;
+      }
+
+      const today = new Date()
+        .toISOString()
+        .split("T")[0];
 
       const { data, error } = await supabase
         .from("journal_entries")
-        .upsert(
-          {
-            user_id: user.id,
-
-            date: today,
-
-            mood: existingEntry?.mood ?? null,
-
-            note,
-
-            updated_at: new Date().toISOString(),
-          },
-          {
-            onConflict: "user_id,date",
-          },
-        )
+        .insert({
+          user_id: user.id,
+          date: today,
+          mood: null,
+          note: trimmedNote,
+        })
         .select(
           `
-              id,
-              date,
-              mood,
-              note
-            `,
+            id,
+            date,
+            mood,
+            note
+          `,
         )
         .single();
 
       if (error) {
-        console.error("[Journal] Ошибка добавления заметки:", error);
+        console.error(
+          "[Journal] Ошибка добавления заметки:",
+          error,
+        );
 
         throw error;
       }
 
       const entry: JournalEntry = {
         id: data.id,
-
         date: data.date,
-
-        mood: data.mood as 1 | 2 | 3 | 4 | 5 | undefined,
-
+        mood: data.mood as
+          | 1
+          | 2
+          | 3
+          | 4
+          | 5
+          | undefined,
         note: data.note ?? "",
       };
 
-      const existingIndex = this.entries.findIndex(
-        (item) => item.date === today,
-      );
-
-      if (existingIndex !== -1) {
-        this.entries[existingIndex] = entry;
-      } else {
-        this.entries.push(entry);
-      }
+      this.entries.push(entry);
     },
   },
 });
