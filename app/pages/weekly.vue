@@ -2,8 +2,12 @@
   <div class="page">
     <div class="header">
       <div class="title">{{ $t("weekly.title") }}</div>
-      <div class="subtitle">{{ $t("weekly.week", { n: store.currentWeek }) }}</div>
-      <div class="week-day">{{ $t("weekly.dayOfWeek", { n: store.currentDayWithinWeek }) }}</div>
+      <div class="subtitle">
+        {{ $t("weekly.week", { n: store.currentWeek }) }}
+      </div>
+      <div class="week-day">
+        {{ $t("weekly.dayOfWeek", { n: store.currentDayWithinWeek }) }}
+      </div>
     </div>
 
     <q-card class="task-card">
@@ -41,20 +45,23 @@
 </template>
 
 <script setup lang="ts">
+import { useWeeklyTaskStore } from "~/stores/weeklyTasks";
+
 definePageMeta({
   middleware: "auth",
   layout: "authenticated",
 });
-import { useWeeklyTaskStore } from "~/stores/weeklyTasks";
-const weeklyStore = useWeeklyTaskStore();
-
-await weeklyStore.init();
 
 const store = useWeeklyTaskStore();
 
-function completeWeeklyTask() {
-  if (!store.canComplete) return;
-  store.completeCurrentTask();
+await store.init();
+
+async function completeWeeklyTask() {
+  if (!store.canComplete) {
+    return;
+  }
+
+  await store.completeCurrentTask();
   store.rewardEnergy();
 }
 </script>

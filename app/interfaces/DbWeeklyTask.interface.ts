@@ -4,5 +4,4 @@ export interface DbWeeklyTask {
   title: string;
   what_doing: string;
   why_doing: string;
-  reward: number;
 }

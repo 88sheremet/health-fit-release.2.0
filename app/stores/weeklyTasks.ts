@@ -2,7 +2,11 @@ import { defineStore } from "pinia";
 
 import { useTaskStore } from "./dailyTasks";
 
-import { getWeeklyTasks } from "~/services/weeklyTask.service";
+import {
+  getWeeklyTasks,
+  getWeeklyCompletions,
+  completeWeeklyTask as saveWeeklyCompletion,
+} from "~/services/weeklyTask.service";
 
 import { getDaysSince } from "~/utils/taskEngine";
 
@@ -56,9 +60,11 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
         };
       }
 
-      return weeklyTasks.weeklyTasks[
-        weekIndex % weeklyTasks.weeklyTasks.length
-      ];
+      return {
+        nameProgram: "",
+        whatDoing: "",
+        whyDoing: "",
+      };
     },
 
     canComplete(): boolean {
@@ -77,14 +83,50 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
       }
     },
 
-    async init() {
-      if (!this.tasksLoaded) {
-        await this.loadTasks();
+    async loadCompletions() {
+      try {
+        const weeks = await getWeeklyCompletions();
+
+        this.completed = {};
+
+        weeks.forEach((week) => {
+          this.completed[week] = true;
+        });
+      } catch (error) {
+        console.error("Не удалось загрузить weekly completions", error);
       }
     },
 
-    completeCurrentTask() {
-      this.completed[this.currentWeek] = true;
+    async init() {
+      await Promise.all([this.loadTasks(), this.loadCompletions()]);
+    },
+
+    async completeCurrentTask() {
+      if (!this.canComplete) {
+        return;
+      }
+
+      if (this.isCompleted()) {
+        return;
+      }
+
+      const task = this.tasks.find((item) => item.week === this.currentWeek);
+
+      if (!task) {
+        console.error("[Weekly] Задание текущей недели не найдено");
+
+        return;
+      }
+
+      try {
+        await saveWeeklyCompletion(task.id, this.currentWeek);
+
+        this.completed[this.currentWeek] = true;
+      } catch (error) {
+        console.error("[Weekly] Ошибка выполнения задания:", error);
+
+        throw error;
+      }
     },
 
     isCompleted(): boolean {
@@ -96,9 +138,5 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
 
       dailyStore.energy += 100;
     },
-  },
-
-  persist: {
-    paths: ["completed"],
   },
 });
