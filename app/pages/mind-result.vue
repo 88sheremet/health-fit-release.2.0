@@ -54,7 +54,7 @@ import { routes } from "~/router/routes";
 .hero-icon {
   width: 110px; height: 110px; margin: 0 auto 24px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center; font-size: 52px;
-  background: var(--hero-icon); box-shadow: 0 10px 40px rgba(103, 58, 183, 0.2);
+  background: var(--hero-icon); box-shadow: 0 10px 40px var(--purple-border);
 }
 .hero-title { font-size: 34px; font-weight: 700; line-height: 1.15; color: var(--black1); margin-bottom: 16px; }
 .hero-subtitle { font-size: 17px; line-height: 1.6; color: var(--grey2); }
@@ -76,6 +76,6 @@ import { routes } from "~/router/routes";
 }
 .main-btn {
   width: 100%; height: 62px; border-radius: 22px; font-size: 18px; font-weight: 700;
-  background: var(--gradient-purple); color: var(--white); box-shadow: 0 10px 30px rgba(94, 53, 177, 0.35);
+  background: var(--gradient-purple); color: var(--white); box-shadow: 0 10px 30px var(--shadow-purple);
 }
 </style>

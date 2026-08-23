@@ -63,7 +63,7 @@ const logout = async () => {
   border: 1px solid var(--grey-hover);
   border-radius: 16px;
 
-  color: #d9534f;
+  color: var(--red);
   font-size: 16px;
   font-weight: 600;
 }

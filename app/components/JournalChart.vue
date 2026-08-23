@@ -46,6 +46,8 @@ const store = useJournalStore();
 
 const { locale, t } = useI18n();
 
+const greenColor = getComputedStyle(document.documentElement).getPropertyValue("--green").trim();
+
 const checkinEntries = computed(() =>
   store.entries
     .filter((entry) => entry.mood != null)
@@ -65,8 +67,8 @@ const chartData = computed(() => ({
     {
       data: checkinEntries.value.map((entry) => entry.mood),
 
-      borderColor: "#4caf50",
-      backgroundColor: "#4caf50",
+      borderColor: greenColor,
+      backgroundColor: greenColor,
 
       tension: 0.4,
 
@@ -243,7 +245,7 @@ ChartJS.register(emojiPlugin);
 }
 
 .back-btn:hover {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--shadow-md);
 }
 
 .chart-card {

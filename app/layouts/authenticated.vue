@@ -8,7 +8,7 @@
           flat
           round
           dense
-          icon="settings"
+          icon="manage_accounts"
           class="settings-btn"
           aria-label="Настройки"
           @click="navigateTo(routes.settings)"
@@ -63,6 +63,7 @@ onMounted(async () => {
   height: 42px;
   border-radius: 14px;
   color: var(--grey);
+  font-size: 1.5em;
 }
 
 .settings-btn:hover {

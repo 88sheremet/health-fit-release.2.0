@@ -149,7 +149,7 @@ function saveNote() {
 }
 .book-icon {
   font-size: 72px;
-  color: white;
+  color: var(--white);
 }
 .actions {
   display: flex;
@@ -170,7 +170,7 @@ function saveNote() {
   transform: scale(0.98);
 }
 .note-card {
-  border: 1px solid rgba(251, 140, 0, 0.2);
+  border: 1px solid var(--orange-border);
 }
 .action-icon {
   width: 64px;
@@ -215,7 +215,7 @@ function saveNote() {
 .action-card > .material-icons {
   font-size: 34px;
   flex-shrink: 0;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+  filter: drop-shadow(0 2px 4px var(--shadow-notify));
 }
 .action-icon .material-icons {
   font-size: 34px;

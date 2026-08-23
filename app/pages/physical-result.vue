@@ -80,6 +80,6 @@ import { routes } from "~/router/routes";
 }
 .main-btn {
   width: 100%; height: 62px; border-radius: 22px; font-size: 18px; font-weight: 700;
-  background: var(--main-btn); color: var(--white); box-shadow: 0 10px 30px rgba(251, 140, 0, 0.35);
+  background: var(--main-btn); color: var(--white); box-shadow: 0 10px 30px var(--shadow-orange);
 }
 </style>

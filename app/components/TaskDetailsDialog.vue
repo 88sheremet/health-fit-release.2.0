@@ -60,7 +60,7 @@ defineEmits(["update:modelValue"]);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: var(--white);
 }
 .header {
   position: relative;
@@ -93,7 +93,7 @@ defineEmits(["update:modelValue"]);
   padding: 4px 12px;
   border-radius: 999px;
   background: var(--green);
-  color: white;
+  color: var(--white);
   font-size: 13px;
   font-weight: 600;
   margin-bottom: 4px;
@@ -101,7 +101,7 @@ defineEmits(["update:modelValue"]);
 .separator {
   border: none;
   height: 1px;
-  background: #e0e0e0;
+  background: var(--border-default);
   margin: 0;
 }
 .content {

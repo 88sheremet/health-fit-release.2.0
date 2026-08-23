@@ -44,7 +44,7 @@ const route = useRoute();
   justify-content: space-between;
   align-items: stretch;
   background: var(--glass-heavy);
-  border: 1px solid rgba(34, 197, 94, 0.1);
+  border: 1px solid var(--green-bright-bg);
   box-shadow: 0 -4px 20px var(--shadow-md);
   backdrop-filter: blur(24px);
   border-radius: 28px;
@@ -76,12 +76,12 @@ const route = useRoute();
 }
 .nav-item.active {
   color: var(--green-bright);
-  background: rgba(34, 197, 94, 0.1);
-  border-color: rgba(34, 197, 94, 0.25);
+  background: var(--green-bright-bg);
+  border-color: var(--green-bright-border);
   transform: translateY(-2px);
   .material-icons {
     transform: scale(1.08);
-    filter: drop-shadow(0 4px 10px rgba(76, 175, 80, 0.25));
+    filter: drop-shadow(0 4px 10px var(--glow-green));
   }
 }
 .nav-item:active {

@@ -186,11 +186,11 @@ const goNext = async () => {
     Helvetica, Arial, sans-serif;
   background: radial-gradient(
       circle at 10% 0%,
-      rgba(76, 175, 80, 0.12),
+      var(--icon-green-bg),
       transparent 45%
     ),
-    radial-gradient(circle at 90% 20%, rgba(33, 150, 243, 0.1), transparent 40%),
-    linear-gradient(180deg, #f8fbff 0%, #eef7f2 100%);
+    radial-gradient(circle at 90% 20%, var(--blue-bg), transparent 40%),
+    var(--bg-gradient-main);
 }
 .header {
   position: sticky;
@@ -250,8 +250,8 @@ const goNext = async () => {
   box-shadow: 0 25px 60px var(--shadow-xl);
 }
 .question-card.invalid {
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  box-shadow: 0 18px 50px rgba(239, 68, 68, 0.08);
+  border: 1px solid var(--red-border);
+  box-shadow: 0 18px 50px var(--red-bg);
   animation: shake 0.3s ease;
 }
 .question-top {
@@ -268,8 +268,8 @@ const goNext = async () => {
   justify-content: center;
   background: linear-gradient(
     135deg,
-    rgba(34, 197, 94, 0.15),
-    rgba(34, 197, 94, 0.05)
+    var(--green-gradient-start),
+    var(--green-gradient-end)
   );
   color: var(--green-dark);
   font-size: 14px;
