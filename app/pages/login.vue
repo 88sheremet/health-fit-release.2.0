@@ -35,9 +35,13 @@
       </form>
 
       <div class="login-links">
-        <NuxtLink :to="routes.auth.register"> {{ $t("auth.registerLink") }} </NuxtLink>
+        <NuxtLink :to="routes.auth.register">
+          {{ $t("auth.registerLink") }}
+         </NuxtLink>
 
-        <NuxtLink :to="routes.auth.forgotPassword"> {{ $t("auth.forgotPassword") }} </NuxtLink>
+        <NuxtLink :to="routes.auth.forgotPassword">
+          {{ $t("auth.forgotPassword") }}
+         </NuxtLink>
       </div>
     </div>
   </div>
@@ -47,8 +51,9 @@
 import { routes } from "~/router/routes";
 
 definePageMeta({
-  middleware: 'guest',
-})
+  middleware: "guest",
+});
+
 const supabase = useSupabaseClient();
 const router = useRouter();
 
@@ -69,7 +74,7 @@ const login = async () => {
 
   const validationError = validateForm(
     validateEmail(email.value),
-    !isRequired(password.value) ? t("auth.loginError") : null,
+    !isRequired(password.value) ? t("auth.loginError") : null
   );
 
   if (validationError) {
@@ -79,22 +84,45 @@ const login = async () => {
 
   loading.value = true;
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: email.value,
     password: password.value,
   });
 
-  loading.value = false;
-
   if (error) {
+    loading.value = false;
     errorMessage.value = error.message;
     return;
   }
 
-  await router.push(routes.recovery.daily);
-  
-};
+  const user = data.user;
 
+  if (!user) {
+    loading.value = false;
+    errorMessage.value = t("auth.loginError");
+    return;
+  }
+
+  const { data: screeningResult, error: screeningError } = await supabase
+    .from("screening_results")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  loading.value = false;
+
+  if (screeningError) {
+    errorMessage.value = screeningError.message;
+    return;
+  }
+
+  if (screeningResult) {
+    await router.push(routes.recovery.daily);
+    return;
+  }
+
+  await router.push(routes.onboarding.welcome);
+};
 </script>
 
 <style scoped>

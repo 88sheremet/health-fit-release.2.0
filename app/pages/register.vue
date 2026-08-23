@@ -119,10 +119,10 @@ const register = async () => {
       return;
     }
 
-    if (data.session) {
-      await router.push(routes.recovery.daily);
-      return;
-    }
+if (data.session) {
+  await router.push(routes.onboarding.welcome);
+  return;
+}
 
     successMessage.value = t("auth.registerSuccess");
   } catch (error) {

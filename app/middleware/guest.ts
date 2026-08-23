@@ -1,19 +1,33 @@
-import { routes } from "~/router/routes";
-
 export default defineNuxtRouteMiddleware(async () => {
   const supabase = useSupabaseClient();
 
   const {
-    data: { session },
-    error,
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (error) {
-    console.error("[guest middleware] Session error:", error);
+
+  if (!user) {
     return;
   }
 
-  if (session) {
-    return navigateTo(routes.recovery.daily);
+  const { data: screening, error } = await supabase
+    .from("screening_results")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error(
+      "[Guest Middleware] Ошибка проверки screening:",
+      error
+    );
+
+    return;
   }
+
+  if (!screening) {
+    return navigateTo("/welcome");
+  }
+
+  return navigateTo("/daily");
 });

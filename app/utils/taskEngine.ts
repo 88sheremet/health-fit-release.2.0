@@ -3,7 +3,9 @@ export const DAY_COUNT = 30;
 export const MILLISECONDS_IN_DAY = 24 * 60 * 60 * 1000;
 
 export function getDaysSince(date: Date | string): number {
-  return Math.floor((Date.now() - new Date(date).getTime()) / MILLISECONDS_IN_DAY);
+  return Math.floor(
+    (Date.now() - new Date(date).getTime()) / MILLISECONDS_IN_DAY,
+  );
 }
 
 export function getTodayKey() {
@@ -14,8 +16,20 @@ export function getDayIndex(startDate: string) {
   const start = new Date(startDate);
   const today = new Date();
 
+  const startDay = new Date(
+    start.getFullYear(),
+    start.getMonth(),
+    start.getDate(),
+  );
+
+  const todayDay = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
+
   const diff = Math.floor(
-    (today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+    (todayDay.getTime() - startDay.getTime()) / MILLISECONDS_IN_DAY,
   );
 
   return diff + 1;
