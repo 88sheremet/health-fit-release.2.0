@@ -2,13 +2,17 @@
   <q-layout view="lHh Lpr lFf">
     <q-header class="app-header">
       <q-toolbar>
-        <img
-          :src="logo"
-          alt="Health Fit"
-          class="app-logo"
-        />
+        <img :src="logo" alt="Health Fit" class="app-logo" />
 
-        <LogoutButton />
+        <q-btn
+          flat
+          round
+          dense
+          icon="settings"
+          class="settings-btn"
+          aria-label="Настройки"
+          @click="navigateTo(routes.settings)"
+        />
       </q-toolbar>
     </q-header>
 
@@ -20,8 +24,10 @@
 
 <script setup lang="ts">
 import { onMounted } from "vue";
-import LogoutButton from "~/components/auth/LogoutButton.vue";
+
+import { routes } from "~/router/routes";
 import { useScreeningStore } from "~/stores/screening";
+
 import logo from "~/assets/main-logo.png";
 
 const screeningStore = useScreeningStore();
@@ -51,9 +57,16 @@ onMounted(async () => {
   object-position: left center;
 }
 
-:deep(.logout-btn) {
-  width: auto;
-  max-width: none;
+.settings-btn {
   margin-left: auto;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  color: var(--grey);
+}
+
+.settings-btn:hover {
+  background: var(--grey-hover);
+  color: var(--black1);
 }
 </style>
