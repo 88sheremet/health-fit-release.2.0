@@ -143,8 +143,7 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
       }
     },
 
-    isCompleted(): boolean {
-      return !!this.completed[this.currentWeek];
-    },
+  persist: {
+    pick: ["completed"],
   },
 });

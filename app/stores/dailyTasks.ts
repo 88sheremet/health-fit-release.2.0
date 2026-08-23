@@ -401,4 +401,8 @@ export const useTaskStore = defineStore("tasks", {
       return !!this.completed[id];
     },
   },
+
+  persist: {
+    pick: ["startDate", "completed", "energy", "streak", "lastVisitDate"],
+  },
 });

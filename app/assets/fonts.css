@@ -1,41 +1,58 @@
+/*
+ * Тільки woff2, без запасного woff: обидва WebView мобільної збірки
+ * (iOS 15+ і Android WebView від minSdk 24) підтримують його беззастережно,
+ * а запасний формат усе одно ніхто не завантажує — він лише возив би зайвий
+ * мегабайт усередині застосунку. Ті самі файли, перетиснуті з woff: -40%.
+ *
+ * font-display: swap — текст малюється системним шрифтом одразу й
+ * перемальовується, коли підвантажиться Inter. У WebView це різниця між
+ * видимим вмістом і порожнім екраном на першому кадрі.
+ */
+
 @font-face {
   font-family: "Inter";
   font-weight: 100;
   font-style: normal;
-  src: url("./fonts/Inter-Thin.woff") format("woff");
+  font-display: swap;
+  src: url("./fonts/Inter-Thin.woff2") format("woff2");
 }
 
 @font-face {
   font-family: "Inter";
   font-weight: 300;
   font-style: normal;
-  src: url("./fonts/Inter-Light.woff") format("woff");
+  font-display: swap;
+  src: url("./fonts/Inter-Light.woff2") format("woff2");
 }
 
 @font-face {
   font-family: "Inter";
   font-weight: 400;
   font-style: normal;
-  src: url("./fonts/Inter-Regular.woff") format("woff");
+  font-display: swap;
+  src: url("./fonts/Inter-Regular.woff2") format("woff2");
 }
 
 @font-face {
   font-family: "Inter";
   font-weight: 500;
   font-style: normal;
-  src: url("./fonts/Inter-Medium.woff") format("woff");
+  font-display: swap;
+  src: url("./fonts/Inter-Medium.woff2") format("woff2");
 }
 
 @font-face {
   font-family: "Inter";
   font-weight: 700;
   font-style: normal;
-  src: url("./fonts/Inter-Bold.woff") format("woff");
+  font-display: swap;
+  src: url("./fonts/Inter-Bold.woff2") format("woff2");
 }
 
 @font-face {
   font-family: "Inter";
   font-weight: 900;
   font-style: normal;
-  src: url("./fonts/Inter-Black.woff") format("woff");
+  font-display: swap;
+  src: url("./fonts/Inter-Black.woff2") format("woff2");
 }

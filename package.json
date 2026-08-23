@@ -7,11 +7,19 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
+    "mobile:sync": "nuxt generate && cap sync",
+    "mobile:android": "npm run mobile:sync && cap open android",
+    "mobile:ios": "npm run mobile:sync && cap open ios",
     "postinstall": "nuxt prepare && node scripts/patch-nuxt-b2005.mjs",
     "import:daily": "node scripts/importDailyTasks.mjs",
-    "import:weekly": "node scripts/importWeeklyTasks.mjs"
+    "import:weekly": "node scripts/importWeeklyTasks.mjs",
+    "assets:build": "node scripts/generateAppAssets.mjs && capacitor-assets generate --ios --android"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/ios": "^8.5.0",
+    "@capacitor/splash-screen": "^8.0.2",
     "@nuxtjs/i18n": "^10.6.0",
     "@nuxtjs/supabase": "^2.0.10",
     "@pinia/nuxt": "^1.0.1",
@@ -27,6 +35,8 @@
     "vue-chartjs": "^5.3.4"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.0",
     "sass-embedded": "^1.100.0"
   }
 }
