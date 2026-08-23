@@ -142,6 +142,16 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
         throw error;
       }
     },
+    isCompleted(): boolean {
+      return !!this.completed[this.currentWeek];
+    },
+
+    rewardEnergy() {
+      const dailyStore = useTaskStore();
+
+      dailyStore.energy += 100;
+    },
+  },
 
   persist: {
     pick: ["completed"],
