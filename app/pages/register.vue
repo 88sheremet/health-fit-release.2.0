@@ -54,13 +54,15 @@
       <div class="register-links">
         <span>{{ $t("auth.haveAccount") }}</span>
 
-        <NuxtLink to="/login"> {{ $t("auth.loginBtn") }} </NuxtLink>
+        <NuxtLink :to="routes.auth.login"> {{ $t("auth.loginBtn") }} </NuxtLink>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { routes } from "~/router/routes";
+
 definePageMeta({
   middleware: "guest",
 });
@@ -76,31 +78,31 @@ const errorMessage = ref("");
 const successMessage = ref("");
 const { t } = useI18n();
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const validateEmail = createValidator([
+  { check: isRequired, message: t("auth.fillAllFields") },
+  { check: isEmail, message: t("auth.invalidEmail") },
+]);
+
+const validatePassword = createValidator([
+  { check: isRequired, message: t("auth.fillAllFields") },
+  { check: minLength(6), message: t("auth.minPassword") },
+]);
 
 const register = async () => {
   errorMessage.value = "";
   successMessage.value = "";
 
-  const emailValue = email.value.trim();
+  const error = validateForm(
+    validateEmail(email.value),
+    validatePassword(password.value),
+    !isRequired(confirmPassword.value) ? t("auth.fillAllFields") : null,
+    !matchesField(password.value)(confirmPassword.value)
+      ? t("auth.passwordMismatch")
+      : null,
+  );
 
-  if (!emailValue || !password.value || !confirmPassword.value) {
-    errorMessage.value = t("auth.fillAllFields");
-    return;
-  }
-
-  if (!emailRegex.test(emailValue)) {
-    errorMessage.value = t("auth.invalidEmail");
-    return;
-  }
-
-  if (password.value.length < 6) {
-    errorMessage.value = t("auth.minPassword");
-    return;
-  }
-
-  if (password.value !== confirmPassword.value) {
-    errorMessage.value = t("auth.passwordMismatch");
+  if (error) {
+    errorMessage.value = error;
     return;
   }
 
@@ -108,7 +110,7 @@ const register = async () => {
 
   try {
     const { data, error } = await supabase.auth.signUp({
-      email: emailValue,
+      email: email.value.trim(),
       password: password.value,
     });
 
@@ -117,10 +119,10 @@ const register = async () => {
       return;
     }
 
-    if (data.session) {
-      await router.push("/daily");
-      return;
-    }
+if (data.session) {
+  await router.push(routes.onboarding.welcome);
+  return;
+}
 
     successMessage.value = t("auth.registerSuccess");
   } catch (error) {

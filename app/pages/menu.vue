@@ -30,9 +30,6 @@
         <div class="tab-text">{{ $t("menu.journalText") }}</div>
       </div>
     </div>
-     <div class="logout-wrapper">
-      <LogoutButton />
-    </div>
   </div>
 </template>
 
@@ -66,6 +63,9 @@ const openTab = (tab: string) => {
   if (tab === "weekly") navigateTo(routes.recovery.weekly);
   if (tab === "journal") navigateTo(routes.recovery.journal);
 };
+onMounted(async () => {
+  await screeningStore.loadScreening();
+});
 </script>
 
 <style scoped lang="scss">

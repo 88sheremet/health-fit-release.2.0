@@ -1,3 +1,5 @@
+import { routes } from "~/router/routes";
+
 export default defineNuxtRouteMiddleware(async () => {
   const supabase = useSupabaseClient();
 
@@ -8,10 +10,10 @@ export default defineNuxtRouteMiddleware(async () => {
 
   if (error) {
     console.error("[auth middleware] Session error:", error);
-    return navigateTo("/login");
+    return navigateTo(routes.auth.login);
   }
 
   if (!session) {
-    return navigateTo("/login");
+    return navigateTo(routes.auth.login);
   }
 });

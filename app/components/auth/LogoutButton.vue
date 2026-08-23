@@ -10,6 +10,8 @@
 </template>
 
 <script setup lang="ts">
+import { routes } from "~/router/routes";
+
 const supabase = useSupabaseClient();
 const router = useRouter();
 
@@ -34,7 +36,7 @@ const logout = async () => {
 
     console.log("[Logout] Сессия завершена");
 
-    await router.replace("/login");
+    await router.replace(routes.auth.login);
 
     console.log("[Logout] Перешли на /login");
   } catch (error) {

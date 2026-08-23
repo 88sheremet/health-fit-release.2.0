@@ -102,7 +102,7 @@ function openTask(task: any) {
 
 onMounted(async () => {
   await store.init();
-  journalStore.init();
+  await journalStore.init();
 });
 </script>
 

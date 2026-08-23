@@ -3,48 +3,57 @@
     <div class="login-card">
       <h1>{{ $t("auth.loginTitle") }}</h1>
 
-      <q-input
-        v-model="email"
-        :label="$t('auth.email')"
-        type="email"
-        outlined
-        class="q-mb-md"
-      />
+      <form @submit.prevent="login">
+        <q-input
+          v-model="email"
+          :label="$t('auth.email')"
+          type="email"
+          outlined
+          class="q-mb-md"
+        />
 
-      <q-input
-        v-model="password"
-        :label="$t('auth.password')"
-        type="password"
-        outlined
-        class="q-mb-md"
-      />
+        <q-input
+          v-model="password"
+          :label="$t('auth.password')"
+          type="password"
+          outlined
+          class="q-mb-md"
+        />
 
-      <div v-if="errorMessage" class="login-error">
-        {{ errorMessage }}
-      </div>
+        <div v-if="errorMessage" class="login-error">
+          {{ errorMessage }}
+        </div>
 
-      <q-btn
-        :label="$t('auth.loginBtn')"
-        color="primary"
-        unelevated
-        class="full-width"
-        :loading="loading"
-        @click="login"
-      />
+        <q-btn
+          :label="$t('auth.loginBtn')"
+          color="primary"
+          unelevated
+          class="full-width"
+          :loading="loading"
+          type="submit"
+        />
+      </form>
 
       <div class="login-links">
-        <NuxtLink to="/register"> {{ $t("auth.registerLink") }} </NuxtLink>
+        <NuxtLink :to="routes.auth.register">
+          {{ $t("auth.registerLink") }}
+         </NuxtLink>
 
-        <NuxtLink to="/forgot-password"> {{ $t("auth.forgotPassword") }} </NuxtLink>
+        <NuxtLink :to="routes.auth.forgotPassword">
+          {{ $t("auth.forgotPassword") }}
+         </NuxtLink>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { routes } from "~/router/routes";
+
 definePageMeta({
-  middleware: 'guest',
-})
+  middleware: "guest",
+});
+
 const supabase = useSupabaseClient();
 const router = useRouter();
 
@@ -55,43 +64,65 @@ const loading = ref(false);
 const errorMessage = ref("");
 const { t } = useI18n();
 
-const checkSession = async () => {
-  const { data, error } = await supabase.auth.getSession();
-
-  console.log('SESSION:', data.session);
-  console.log('ERROR:', error);
-};
-
-onMounted(() => {
-  checkSession();
-});
+const validateEmail = createValidator([
+  { check: isRequired, message: t("auth.loginError") },
+  { check: isEmail, message: t("auth.invalidEmail") },
+]);
 
 const login = async () => {
   errorMessage.value = "";
 
-  if (!email.value || !password.value) {
-    errorMessage.value = t("auth.loginError");
+  const validationError = validateForm(
+    validateEmail(email.value),
+    !isRequired(password.value) ? t("auth.loginError") : null
+  );
+
+  if (validationError) {
+    errorMessage.value = validationError;
     return;
   }
 
   loading.value = true;
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: email.value,
     password: password.value,
   });
 
-  loading.value = false;
-
   if (error) {
+    loading.value = false;
     errorMessage.value = error.message;
     return;
   }
 
-  await router.push("/daily");
-  
-};
+  const user = data.user;
 
+  if (!user) {
+    loading.value = false;
+    errorMessage.value = t("auth.loginError");
+    return;
+  }
+
+  const { data: screeningResult, error: screeningError } = await supabase
+    .from("screening_results")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  loading.value = false;
+
+  if (screeningError) {
+    errorMessage.value = screeningError.message;
+    return;
+  }
+
+  if (screeningResult) {
+    await router.push(routes.recovery.daily);
+    return;
+  }
+
+  await router.push(routes.onboarding.welcome);
+};
 </script>
 
 <style scoped>

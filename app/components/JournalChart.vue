@@ -5,18 +5,26 @@
         <button class="back-btn" @click="navigateTo(routes.recovery.journal)">
           <span class="material-icons">arrow_back</span>
         </button>
-        <div class="title">{{ $t("journal.chart.header") }}</div>
+
+        <div class="title">
+          {{ $t("journal.chart.header") }}
+        </div>
       </div>
-      <Line :data="chartData" :options="chartOptions" />
+
+      <div class="chart-wrapper">
+        <Line :data="chartData" :options="chartOptions" />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { routes } from "~/router/routes";
 import { computed } from "vue";
 import { Line } from "vue-chartjs";
 import { useJournalStore } from "~/stores/journal";
+import { routes } from "~/router/routes";
+import { moodEmojis } from "~/constants/moods";
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -25,7 +33,6 @@ import {
   LineElement,
   Tooltip,
 } from "chart.js";
-import { moodEmojis } from "~/constants/moods";
 
 ChartJS.register(
   CategoryScale,
@@ -36,10 +43,14 @@ ChartJS.register(
 );
 
 const store = useJournalStore();
-const { locale } = useI18n();
+
+const { locale, t } = useI18n();
 
 const checkinEntries = computed(() =>
-  store.entries.filter((entry) => entry.mood != null)
+  store.entries
+    .filter((entry) => entry.mood != null)
+    .slice()
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 );
 
 const chartData = computed(() => ({
@@ -49,33 +60,115 @@ const chartData = computed(() => ({
       month: "2-digit",
     })
   ),
+
   datasets: [
     {
       data: checkinEntries.value.map((entry) => entry.mood),
+
       borderColor: "#4caf50",
       backgroundColor: "#4caf50",
+
       tension: 0.4,
-      pointRadius: 9,
-      pointHoverRadius: 11,
+
+      pointRadius: 10,
+      pointHoverRadius: 12,
+
+      pointBackgroundColor: "transparent",
+      pointBorderColor: "transparent",
+      pointHoverBackgroundColor: "transparent",
+      pointHoverBorderColor: "transparent",
     },
   ],
 }));
 
-const { t } = useI18n();
-
 const chartOptions = computed(() => ({
   responsive: true,
-  plugins: {
-    legend: { display: false },
+
+  maintainAspectRatio: true,
+
+  interaction: {
+    intersect: false,
+    mode: "index" as const,
   },
+
+  plugins: {
+    legend: {
+      display: false,
+    },
+
+    tooltip: {
+      displayColors: false,
+
+      callbacks: {
+        title(items: any[]) {
+          if (!items.length) {
+            return "";
+          }
+
+          const index = items[0].dataIndex;
+          const entry = checkinEntries.value[index];
+
+          if (!entry) {
+            return "";
+          }
+
+          return new Date(entry.date).toLocaleDateString(locale.value, {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          });
+        },
+
+        label(context: any) {
+          const index = context.dataIndex;
+
+          const entry = checkinEntries.value[index];
+
+          if (!entry) {
+            return "";
+          }
+
+          const emoji = entry.mood != null ? moodEmojis[entry.mood] : "";
+
+          return `${emoji} ${t("journal.chart.mood", {
+            value: entry.mood,
+          })}`;
+        },
+
+        afterLabel(context: any) {
+          const index = context.dataIndex;
+
+          const entry = checkinEntries.value[index];
+
+          if (!entry?.note) {
+            return "";
+          }
+
+          return `\n${entry.note}`;
+        },
+      },
+    },
+  },
+
   scales: {
-    x: { title: { display: true, text: t("journal.chart.days") } },
+    x: {
+      title: {
+        display: true,
+        text: t("journal.chart.days"),
+      },
+    },
+
     y: {
       min: 1,
       max: 5,
+
       ticks: {
         stepSize: 1,
-        font: { size: 20 },
+
+        font: {
+          size: 20,
+        },
+
         callback(value: number) {
           return moodEmojis[value] || "";
         },
@@ -83,6 +176,42 @@ const chartOptions = computed(() => ({
     },
   },
 }));
+
+const emojiPlugin = {
+  id: "moodEmoji",
+
+  afterDatasetsDraw(chart: any) {
+    const { ctx, data } = chart;
+
+    const dataset = data.datasets[0];
+
+    const meta = chart.getDatasetMeta(0);
+
+    meta.data.forEach((point: any, index: number) => {
+      const value = dataset.data[index];
+
+      const emoji = moodEmojis[value];
+
+      if (!emoji) {
+        return;
+      }
+
+      ctx.save();
+
+      ctx.font = "22px Arial";
+
+      ctx.textAlign = "center";
+
+      ctx.textBaseline = "middle";
+
+      ctx.fillText(emoji, point.x, point.y);
+
+      ctx.restore();
+    });
+  },
+};
+
+ChartJS.register(emojiPlugin);
 </script>
 
 <style scoped>
@@ -91,36 +220,49 @@ const chartOptions = computed(() => ({
   background: var(--bg-gradient-main);
   min-height: 100vh;
 }
+
 .header {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 24px;
 }
+
 .back-btn {
   background: none;
   border: none;
   cursor: pointer;
   padding: 4px;
   border-radius: 50%;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   color: var(--black1);
 }
+
 .back-btn:hover {
   background: rgba(0, 0, 0, 0.05);
 }
+
 .chart-card {
   padding: 24px;
   border-radius: 24px;
 }
+
 .title {
   font-size: 24px;
   font-weight: 700;
   margin-bottom: 4px;
 }
+
 .back-btn > .material-icons {
   font-size: 34px;
+}
+
+.chart-wrapper {
+  width: 100%;
+  margin-top: 20px;
 }
 </style>

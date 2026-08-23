@@ -13,7 +13,7 @@
     </section>
 
     <div class="actions">
-      <q-card flat class="action-card" @click="navigateTo('/journal-chart')">
+      <q-card flat class="action-card" @click="navigateTo(routes.recovery.journalChart)">
         <div class="action-icon green-bg">
           <span class="material-icons icon-green">show_chart</span>
         </div>

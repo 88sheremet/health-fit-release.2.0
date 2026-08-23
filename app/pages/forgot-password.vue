@@ -9,13 +9,15 @@
         color="primary"
         class="full-width"
         :label="$t('auth.backToLogin')"
-        @click="navigateTo('/login')"
+        @click="navigateTo(routes.auth.login)"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { routes } from "~/router/routes";
+
 definePageMeta({
   middleware: "guest",
 });
