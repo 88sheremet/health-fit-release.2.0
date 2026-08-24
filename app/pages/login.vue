@@ -141,7 +141,7 @@ const login = async () => {
 
 .login-error {
   margin-bottom: 16px;
-  color: #d32f2f;
+  color: var(--red);
 }
 
 .login-links {

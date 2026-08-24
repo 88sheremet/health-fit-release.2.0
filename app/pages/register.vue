@@ -151,7 +151,7 @@ if (data.session) {
 
 .register-error {
   margin-bottom: 16px;
-  color: #d32f2f;
+  color: var(--red);
 }
 
 .register-success {

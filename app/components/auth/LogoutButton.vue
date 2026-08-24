@@ -50,11 +50,17 @@ const logout = async () => {
 <style scoped>
 .logout-btn {
   width: 100%;
-  max-width: 400px;
-  color: var(--grey);
-  font-size: 15px;
-}
+  height: 52px;
+  margin-top: 4px;
+  margin-bottom: 20px;
 
+  border: 1px solid var(--grey-hover);
+  border-radius: 16px;
+
+  color: var(--red);
+  font-size: 16px;
+  font-weight: 600;
+}
 .logout-btn:hover {
   color: var(--black1);
 }

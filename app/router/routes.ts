@@ -23,4 +23,5 @@ export const routes = {
     journalArchive: "/journal-archive",
     journalChart: "/journal-chart",
   },
+  settings: "/settings",
 } as const;

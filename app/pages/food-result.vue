@@ -74,7 +74,7 @@ import { routes } from "~/router/routes";
   justify-content: center;
   font-size: 52px;
   background: var(--hero-icon);
-  box-shadow: 0 10px 40px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 10px 40px var(--green-border);
 }
 .hero-title {
   font-size: 34px;
@@ -153,6 +153,6 @@ import { routes } from "~/router/routes";
   font-weight: 700;
   background: var(--gradient-food);
   color: var(--white);
-  box-shadow: 0 10px 30px rgba(67, 160, 71, 0.35);
+  box-shadow: 0 10px 30px var(--shadow-green);
 }
 </style>

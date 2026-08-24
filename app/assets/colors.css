@@ -61,6 +61,21 @@
   /* ---------- Colored shadows ---------- */
   --shadow-green: rgba(34, 197, 94, 0.35);
   --shadow-green-hover: rgba(34, 197, 94, 0.45);
+  --shadow-orange: rgba(251, 140, 0, 0.35);
+  --shadow-purple: rgba(94, 53, 177, 0.35);
+
+  /* ---------- Alpha overlays ---------- */
+  --red-border: rgba(239, 68, 68, 0.4);
+  --red-bg: rgba(239, 68, 68, 0.08);
+  --orange-border: rgba(251, 140, 0, 0.2);
+  --purple-border: rgba(103, 58, 183, 0.2);
+  --green-border: rgba(76, 175, 80, 0.2);
+  --green-bright-bg: rgba(34, 197, 94, 0.1);
+  --green-bright-border: rgba(34, 197, 94, 0.25);
+  --green-gradient-start: rgba(34, 197, 94, 0.15);
+  --green-gradient-end: rgba(34, 197, 94, 0.05);
+  --blue-bg: rgba(33, 150, 243, 0.1);
+  --green-selection: rgba(76, 175, 80, 0.2);
 
   /* ---------- Glows ---------- */
   --glow-gold: rgba(255, 215, 0, 0.25);

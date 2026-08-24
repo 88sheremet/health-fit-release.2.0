@@ -110,7 +110,7 @@ function save() {
 .tip-title { font-weight: 700; margin-bottom: 8px; color: var(--green-deep); }
 .tip-text { font-size: 14px; line-height: 1.6; color: var(--green-deep); }
 .checkin-card .save-btn {
-  width: 100%; height: 56px; border-radius: 18px; color: white;
+  width: 100%; height: 56px; border-radius: 18px; color: var(--white);
   font-size: 16px; font-weight: 700; background: var(--gradient-green-bright);
 }
 .checkin-card .save-btn:disabled { opacity: 0.5; }
