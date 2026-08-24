@@ -46,7 +46,7 @@ const store = useJournalStore();
 
 const { locale, t } = useI18n();
 
-const greenColor = getComputedStyle(document.documentElement).getPropertyValue("--green").trim();
+const CHART_GREEN = "#4caf50";
 
 const checkinEntries = computed(() =>
   store.entries
@@ -67,8 +67,8 @@ const chartData = computed(() => ({
     {
       data: checkinEntries.value.map((entry) => entry.mood),
 
-      borderColor: greenColor,
-      backgroundColor: greenColor,
+      borderColor: CHART_GREEN,
+      backgroundColor: CHART_GREEN,
 
       tension: 0.4,
 
