@@ -70,6 +70,16 @@
 
       <div class="password-fields">
         <q-input
+          v-model="currentPassword"
+          outlined
+          type="password"
+          :label="$t('settings.password.currentPassword')"
+          autocomplete="current-password"
+          :error="!!currentPasswordError"
+          :error-message="currentPasswordError"
+        />
+
+        <q-input
           v-model="newPassword"
           outlined
           :type="showPassword ? 'text' : 'password'"
@@ -137,18 +147,14 @@ const { locale, locales, setLocale, t } = useI18n();
 
 const newPassword = ref("");
 const confirmPassword = ref("");
+const currentPassword = ref("");
 
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
 
 const loading = ref(false);
 
-const selectedLocale = computed({
-  get: () => locale.value,
-  set: (value) => {
-    locale.value = value;
-  },
-});
+const selectedLocale = ref(locale.value);
 
 const localeOptions = computed(() =>
   locales.value.map((item) => ({
@@ -159,6 +165,11 @@ const localeOptions = computed(() =>
 
 const passwordError = ref("");
 const confirmPasswordError = ref("");
+const currentPasswordError = ref("");
+
+const validateCurrentPassword = createValidator([
+  { check: isRequired, message: t("auth.fillAllFields") },
+]);
 
 const validateNewPassword = createValidator([
   { check: isRequired, message: t("auth.fillAllFields") },
@@ -166,16 +177,28 @@ const validateNewPassword = createValidator([
 ]);
 
 function goBack() {
-  router.back();
+  if (window.history.length > 1) {
+    router.back();
+  } else {
+    router.push(routes.recovery.menu);
+  }
 }
 
 async function changeLanguage(value: string) {
   await setLocale(value);
+  selectedLocale.value = value;
 }
 
 async function changePassword() {
   passwordError.value = "";
   confirmPasswordError.value = "";
+  currentPasswordError.value = "";
+
+  const curError = validateCurrentPassword(currentPassword.value);
+  if (curError) {
+    currentPasswordError.value = curError;
+    return;
+  }
 
   const pwError = validateNewPassword(newPassword.value);
   if (pwError) {
@@ -191,17 +214,36 @@ async function changePassword() {
   loading.value = true;
 
   try {
+    const { data: user } = await supabase.auth.getUser();
+    const email = user.user?.email;
+
+    if (!email) {
+      passwordError.value = t("settings.password.error");
+      return;
+    }
+
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password: currentPassword.value,
+    });
+
+    if (authError) {
+      currentPasswordError.value = t("settings.password.wrongPassword");
+      return;
+    }
+
     const { error } = await supabase.auth.updateUser({
       password: newPassword.value,
     });
 
     if (error) {
-      console.error("[Settings] Ошибка смены пароля:", error);
-
       passwordError.value = t("settings.password.error");
       return;
     }
 
+    await supabase.auth.signOut({ scope: "others" });
+
+    currentPassword.value = "";
     newPassword.value = "";
     confirmPassword.value = "";
 
@@ -210,8 +252,6 @@ async function changePassword() {
       message: t("settings.password.success"),
     });
   } catch (error) {
-    console.error("[Settings] Неожиданная ошибка:", error);
-
     passwordError.value = t("settings.password.error");
   } finally {
     loading.value = false;

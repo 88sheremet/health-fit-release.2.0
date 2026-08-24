@@ -10,7 +10,7 @@
           dense
           icon="manage_accounts"
           class="settings-btn"
-          aria-label="Настройки"
+          :aria-label="$t('settings.title')"
           @click="navigateTo(routes.settings)"
         />
       </q-toolbar>
