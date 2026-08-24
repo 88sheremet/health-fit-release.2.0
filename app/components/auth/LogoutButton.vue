@@ -48,12 +48,6 @@ const logout = async () => {
 </script>
 
 <style scoped>
-/* .logout-btn {
-  width: 100%;
-  max-width: 400px;
-  color: var(--grey);
-  font-size: 15px;
-} */
 .logout-btn {
   width: 100%;
   height: 52px;

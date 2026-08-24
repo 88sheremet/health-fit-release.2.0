@@ -21,7 +21,6 @@
       </div>
     </div>
 
-    <!-- Language -->
     <q-card class="settings-card">
       <div class="card-header">
         <div class="icon-wrapper language-icon">
@@ -52,7 +51,6 @@
       />
     </q-card>
 
-    <!-- Password -->
     <q-card class="settings-card">
       <div class="card-header">
         <div class="icon-wrapper password-icon">
@@ -118,7 +116,7 @@
         />
       </div>
     </q-card>
-    <LogoutButton class="logout-btn" />
+    <LogoutButton />
 
     <BottomNavigation />
   </div>
@@ -135,7 +133,7 @@ definePageMeta({
 const router = useRouter();
 const supabase = useSupabaseClient();
 const $q = useQuasar();
-const { locale, locales, setLocale } = useI18n();
+const { locale, locales, setLocale, t } = useI18n();
 
 const newPassword = ref("");
 const confirmPassword = ref("");
@@ -162,6 +160,11 @@ const localeOptions = computed(() =>
 const passwordError = ref("");
 const confirmPasswordError = ref("");
 
+const validateNewPassword = createValidator([
+  { check: isRequired, message: t("auth.fillAllFields") },
+  { check: minLength(6), message: t("auth.minPassword") },
+]);
+
 function goBack() {
   router.back();
 }
@@ -174,13 +177,14 @@ async function changePassword() {
   passwordError.value = "";
   confirmPasswordError.value = "";
 
-  if (newPassword.value.length < 6) {
-    passwordError.value = $t("auth.minPassword");
+  const pwError = validateNewPassword(newPassword.value);
+  if (pwError) {
+    passwordError.value = pwError;
     return;
   }
 
-  if (newPassword.value !== confirmPassword.value) {
-    confirmPasswordError.value = $t("auth.passwordMismatch");
+  if (!matchesField(newPassword.value)(confirmPassword.value)) {
+    confirmPasswordError.value = t("auth.passwordMismatch");
     return;
   }
 
@@ -194,7 +198,7 @@ async function changePassword() {
     if (error) {
       console.error("[Settings] Ошибка смены пароля:", error);
 
-      passwordError.value = $t("settings.password.error");
+      passwordError.value = t("settings.password.error");
       return;
     }
 
@@ -203,12 +207,12 @@ async function changePassword() {
 
     $q.notify({
       type: "positive",
-      message: $t("settings.password.success"),
+      message: t("settings.password.success"),
     });
   } catch (error) {
     console.error("[Settings] Неожиданная ошибка:", error);
 
-    passwordError.value = $t("settings.password.error");
+    passwordError.value = t("settings.password.error");
   } finally {
     loading.value = false;
   }
@@ -273,8 +277,8 @@ async function changePassword() {
 }
 
 .password-icon {
-  background: #eef5ff;
-  color: #3182ce;
+  background: var(--grey-icon-bg);
+  color: var(--toast-info);
 }
 
 .card-title {
