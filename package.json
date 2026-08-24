@@ -13,7 +13,9 @@
     "postinstall": "nuxt prepare && node scripts/patch-nuxt-b2005.mjs",
     "import:daily": "node scripts/importDailyTasks.mjs",
     "import:weekly": "node scripts/importWeeklyTasks.mjs",
-    "assets:build": "node scripts/generateAppAssets.mjs && capacitor-assets generate --ios --android"
+    "assets:build": "node scripts/generateAppAssets.mjs && capacitor-assets generate --ios --android",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
@@ -37,6 +39,7 @@
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.5.0",
-    "sass-embedded": "^1.100.0"
+    "sass-embedded": "^1.100.0",
+    "vitest": "^4.1.11"
   }
 }
