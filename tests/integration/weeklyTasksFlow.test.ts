@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 import { useWeeklyTaskStore } from "~/stores/weeklyTasks";
 import { useTaskStore } from "~/stores/dailyTasks";
@@ -37,6 +37,10 @@ beforeEach(() => {
   getWeeklyTasks.mockResolvedValue(mockWeeklyTasks);
   getWeeklyCompletions.mockResolvedValue([]);
   completeWeeklyTask.mockResolvedValue({});
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe("weekly tasks flow integration", () => {

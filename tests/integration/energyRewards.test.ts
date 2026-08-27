@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 import { useTaskStore } from "~/stores/dailyTasks";
 import { useWeeklyTaskStore } from "~/stores/weeklyTasks";
@@ -46,6 +46,10 @@ beforeEach(() => {
   getWeeklyTasks.mockResolvedValue(mockWeeklyTasks);
   getWeeklyCompletions.mockResolvedValue([]);
   completeWeeklyTask.mockResolvedValue({});
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe("energy rewards cross-store integration", () => {

@@ -25,7 +25,7 @@ test.describe("Login page", () => {
     await page.goto("/login");
     await page.locator(".login-card button[type='submit']").click();
 
-    await expect(page.locator(".login-error")).toBeVisible();
+    await expect(page.locator(".login-error")).toHaveText("Введите email и пароль");
   });
 
   test("shows error on wrong credentials", async ({ page }) => {
@@ -36,7 +36,7 @@ test.describe("Login page", () => {
     await page.getByRole("textbox", { name: /пароль/i }).fill("wrongpassword");
     await page.locator(".login-card button[type='submit']").click();
 
-    await expect(page.locator(".login-error")).toBeVisible();
+    await expect(page.locator(".login-error")).toHaveText("Invalid login credentials");
   });
 
   test("navigates to daily on successful login when screening exists", async ({ page }) => {
@@ -125,7 +125,7 @@ test.describe("Register page", () => {
     await page.goto("/register");
     await page.locator(".register-card button").click();
 
-    await expect(page.locator(".register-error")).toBeVisible();
+    await expect(page.locator(".register-error")).toHaveText("Заполните все поля");
   });
 
   test("shows error on short password", async ({ page }) => {
@@ -137,7 +137,9 @@ test.describe("Register page", () => {
     await page.getByRole("textbox", { name: /повторите пароль/i }).fill("123");
     await page.locator(".register-card button").click();
 
-    await expect(page.locator(".register-error")).toBeVisible();
+    await expect(page.locator(".register-error")).toHaveText(
+      "Пароль должен содержать минимум 6 символов",
+    );
   });
 
   test("shows error on password mismatch", async ({ page }) => {
@@ -149,7 +151,7 @@ test.describe("Register page", () => {
     await page.getByRole("textbox", { name: /повторите пароль/i }).fill("654321");
     await page.locator(".register-card button").click();
 
-    await expect(page.locator(".register-error")).toBeVisible();
+    await expect(page.locator(".register-error")).toHaveText("Пароли не совпадают");
   });
 
   test("has link back to login", async ({ page }) => {

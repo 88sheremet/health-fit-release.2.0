@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 import { useWeeklyTaskStore } from "~/stores/weeklyTasks";
 import { useTaskStore } from "~/stores/dailyTasks";
@@ -11,6 +11,10 @@ vi.mock("~/services/weeklyTask.service", () => ({
 
 beforeEach(() => {
   setActivePinia(createPinia());
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe("weeklyTasks store", () => {
@@ -40,7 +44,6 @@ describe("weeklyTasks store", () => {
       daily.startDate = "2026-06-11"; // getDaysSince=4, withinWeek=(4%7)+1=5
       const store = useWeeklyTaskStore();
       expect(store.canComplete).toBe(false);
-      vi.useRealTimers();
     });
 
     it("returns true on day 6 (withinWeek=6)", () => {
@@ -50,7 +53,6 @@ describe("weeklyTasks store", () => {
       daily.startDate = "2026-06-10"; // getDaysSince=5, withinWeek=(5%7)+1=6
       const store = useWeeklyTaskStore();
       expect(store.canComplete).toBe(true);
-      vi.useRealTimers();
     });
 
     it("returns true on day 7 (withinWeek=7)", () => {
@@ -60,7 +62,6 @@ describe("weeklyTasks store", () => {
       daily.startDate = "2026-06-09"; // getDaysSince=6, withinWeek=(6%7)+1=7
       const store = useWeeklyTaskStore();
       expect(store.canComplete).toBe(true);
-      vi.useRealTimers();
     });
 
     it("returns false on day 1 (withinWeek=1)", () => {
@@ -70,7 +71,6 @@ describe("weeklyTasks store", () => {
       daily.startDate = "2026-06-15"; // getDaysSince=0, withinWeek=(0%7)+1=1
       const store = useWeeklyTaskStore();
       expect(store.canComplete).toBe(false);
-      vi.useRealTimers();
     });
   });
 

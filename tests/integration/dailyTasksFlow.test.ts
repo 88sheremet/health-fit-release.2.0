@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 import { useTaskStore } from "~/stores/dailyTasks";
 
@@ -33,6 +33,10 @@ beforeEach(() => {
   })));
   setActivePinia(createPinia());
   getDailyTasks.mockResolvedValue(mockTasks);
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe("daily tasks flow integration", () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 import { useTaskStore } from "~/stores/dailyTasks";
 
@@ -8,6 +8,10 @@ vi.mock("~/services/dailyTask.service", () => ({
 
 beforeEach(() => {
   setActivePinia(createPinia());
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe("dailyTasks store", () => {
@@ -66,13 +70,32 @@ describe("dailyTasks store", () => {
   });
 
   describe("todayTasks", () => {
-    it("returns empty array on rest day", () => {
+    it("returns empty array on a Sunday rest day even with tasks", () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-06-14T12:00:00")); // Sunday
+
       const store = useTaskStore();
-      // Sunday 2026-06-14 is a rest day
-      // We can't control isRestDay easily, so test the logic
-      // by checking that when tasks is empty, result is empty
-      store.tasks = [];
+      store.startDate = "2026-06-14";
+      store.tasks = [
+        { id: "f1", day: 1, type: "food", title: "Завтрак", reward: 10, whatDoing: "Яичница", whyDoing: "Энергия" },
+        { id: "m1", day: 1, type: "mental", title: "Медитация", reward: 10, whatDoing: "10 минут", whyDoing: "Фокус" },
+      ];
+      expect(store.isRestDay).toBe(true);
       expect(store.todayTasks).toEqual([]);
+    });
+
+    it("returns tasks on a non-rest day", () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-06-15T12:00:00")); // Monday
+
+      const store = useTaskStore();
+      store.startDate = "2026-06-15";
+      store.tasks = [
+        { id: "f1", day: 1, type: "food", title: "Завтрак", reward: 10, whatDoing: "Яичница", whyDoing: "Энергия" },
+        { id: "m1", day: 1, type: "mental", title: "Медитация", reward: 10, whatDoing: "10 минут", whyDoing: "Фокус" },
+      ];
+      expect(store.isRestDay).toBe(false);
+      expect(store.todayTasks.map((t) => t.id)).toEqual(["f1", "m1"]);
     });
   });
 
