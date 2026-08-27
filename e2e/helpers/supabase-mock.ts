@@ -1,6 +1,31 @@
+import { config as loadEnv } from "dotenv";
 import type { Page, Route } from "@playwright/test";
 
-const SUPABASE_URL = "**/*.supabase.co/**";
+loadEnv();
+
+const SUPABASE_ROUTE = "**/*.supabase.co/**";
+
+function getSupabaseUrl(): string {
+  const url = process.env.SUPABASE_URL;
+  if (!url) {
+    throw new Error(
+      "SUPABASE_URL is not set. Add it to .env so the Supabase storage key can be derived from the project ref.",
+    );
+  }
+  return url.replace(/\/+$/, "");
+}
+
+/**
+ * The app's Supabase auth token is stored in localStorage under a key derived
+ * from the project ref: `sb-<ref>-auth-token`. Deriving the ref from
+ * SUPABASE_URL keeps the seeded key in sync with whatever project the app is
+ * actually compiled against.
+ */
+function getSupabaseStorageKey(): string {
+  const url = getSupabaseUrl();
+  const projectRef = url.replace("https://", "").replace(/\.supabase\.co.*$/, "");
+  return `sb-${projectRef}-auth-token`;
+}
 
 const MOCK_USER = {
   id: "test-user-id",
@@ -15,7 +40,7 @@ const MOCK_SESSION = {
   access_token: "mock-access-token",
   refresh_token: "mock-refresh-token",
   expires_in: 3600,
-  expires_at: Date.now() + 86400_000,
+  expires_at: Math.floor(Date.now() / 1000) + 86400,
   token_type: "bearer",
   user: MOCK_USER,
 };
@@ -25,27 +50,19 @@ const MOCK_SESSION = {
  * (which calls getSession() → reads local storage, NOT HTTP) passes.
  */
 export async function seedSupabaseSession(page: Page) {
-  const supabaseUrl = "https://nypmxuihlerrynxumpko.supabase.co";
-  const projectRef = supabaseUrl.replace("https://", "").replace(".supabase.co", "");
-  const storageKey = `sb-${projectRef}-auth-token`;
-
   await page.addInitScript((args) => {
     const [key, data] = args as [string, string];
     localStorage.setItem(key, data);
-  }, [storageKey, JSON.stringify(MOCK_SESSION)]);
+  }, [getSupabaseStorageKey(), JSON.stringify(MOCK_SESSION)]);
 }
 
 /**
  * Clear Supabase session from localStorage.
  */
 export async function clearSupabaseSession(page: Page) {
-  const supabaseUrl = "https://nypmxuihlerrynxumpko.supabase.co";
-  const projectRef = supabaseUrl.replace("https://", "").replace(".supabase.co", "");
-  const storageKey = `sb-${projectRef}-auth-token`;
-
   await page.addInitScript((key: string) => {
     localStorage.removeItem(key);
-  }, storageKey);
+  }, getSupabaseStorageKey());
 }
 
 function handleSupabaseRoute(
@@ -192,7 +209,7 @@ function handleSupabaseRoute(
 
 /** Mock Supabase for auth pages (no session = guest) */
 export async function mockSupabaseNoSession(page: Page) {
-  await page.route(SUPABASE_URL, (route, request) =>
+  await page.route(SUPABASE_ROUTE, (route, request) =>
     handleSupabaseRoute(route, request, { user: null, session: null }),
   );
 }
@@ -200,7 +217,7 @@ export async function mockSupabaseNoSession(page: Page) {
 /** Mock Supabase for logged-in user (sets localStorage + route mocks) */
 export async function mockSupabaseAuth(page: Page) {
   await seedSupabaseSession(page);
-  await page.route(SUPABASE_URL, (route, request) =>
+  await page.route(SUPABASE_ROUTE, (route, request) =>
     handleSupabaseRoute(route, request, { user: MOCK_USER, session: MOCK_SESSION }),
   );
 }
@@ -208,7 +225,7 @@ export async function mockSupabaseAuth(page: Page) {
 /** Mock Supabase for logged-in user with screening completed */
 export async function mockScreeningCompleted(page: Page) {
   await seedSupabaseSession(page);
-  await page.route(SUPABASE_URL, (route, request) =>
+  await page.route(SUPABASE_ROUTE, (route, request) =>
     handleSupabaseRoute(route, request, {
       user: MOCK_USER,
       session: MOCK_SESSION,

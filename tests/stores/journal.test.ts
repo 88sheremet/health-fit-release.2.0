@@ -111,6 +111,30 @@ describe("journal store", () => {
       store.chartData;
       expect(entries[0].date).toBe("2026-06-14");
     });
+
+    it("assigns distinct day numbers for same-date entries", () => {
+      const store = useJournalStore();
+      store.entries = [
+        { id: "1", date: "2026-06-15", mood: 5, note: "a" },
+        { id: "2", date: "2026-06-15", mood: 3, note: "b" },
+      ];
+      const chart = store.chartData;
+      expect(chart).toHaveLength(2);
+      expect(chart[0].day).toBe(1);
+      expect(chart[1].day).toBe(2);
+    });
+
+    it("leaves mood undefined for note-only entries", () => {
+      const store = useJournalStore();
+      store.entries = [
+        { id: "1", date: "2026-06-15", mood: 4, note: "Walked in the park" },
+        { id: "2", date: "2026-06-16", note: "" },
+      ];
+      const chart = store.chartData;
+      expect(chart[0].note).toBe("Walked in the park");
+      expect(chart[1].note).toBe("");
+      expect(chart[1].mood).toBeUndefined();
+    });
   });
 
   describe("lastEntry", () => {
