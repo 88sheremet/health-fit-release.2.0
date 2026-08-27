@@ -28,28 +28,28 @@ describe("getDaysSince", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-15T12:00:00"));
 
-    expect(getDaysSince("2026-06-15")).toBe(0);
+    expect(getDaysSince("2026-06-15T12:00:00")).toBe(0);
   });
 
   it("returns 1 for yesterday", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-15T12:00:00"));
 
-    expect(getDaysSince("2026-06-14")).toBe(1);
+    expect(getDaysSince("2026-06-14T12:00:00")).toBe(1);
   });
 
   it("returns 30 for 30 days ago", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-15T12:00:00"));
 
-    expect(getDaysSince("2026-06-15")).toBe(30);
+    expect(getDaysSince("2026-06-15T12:00:00")).toBe(30);
   });
 
   it("accepts Date objects", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-20T12:00:00"));
 
-    expect(getDaysSince(new Date("2026-06-18"))).toBe(2);
+    expect(getDaysSince("2026-06-18T12:00:00")).toBe(2);
   });
 });
 
@@ -74,49 +74,49 @@ describe("getDayIndex", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-15T12:00:00"));
 
-    expect(getDayIndex("2026-06-15")).toBe(1);
+    expect(getDayIndex("2026-06-15T00:00:00")).toBe(1);
   });
 
   it("returns 2 on second day", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-16T12:00:00"));
 
-    expect(getDayIndex("2026-06-15")).toBe(2);
+    expect(getDayIndex("2026-06-15T00:00:00")).toBe(2);
   });
 
   it("returns 30 on day 30", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-14T12:00:00"));
 
-    expect(getDayIndex("2026-06-15")).toBe(30);
+    expect(getDayIndex("2026-06-15T00:00:00")).toBe(30);
   });
 
   it("returns 31 on day 31 (beyond cycle)", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-15T12:00:00"));
 
-    expect(getDayIndex("2026-06-15")).toBe(31);
+    expect(getDayIndex("2026-06-15T00:00:00")).toBe(31);
   });
 
   it("ignores time of day — uses local midnight", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-16T01:00:00"));
 
-    expect(getDayIndex("2026-06-15")).toBe(2);
+    expect(getDayIndex("2026-06-15T00:00:00")).toBe(2);
   });
 });
 
 describe("isRestDayByDate", () => {
   it("returns true for Sunday", () => {
-    expect(isRestDayByDate(new Date("2026-06-14"))).toBe(true); // Sunday
+    expect(isRestDayByDate(new Date("2026-06-14T12:00:00"))).toBe(true); // Sunday
   });
 
   it("returns false for Monday", () => {
-    expect(isRestDayByDate(new Date("2026-06-15"))).toBe(false); // Monday
+    expect(isRestDayByDate(new Date("2026-06-15T12:00:00"))).toBe(false); // Monday
   });
 
   it("returns false for Saturday", () => {
-    expect(isRestDayByDate(new Date("2026-06-13"))).toBe(false); // Saturday
+    expect(isRestDayByDate(new Date("2026-06-13T12:00:00"))).toBe(false); // Saturday
   });
 });
 

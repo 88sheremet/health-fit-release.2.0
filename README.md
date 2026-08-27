@@ -224,3 +224,15 @@ npm run assets:build
 | `npm run mobile:ios` | синхронізувати і відкрити Xcode |
 | `npm run mobile:android` | синхронізувати і відкрити Android Studio |
 | `npm run assets:build` | перегенерувати іконку і splash |
+
+# Unit tests (vitest) — fast, no browser
+npm test
+
+# Unit tests in watch mode
+npm run test:watch
+
+# E2E tests (playwright) — starts dev server + opens browser
+npm run test:e2e
+
+# E2E tests with interactive UI
+npm run test:e2e:ui

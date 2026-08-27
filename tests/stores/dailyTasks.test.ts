@@ -2,10 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 import { useTaskStore } from "~/stores/dailyTasks";
 
-vi.mock("#imports", () => ({
-  useSupabaseClient: vi.fn(),
-}));
-
 vi.mock("~/services/dailyTask.service", () => ({
   getDailyTasks: vi.fn(),
 }));

@@ -3,10 +3,6 @@ import { setActivePinia, createPinia } from "pinia";
 import { useJournalStore } from "~/stores/journal";
 import type { JournalEntry } from "~/interfaces/JournalEntry.interface";
 
-vi.mock("#imports", () => ({
-  useSupabaseClient: vi.fn(),
-}));
-
 beforeEach(() => {
   setActivePinia(createPinia());
 });

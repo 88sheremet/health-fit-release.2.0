@@ -3,10 +3,6 @@ import { setActivePinia, createPinia } from "pinia";
 import { useWeeklyTaskStore } from "~/stores/weeklyTasks";
 import { useTaskStore } from "~/stores/dailyTasks";
 
-vi.mock("#imports", () => ({
-  useSupabaseClient: vi.fn(),
-}));
-
 vi.mock("~/services/weeklyTask.service", () => ({
   getWeeklyTasks: vi.fn(),
   getWeeklyCompletions: vi.fn(),

@@ -3,10 +3,6 @@ import { setActivePinia, createPinia } from "pinia";
 import { useWeeklyTaskStore } from "~/stores/weeklyTasks";
 import { useTaskStore } from "~/stores/dailyTasks";
 
-vi.mock("#imports", () => ({
-  useSupabaseClient: vi.fn(),
-}));
-
 const { mockWeeklyTasks, getWeeklyTasks, getWeeklyCompletions, completeWeeklyTask } = vi.hoisted(() => ({
   mockWeeklyTasks: [
     { id: "wk1", week: 1, title: "Breathing Exercise", what_doing: "4-7-8 technique", why_doing: "Reduce anxiety" },

@@ -3,10 +3,6 @@ import { setActivePinia, createPinia } from "pinia";
 import { useScreeningStore } from "~/stores/screening";
 import { DominantProblem } from "~/enums/DominantProblem.enum";
 
-vi.mock("#imports", () => ({
-  useSupabaseClient: vi.fn(),
-}));
-
 beforeEach(() => {
   setActivePinia(createPinia());
 });
