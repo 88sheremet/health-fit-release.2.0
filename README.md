@@ -232,6 +232,7 @@ npm test
 npm run test:watch
 
 # E2E tests (playwright) — starts dev server + opens browser
+# Uses a dedicated non-standard port (3100) and never reuses a foreign server.
 npm run test:e2e
 
 # E2E tests with interactive UI
