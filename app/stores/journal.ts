@@ -3,6 +3,20 @@ import { defineStore } from "pinia";
 import type { JournalEntry } from "../interfaces/JournalEntry.interface";
 import type { JournalState } from "../interfaces/JournalState.interface";
 
+const toMood = (
+  value: unknown,
+): 1 | 2 | 3 | 4 | 5 | undefined => {
+  if (
+    typeof value === "number" &&
+    value >= 1 &&
+    value <= 5
+  ) {
+    return value as 1 | 2 | 3 | 4 | 5;
+  }
+
+  return undefined;
+};
+
 export const useJournalStore = defineStore("journal", {
   state: (): JournalState => ({
     entries: [],
@@ -92,13 +106,7 @@ export const useJournalStore = defineStore("journal", {
         (entry): JournalEntry => ({
           id: entry.id,
           date: entry.date,
-          mood: entry.mood as
-            | 1
-            | 2
-            | 3
-            | 4
-            | 5
-            | undefined,
+          mood: toMood(entry.mood),
           note: entry.note ?? "",
         }),
       );
@@ -124,14 +132,22 @@ export const useJournalStore = defineStore("journal", {
         .toISOString()
         .split("T")[0];
 
+      const existing = this.getEntryByDate(today);
+
       const { data, error } = await supabase
         .from("journal_entries")
-        .insert({
-          user_id: user.id,
-          date: today,
-          mood: payload.mood,
-          note: payload.note,
-        })
+        .upsert(
+          {
+            user_id: user.id,
+            date: today,
+            mood: payload.mood,
+            note:
+              payload.note !== ""
+                ? payload.note
+                : existing?.note ?? "",
+          },
+          { onConflict: "user_id,date" },
+        )
         .select(
           `
             id,
@@ -154,14 +170,13 @@ export const useJournalStore = defineStore("journal", {
       const entry: JournalEntry = {
         id: data.id,
         date: data.date,
-        mood: data.mood as
-          | 1
-          | 2
-          | 3
-          | 4
-          | 5,
+        mood: toMood(data.mood),
         note: data.note ?? "",
       };
+
+      this.entries = this.entries.filter(
+        (e) => e.date !== entry.date,
+      );
 
       this.entries.push(entry);
 
@@ -234,14 +249,19 @@ export const useJournalStore = defineStore("journal", {
         .toISOString()
         .split("T")[0];
 
+      const existing = this.getEntryByDate(today);
+
       const { data, error } = await supabase
         .from("journal_entries")
-        .insert({
-          user_id: user.id,
-          date: today,
-          mood: null,
-          note: trimmedNote,
-        })
+        .upsert(
+          {
+            user_id: user.id,
+            date: today,
+            mood: existing?.mood ?? null,
+            note: trimmedNote,
+          },
+          { onConflict: "user_id,date" },
+        )
         .select(
           `
             id,
@@ -264,15 +284,13 @@ export const useJournalStore = defineStore("journal", {
       const entry: JournalEntry = {
         id: data.id,
         date: data.date,
-        mood: data.mood as
-          | 1
-          | 2
-          | 3
-          | 4
-          | 5
-          | undefined,
+        mood: toMood(data.mood),
         note: data.note ?? "",
       };
+
+      this.entries = this.entries.filter(
+        (e) => e.date !== entry.date,
+      );
 
       this.entries.push(entry);
     },
