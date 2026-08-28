@@ -6,7 +6,6 @@
           {{ $t("checkin.title") }}
         </div>
 
-        ```
         <div class="subtitle">
           {{ $t("checkin.subtitle") }}
         </div>
@@ -23,7 +22,7 @@
           type="button"
           class="mood-btn"
           :class="{ active: mood === item.value }"
-          @click="mood = item.value"
+          @click="selectMood(item.value)"
         >
           <div class="emoji">
             {{ item.emoji }}
@@ -65,11 +64,10 @@
         text-color="white"
         class="save-btn"
         :label="$t('checkin.saveBtn')"
-        :disable="!mood"
+        :disable="mood === null"
         @click="save"
       />
     </q-card>
-    ```
   </q-dialog>
 </template>
 
@@ -84,6 +82,12 @@ interface CheckinPayload {
   note: string;
 }
 
+interface MoodOption {
+  value: Mood;
+  emoji: string;
+  labelKey: string;
+}
+
 const props = defineProps<{
   modelValue: boolean;
 }>();
@@ -94,7 +98,7 @@ const emit = defineEmits<{
 }>();
 
 const dialogModel = computed({
-  get: () => props.modelValue,
+  get: (): boolean => props.modelValue,
   set: (value: boolean) => {
     emit("update:modelValue", value);
   },
@@ -103,10 +107,14 @@ const dialogModel = computed({
 const note = ref("");
 const mood = ref<Mood | null>(null);
 
-const moods = moodOptions;
+const moods = moodOptions as MoodOption[];
+
+function selectMood(value: Mood) {
+  mood.value = value;
+}
 
 function save() {
-  if (!mood.value) {
+  if (mood.value === null) {
     return;
   }
 

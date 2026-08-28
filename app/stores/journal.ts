@@ -3,20 +3,22 @@ import { defineStore } from "pinia";
 import type { JournalEntry } from "../interfaces/JournalEntry.interface";
 import type { JournalState } from "../interfaces/JournalState.interface";
 
-const toMood = (value: unknown): 1 | 2 | 3 | 4 | 5 | undefined => {
+type Mood = 1 | 2 | 3 | 4 | 5;
+
+const toMood = (value: unknown): Mood | undefined => {
   if (typeof value === "number" && value >= 1 && value <= 5) {
-    return value as 1 | 2 | 3 | 4 | 5;
+    return value as Mood;
   }
 
   return undefined;
 };
 
 const getToday = (): string => {
-  return new Date().toISOString().split("T")[0];
+  return new Date().toISOString().slice(0, 10);
 };
 
 const normalizeDate = (date: string): string => {
-  return date.split("T")[0];
+  return date.slice(0, 10);
 };
 
 export const useJournalStore = defineStore("journal", {
@@ -57,12 +59,7 @@ export const useJournalStore = defineStore("journal", {
         (entry) =>
           normalizeDate(entry.date) === today && entry.mood !== undefined,
       );
- console.log("[Journal] init:", {
-    today,
-    entries: this.entries,
-    todayCheckin,
-    showCheckin: !todayCheckin,
-  });
+
       this.showCheckin = !todayCheckin;
     },
 
@@ -95,7 +92,6 @@ export const useJournalStore = defineStore("journal", {
 
       if (error) {
         console.error("[Journal] Ошибка загрузки:", error);
-
         throw error;
       }
 
@@ -109,7 +105,7 @@ export const useJournalStore = defineStore("journal", {
       );
     },
 
-    async saveCheckin(payload: { mood: 1 | 2 | 3 | 4 | 5; note: string }) {
+    async saveCheckin(payload: { mood: Mood; note: string }) {
       const supabase = useSupabaseClient();
 
       const {
@@ -174,7 +170,7 @@ export const useJournalStore = defineStore("journal", {
       this.showCheckin = false;
     },
 
-    getEntryByDate(date: string) {
+    getEntryByDate(date: string): JournalEntry | undefined {
       const normalizedDate = normalizeDate(date);
 
       return this.entries.find(
@@ -201,7 +197,6 @@ export const useJournalStore = defineStore("journal", {
 
       if (error) {
         console.error("[Journal] Ошибка удаления:", error);
-
         throw error;
       }
 
