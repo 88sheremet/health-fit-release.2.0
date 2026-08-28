@@ -37,6 +37,15 @@ jobs:
 
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
 
+    # The Supabase client needs a project URL/key at startup so the mocked
+    # auth pages render, and e2e/helpers/supabase-mock.ts derives the
+    # localStorage storage key (sb-<ref>-auth-token) from SUPABASE_URL so it
+    # matches the key the app computes. Both the Nuxt dev server (started by
+    # Playwright) and the Playwright test process inherit these env vars.
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://nypmxuihlerrynxumpko.supabase.co' }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY || 'sb_publishable_S4I_uOzLAcxUwK8s4cDTPA_7ndfuIap' }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

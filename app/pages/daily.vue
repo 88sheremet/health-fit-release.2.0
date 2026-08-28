@@ -103,6 +103,10 @@ function openTask(task: any) {
 onMounted(async () => {
   await store.init();
   await journalStore.init();
+    console.log(
+    "[Daily] showCheckin:",
+    journalStore.showCheckin,
+  );
 });
 </script>
 

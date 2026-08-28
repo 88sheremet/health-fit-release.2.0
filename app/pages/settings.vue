@@ -135,6 +135,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import LogoutButton from "~/components/auth/LogoutButton.vue";
+import { routes } from "~/router/routes";
 definePageMeta({
   middleware: "auth",
   layout: "authenticated",
@@ -184,7 +185,7 @@ function goBack() {
   }
 }
 
-async function changeLanguage(value: string) {
+async function changeLanguage(value: "ru" | "uk") {
   await setLocale(value);
   selectedLocale.value = value;
 }

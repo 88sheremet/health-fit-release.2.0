@@ -22,14 +22,12 @@ export default defineNuxtConfig({
 
     langDir: "locales",
 
-    lazy: true,
-
     detectBrowserLanguage: {
       useCookie: true,
 
       cookieKey: "i18n_locale",
 
-      redirectOn: "no_prefix",
+      redirectOn: "no prefix",
 
       fallbackLocale: "ru",
     },

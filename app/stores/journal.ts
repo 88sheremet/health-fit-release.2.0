@@ -3,18 +3,20 @@ import { defineStore } from "pinia";
 import type { JournalEntry } from "../interfaces/JournalEntry.interface";
 import type { JournalState } from "../interfaces/JournalState.interface";
 
-const toMood = (
-  value: unknown,
-): 1 | 2 | 3 | 4 | 5 | undefined => {
-  if (
-    typeof value === "number" &&
-    value >= 1 &&
-    value <= 5
-  ) {
+const toMood = (value: unknown): 1 | 2 | 3 | 4 | 5 | undefined => {
+  if (typeof value === "number" && value >= 1 && value <= 5) {
     return value as 1 | 2 | 3 | 4 | 5;
   }
 
   return undefined;
+};
+
+const getToday = (): string => {
+  return new Date().toISOString().split("T")[0];
+};
+
+const normalizeDate = (date: string): string => {
+  return date.split("T")[0];
 };
 
 export const useJournalStore = defineStore("journal", {
@@ -27,11 +29,7 @@ export const useJournalStore = defineStore("journal", {
     chartData(state) {
       return state.entries
         .slice()
-        .sort(
-          (a, b) =>
-            new Date(a.date).getTime() -
-            new Date(b.date).getTime(),
-        )
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
         .map((entry, index) => ({
           day: index + 1,
           mood: entry.mood,
@@ -45,7 +43,7 @@ export const useJournalStore = defineStore("journal", {
         return null;
       }
 
-      return state.entries[state.entries.length - 1];
+      return state.entries[state.entries.length - 1] ?? null;
     },
   },
 
@@ -53,16 +51,18 @@ export const useJournalStore = defineStore("journal", {
     async init() {
       await this.loadEntries();
 
-      const today = new Date()
-        .toISOString()
-        .split("T")[0];
+      const today = getToday();
 
       const todayCheckin = this.entries.find(
         (entry) =>
-          entry.date === today &&
-          entry.mood !== undefined,
+          normalizeDate(entry.date) === today && entry.mood !== undefined,
       );
-
+ console.log("[Journal] init:", {
+    today,
+    entries: this.entries,
+    todayCheckin,
+    showCheckin: !todayCheckin,
+  });
       this.showCheckin = !todayCheckin;
     },
 
@@ -94,10 +94,7 @@ export const useJournalStore = defineStore("journal", {
         });
 
       if (error) {
-        console.error(
-          "[Journal] Ошибка загрузки:",
-          error,
-        );
+        console.error("[Journal] Ошибка загрузки:", error);
 
         throw error;
       }
@@ -112,10 +109,7 @@ export const useJournalStore = defineStore("journal", {
       );
     },
 
-    async saveCheckin(payload: {
-      mood: 1 | 2 | 3 | 4 | 5;
-      note: string;
-    }) {
+    async saveCheckin(payload: { mood: 1 | 2 | 3 | 4 | 5; note: string }) {
       const supabase = useSupabaseClient();
 
       const {
@@ -123,16 +117,13 @@ export const useJournalStore = defineStore("journal", {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        throw new Error(
-          "Пользователь не авторизован",
-        );
+        throw new Error("Пользователь не авторизован");
       }
 
-      const today = new Date()
-        .toISOString()
-        .split("T")[0];
-
+      const today = getToday();
       const existing = this.getEntryByDate(today);
+
+      const trimmedNote = payload.note.trim();
 
       const { data, error } = await supabase
         .from("journal_entries")
@@ -141,12 +132,11 @@ export const useJournalStore = defineStore("journal", {
             user_id: user.id,
             date: today,
             mood: payload.mood,
-            note:
-              payload.note !== ""
-                ? payload.note
-                : existing?.note ?? "",
+            note: trimmedNote !== "" ? trimmedNote : existing?.note ?? "",
           },
-          { onConflict: "user_id,date" },
+          {
+            onConflict: "user_id,date",
+          },
         )
         .select(
           `
@@ -159,10 +149,7 @@ export const useJournalStore = defineStore("journal", {
         .single();
 
       if (error) {
-        console.error(
-          "[Journal] Ошибка сохранения Check-in:",
-          error,
-        );
+        console.error("[Journal] Ошибка сохранения Check-in:", error);
 
         throw error;
       }
@@ -175,7 +162,7 @@ export const useJournalStore = defineStore("journal", {
       };
 
       this.entries = this.entries.filter(
-        (e) => e.date !== entry.date,
+        (entry) => normalizeDate(entry.date) !== today,
       );
 
       this.entries.push(entry);
@@ -188,8 +175,10 @@ export const useJournalStore = defineStore("journal", {
     },
 
     getEntryByDate(date: string) {
+      const normalizedDate = normalizeDate(date);
+
       return this.entries.find(
-        (entry) => entry.date === date,
+        (entry) => normalizeDate(entry.date) === normalizedDate,
       );
     },
 
@@ -201,9 +190,7 @@ export const useJournalStore = defineStore("journal", {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        throw new Error(
-          "Пользователь не авторизован",
-        );
+        throw new Error("Пользователь не авторизован");
       }
 
       const { error } = await supabase
@@ -213,17 +200,12 @@ export const useJournalStore = defineStore("journal", {
         .eq("user_id", user.id);
 
       if (error) {
-        console.error(
-          "[Journal] Ошибка удаления:",
-          error,
-        );
+        console.error("[Journal] Ошибка удаления:", error);
 
         throw error;
       }
 
-      this.entries = this.entries.filter(
-        (entry) => entry.id !== id,
-      );
+      this.entries = this.entries.filter((entry) => entry.id !== id);
     },
 
     async addNote(note: string) {
@@ -234,9 +216,7 @@ export const useJournalStore = defineStore("journal", {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        throw new Error(
-          "Пользователь не авторизован",
-        );
+        throw new Error("Пользователь не авторизован");
       }
 
       const trimmedNote = note.trim();
@@ -245,10 +225,7 @@ export const useJournalStore = defineStore("journal", {
         return;
       }
 
-      const today = new Date()
-        .toISOString()
-        .split("T")[0];
-
+      const today = getToday();
       const existing = this.getEntryByDate(today);
 
       const { data, error } = await supabase
@@ -260,7 +237,9 @@ export const useJournalStore = defineStore("journal", {
             mood: existing?.mood ?? null,
             note: trimmedNote,
           },
-          { onConflict: "user_id,date" },
+          {
+            onConflict: "user_id,date",
+          },
         )
         .select(
           `
@@ -273,10 +252,7 @@ export const useJournalStore = defineStore("journal", {
         .single();
 
       if (error) {
-        console.error(
-          "[Journal] Ошибка добавления заметки:",
-          error,
-        );
+        console.error("[Journal] Ошибка добавления заметки:", error);
 
         throw error;
       }
@@ -289,7 +265,7 @@ export const useJournalStore = defineStore("journal", {
       };
 
       this.entries = this.entries.filter(
-        (e) => e.date !== entry.date,
+        (entry) => normalizeDate(entry.date) !== today,
       );
 
       this.entries.push(entry);

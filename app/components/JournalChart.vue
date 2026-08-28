@@ -32,6 +32,9 @@ import {
   PointElement,
   LineElement,
   Tooltip,
+  type ChartOptions,
+  type TooltipItem,
+  type ChartData,
 } from "chart.js";
 
 ChartJS.register(
@@ -55,7 +58,7 @@ const checkinEntries = computed(() =>
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 );
 
-const chartData = computed(() => ({
+const chartData = computed<ChartData<"line", (number | null)[], string>>(() => ({
   labels: checkinEntries.value.map((entry) =>
     new Date(entry.date).toLocaleDateString(locale.value, {
       day: "2-digit",
@@ -65,7 +68,7 @@ const chartData = computed(() => ({
 
   datasets: [
     {
-      data: checkinEntries.value.map((entry) => entry.mood),
+      data: checkinEntries.value.map((entry) => entry.mood!),
 
       borderColor: CHART_GREEN,
       backgroundColor: CHART_GREEN,
@@ -83,7 +86,7 @@ const chartData = computed(() => ({
   ],
 }));
 
-const chartOptions = computed(() => ({
+const chartOptions = computed<ChartOptions<"line">>(() => ({
   responsive: true,
 
   maintainAspectRatio: true,
@@ -102,7 +105,7 @@ const chartOptions = computed(() => ({
       displayColors: false,
 
       callbacks: {
-        title(items: any[]) {
+        title(items: TooltipItem<"line">[]) {
           if (!items.length) {
             return "";
           }
@@ -121,7 +124,7 @@ const chartOptions = computed(() => ({
           });
         },
 
-        label(context: any) {
+        label(context: TooltipItem<"line">) {
           const index = context.dataIndex;
 
           const entry = checkinEntries.value[index];
@@ -137,7 +140,7 @@ const chartOptions = computed(() => ({
           })}`;
         },
 
-        afterLabel(context: any) {
+        afterLabel(context: TooltipItem<"line">) {
           const index = context.dataIndex;
 
           const entry = checkinEntries.value[index];
@@ -171,8 +174,8 @@ const chartOptions = computed(() => ({
           size: 20,
         },
 
-        callback(value: number) {
-          return moodEmojis[value] || "";
+        callback(value: string | number) {
+          return moodEmojis[value as number] || "";
         },
       },
     },

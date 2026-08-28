@@ -58,17 +58,17 @@ function dbTasksForDay(rows: DbDailyTask[], dayIndex: number): Task[] {
       list[(targetDay - 1) % list.length];
 
     result.push({
-      id: row.id,
+      id: row!.id,
 
       type,
 
-      title: row.title,
+      title: row!.title,
 
-      reward: row.reward ?? rewardForType(type),
+      reward: row!.reward ?? rewardForType(type),
 
-      whatDoing: normalizeWhatDoing(row.what_doing),
+      whatDoing: normalizeWhatDoing(row!.what_doing),
 
-      whyDoing: row.why_doing,
+      whyDoing: row!.why_doing,
     });
 
     return result;
@@ -187,7 +187,7 @@ export const useTaskStore = defineStore("tasks", {
 
             streak: 1,
 
-            last_visit_date: new Date().toISOString().split("T")[0],
+            last_visit_date: new Date().toISOString().slice(0, 10),
           })
           .select()
           .single();
@@ -272,7 +272,7 @@ export const useTaskStore = defineStore("tasks", {
         return;
       }
 
-      const today = new Date().toISOString().split("T")[0];
+      const today = new Date().toISOString().slice(0, 10);
 
       if (!this.lastVisitDate) {
         this.streak = 1;

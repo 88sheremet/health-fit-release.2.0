@@ -75,7 +75,7 @@ export const useScreeningStore = defineStore("screening", {
     blocks: () => SCREENING_BLOCKS,
 
     currentBlockData(): Block {
-      return SCREENING_BLOCKS[this.currentBlock];
+      return SCREENING_BLOCKS[this.currentBlock]!;
     },
 
     progress: (state) =>
