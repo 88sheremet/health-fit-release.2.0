@@ -54,10 +54,10 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
         const task = currentWeekTask ?? fallbackTask;
 
         return {
-          id: task.id,
-          nameProgram: task.title,
-          whatDoing: task.what_doing,
-          whyDoing: task.why_doing,
+          id: task!.id,
+          nameProgram: task!.title,
+          whatDoing: task!.what_doing,
+          whyDoing: task!.why_doing,
         };
       }
 

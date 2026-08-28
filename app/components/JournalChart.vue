@@ -32,6 +32,9 @@ import {
   PointElement,
   LineElement,
   Tooltip,
+  type ChartOptions,
+  type TooltipItem,
+  type ChartData,
 } from "chart.js";
 
 ChartJS.register(
@@ -55,42 +58,44 @@ const checkinEntries = computed(() =>
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 );
 
-const chartData = computed(() => ({
-  labels: checkinEntries.value.map((entry) =>
-    new Date(entry.date).toLocaleDateString(locale.value, {
-      day: "2-digit",
-      month: "2-digit",
-    })
-  ),
+const chartData = computed<ChartData<"line", (number | null)[], string>>(
+  () => ({
+    labels: checkinEntries.value.map((entry) =>
+      new Date(entry.date).toLocaleDateString(locale.value, {
+        day: "2-digit",
+        month: "2-digit",
+      })
+    ),
 
-  datasets: [
-    {
-      data: checkinEntries.value.map((entry) => entry.mood),
+    datasets: [
+      {
+        data: checkinEntries.value.map((entry) => entry.mood ?? null),
 
-      borderColor: CHART_GREEN,
-      backgroundColor: CHART_GREEN,
+        borderColor: CHART_GREEN,
+        backgroundColor: CHART_GREEN,
 
-      tension: 0.4,
+        tension: 0.4,
 
-      pointRadius: 10,
-      pointHoverRadius: 12,
+        pointRadius: 10,
+        pointHoverRadius: 12,
 
-      pointBackgroundColor: "transparent",
-      pointBorderColor: "transparent",
-      pointHoverBackgroundColor: "transparent",
-      pointHoverBorderColor: "transparent",
-    },
-  ],
-}));
+        pointBackgroundColor: "transparent",
+        pointBorderColor: "transparent",
+        pointHoverBackgroundColor: "transparent",
+        pointHoverBorderColor: "transparent",
+      },
+    ],
+  })
+);
 
-const chartOptions = computed(() => ({
+const chartOptions = computed<ChartOptions<"line">>(() => ({
   responsive: true,
 
   maintainAspectRatio: true,
 
   interaction: {
     intersect: false,
-    mode: "index" as const,
+    mode: "index",
   },
 
   plugins: {
@@ -102,12 +107,14 @@ const chartOptions = computed(() => ({
       displayColors: false,
 
       callbacks: {
-        title(items: any[]) {
-          if (!items.length) {
+        title(items: TooltipItem<"line">[]) {
+          const firstItem = items[0];
+
+          if (!firstItem) {
             return "";
           }
 
-          const index = items[0].dataIndex;
+          const index = firstItem.dataIndex;
           const entry = checkinEntries.value[index];
 
           if (!entry) {
@@ -121,9 +128,8 @@ const chartOptions = computed(() => ({
           });
         },
 
-        label(context: any) {
+        label(context: TooltipItem<"line">) {
           const index = context.dataIndex;
-
           const entry = checkinEntries.value[index];
 
           if (!entry) {
@@ -137,9 +143,8 @@ const chartOptions = computed(() => ({
           })}`;
         },
 
-        afterLabel(context: any) {
+        afterLabel(context: TooltipItem<"line">) {
           const index = context.dataIndex;
-
           const entry = checkinEntries.value[index];
 
           if (!entry?.note) {
@@ -171,8 +176,8 @@ const chartOptions = computed(() => ({
           size: 20,
         },
 
-        callback(value: number) {
-          return moodEmojis[value] || "";
+        callback(value: string | number) {
+          return moodEmojis[value as number] || "";
         },
       },
     },
@@ -186,6 +191,10 @@ const emojiPlugin = {
     const { ctx, data } = chart;
 
     const dataset = data.datasets[0];
+
+    if (!dataset) {
+      return;
+    }
 
     const meta = chart.getDatasetMeta(0);
 
@@ -201,9 +210,7 @@ const emojiPlugin = {
       ctx.save();
 
       ctx.font = "22px Arial";
-
       ctx.textAlign = "center";
-
       ctx.textBaseline = "middle";
 
       ctx.fillText(emoji, point.x, point.y);
