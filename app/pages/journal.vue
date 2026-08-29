@@ -152,8 +152,13 @@ async function saveNote() {
 
     showNoteDialog.value = false;
     note.value = "";
-  } catch (error) {
-    console.error("[Journal] Ошибка сохранения заметки:", error);
+  } catch (error: any) {
+    console.error("[Journal] Ошибка сохранения заметки:", {
+      message: error?.message,
+      details: error?.details,
+      hint: error?.hint,
+      code: error?.code,
+    });
   } finally {
     savingNote.value = false;
   }
