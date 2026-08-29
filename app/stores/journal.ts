@@ -1,16 +1,29 @@
 import { defineStore } from "pinia";
 
-import type { JournalEntry } from "../interfaces/JournalEntry.interface";
-import type { JournalState } from "../interfaces/JournalState.interface";
+import type { JournalEntry } from "~/interfaces/JournalEntry.interface";
+import type { JournalState } from "~/interfaces/JournalState.interface";
 
 type Mood = 1 | 2 | 3 | 4 | 5;
+type JournalEntryType = "checkin" | "note";
+
+interface JournalRow {
+  id: string;
+  date: string;
+  entry_type: JournalEntryType;
+  mood: number | null;
+  note: string | null;
+}
 
 const toMood = (value: unknown): Mood | undefined => {
-  if (typeof value === "number" && value >= 1 && value <= 5) {
-    return value as Mood;
+  if (typeof value !== "number") {
+    return undefined;
   }
 
-  return undefined;
+  if (value < 1 || value > 5) {
+    return undefined;
+  }
+
+  return value as Mood;
 };
 
 const getToday = (): string => {
@@ -19,6 +32,16 @@ const getToday = (): string => {
 
 const normalizeDate = (date: string): string => {
   return date.slice(0, 10);
+};
+
+const mapRowToEntry = (row: JournalRow): JournalEntry => {
+  return {
+    id: row.id,
+    date: row.date,
+    type: row.entry_type,
+    mood: toMood(row.mood),
+    note: row.note ?? "",
+  };
 };
 
 export const useJournalStore = defineStore("journal", {
@@ -79,12 +102,12 @@ export const useJournalStore = defineStore("journal", {
         .from("journal_entries")
         .select(
           `
-        id,
-        date,
-        entry_type,
-        mood,
-        note
-      `,
+            id,
+            date,
+            entry_type,
+            mood,
+            note
+          `,
         )
         .eq("user_id", user.id)
         .order("date", {
@@ -99,14 +122,8 @@ export const useJournalStore = defineStore("journal", {
         throw error;
       }
 
-      this.entries = (data ?? []).map(
-        (entry): JournalEntry => ({
-          id: entry.id,
-          date: entry.date,
-          type: entry.entry_type as "checkin" | "note",
-          mood: toMood(entry.mood),
-          note: entry.note ?? "",
-        }),
+      this.entries = ((data ?? []) as unknown as JournalRow[]).map(
+        mapRowToEntry,
       );
     },
 
@@ -122,17 +139,18 @@ export const useJournalStore = defineStore("journal", {
       }
 
       const today = getToday();
+
       const trimmedNote = payload.note.trim();
 
-      const existing = this.entries.find(
+      const existingCheckin = this.entries.find(
         (entry) =>
           entry.type === "checkin" && normalizeDate(entry.date) === today,
       );
 
-      let data;
-      let error;
+      let data: unknown;
+      let error: unknown;
 
-      if (existing) {
+      if (existingCheckin) {
         const result = await supabase
           .from("journal_entries")
           .update({
@@ -140,16 +158,16 @@ export const useJournalStore = defineStore("journal", {
             note: trimmedNote,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", existing.id)
+          .eq("id", existingCheckin.id)
           .eq("user_id", user.id)
           .select(
             `
-          id,
-          date,
-          entry_type,
-          mood,
-          note
-        `,
+              id,
+              date,
+              entry_type,
+              mood,
+              note
+            `,
           )
           .single();
 
@@ -167,12 +185,12 @@ export const useJournalStore = defineStore("journal", {
           })
           .select(
             `
-          id,
-          date,
-          entry_type,
-          mood,
-          note
-        `,
+              id,
+              date,
+              entry_type,
+              mood,
+              note
+            `,
           )
           .single();
 
@@ -185,17 +203,30 @@ export const useJournalStore = defineStore("journal", {
         throw error;
       }
 
-      const entry: JournalEntry = {
-        id: data.id,
-        date: data.date,
-        type: "checkin",
-        mood: toMood(data.mood),
-        note: data.note ?? "",
-      };
+      const row = data as unknown as JournalRow;
 
-      this.entries = this.entries.filter((entry) => entry.id !== data.id);
+      const entry = mapRowToEntry(row);
 
-      this.entries.push(entry);
+      const existingIndex = this.entries.findIndex(
+        (item) => item.id === entry.id,
+      );
+
+      if (existingIndex !== -1) {
+        this.entries.splice(existingIndex, 1, entry);
+      } else if (existingCheckin) {
+        const oldIndex = this.entries.findIndex(
+          (item) =>
+            item.type === "checkin" && normalizeDate(item.date) === today,
+        );
+
+        if (oldIndex !== -1) {
+          this.entries.splice(oldIndex, 1, entry);
+        } else {
+          this.entries.push(entry);
+        }
+      } else {
+        this.entries.push(entry);
+      }
 
       this.entries.sort(
         (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
@@ -215,6 +246,14 @@ export const useJournalStore = defineStore("journal", {
         (entry) =>
           entry.type === "checkin" &&
           normalizeDate(entry.date) === normalizedDate,
+      );
+    },
+
+    getEntryByDate(date: string): JournalEntry | undefined {
+      const normalizedDate = normalizeDate(date);
+
+      return this.entries.find(
+        (entry) => normalizeDate(entry.date) === normalizedDate,
       );
     },
 
@@ -273,33 +312,23 @@ export const useJournalStore = defineStore("journal", {
         })
         .select(
           `
-        id,
-        date,
-        entry_type,
-        mood,
-        note
-      `,
+            id,
+            date,
+            entry_type,
+            mood,
+            note
+          `,
         )
         .single();
 
       if (error) {
-        console.error("[Journal] Ошибка добавления заметки:", {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code,
-        });
-
+        console.error("[Journal] Ошибка добавления заметки:", error);
         throw error;
       }
 
-      const entry: JournalEntry = {
-        id: data.id,
-        date: data.date,
-        type: "note",
-        mood: undefined,
-        note: data.note ?? "",
-      };
+      const row = data as unknown as JournalRow;
+
+      const entry = mapRowToEntry(row);
 
       this.entries.push(entry);
 
