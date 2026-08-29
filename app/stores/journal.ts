@@ -57,7 +57,7 @@ export const useJournalStore = defineStore("journal", {
 
       const todayCheckin = this.entries.find(
         (entry) =>
-          normalizeDate(entry.date) === today && entry.mood !== undefined,
+          entry.type === "checkin" && normalizeDate(entry.date) === today,
       );
 
       this.showCheckin = !todayCheckin;
@@ -79,14 +79,18 @@ export const useJournalStore = defineStore("journal", {
         .from("journal_entries")
         .select(
           `
-            id,
-            date,
-            mood,
-            note
-          `,
+        id,
+        date,
+        entry_type,
+        mood,
+        note
+      `,
         )
         .eq("user_id", user.id)
         .order("date", {
+          ascending: true,
+        })
+        .order("created_at", {
           ascending: true,
         });
 
@@ -99,6 +103,7 @@ export const useJournalStore = defineStore("journal", {
         (entry): JournalEntry => ({
           id: entry.id,
           date: entry.date,
+          type: entry.entry_type as "checkin" | "note",
           mood: toMood(entry.mood),
           note: entry.note ?? "",
         }),
@@ -117,51 +122,84 @@ export const useJournalStore = defineStore("journal", {
       }
 
       const today = getToday();
-      const existing = this.getEntryByDate(today);
-
       const trimmedNote = payload.note.trim();
 
-      const { data, error } = await supabase
-        .from("journal_entries")
-        .upsert(
-          {
+      const existing = this.entries.find(
+        (entry) =>
+          entry.type === "checkin" && normalizeDate(entry.date) === today,
+      );
+
+      let data;
+      let error;
+
+      if (existing) {
+        const result = await supabase
+          .from("journal_entries")
+          .update({
+            mood: payload.mood,
+            note: trimmedNote,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existing.id)
+          .eq("user_id", user.id)
+          .select(
+            `
+          id,
+          date,
+          entry_type,
+          mood,
+          note
+        `,
+          )
+          .single();
+
+        data = result.data;
+        error = result.error;
+      } else {
+        const result = await supabase
+          .from("journal_entries")
+          .insert({
             user_id: user.id,
             date: today,
+            entry_type: "checkin",
             mood: payload.mood,
-            note: trimmedNote !== "" ? trimmedNote : existing?.note ?? "",
-          },
-          {
-            onConflict: "user_id,date",
-          },
-        )
-        .select(
-          `
-            id,
-            date,
-            mood,
-            note
-          `,
-        )
-        .single();
+            note: trimmedNote,
+          })
+          .select(
+            `
+          id,
+          date,
+          entry_type,
+          mood,
+          note
+        `,
+          )
+          .single();
+
+        data = result.data;
+        error = result.error;
+      }
 
       if (error) {
         console.error("[Journal] Ошибка сохранения Check-in:", error);
-
         throw error;
       }
 
       const entry: JournalEntry = {
         id: data.id,
         date: data.date,
+        type: "checkin",
         mood: toMood(data.mood),
         note: data.note ?? "",
       };
 
-      this.entries = this.entries.filter(
-        (entry) => normalizeDate(entry.date) !== today,
-      );
+      this.entries = this.entries.filter((entry) => entry.id !== data.id);
 
       this.entries.push(entry);
+
+      this.entries.sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+      );
 
       this.showCheckin = false;
     },
@@ -170,11 +208,13 @@ export const useJournalStore = defineStore("journal", {
       this.showCheckin = false;
     },
 
-    getEntryByDate(date: string): JournalEntry | undefined {
+    getCheckinByDate(date: string): JournalEntry | undefined {
       const normalizedDate = normalizeDate(date);
 
       return this.entries.find(
-        (entry) => normalizeDate(entry.date) === normalizedDate,
+        (entry) =>
+          entry.type === "checkin" &&
+          normalizeDate(entry.date) === normalizedDate,
       );
     },
 
@@ -221,33 +261,34 @@ export const useJournalStore = defineStore("journal", {
       }
 
       const today = getToday();
-      const existing = this.getEntryByDate(today);
 
       const { data, error } = await supabase
         .from("journal_entries")
-        .upsert(
-          {
-            user_id: user.id,
-            date: today,
-            mood: existing?.mood ?? null,
-            note: trimmedNote,
-          },
-          {
-            onConflict: "user_id,date",
-          },
-        )
+        .insert({
+          user_id: user.id,
+          date: today,
+          entry_type: "note",
+          mood: null,
+          note: trimmedNote,
+        })
         .select(
           `
-            id,
-            date,
-            mood,
-            note
-          `,
+        id,
+        date,
+        entry_type,
+        mood,
+        note
+      `,
         )
         .single();
 
       if (error) {
-        console.error("[Journal] Ошибка добавления заметки:", error);
+        console.error("[Journal] Ошибка добавления заметки:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
 
         throw error;
       }
@@ -255,15 +296,16 @@ export const useJournalStore = defineStore("journal", {
       const entry: JournalEntry = {
         id: data.id,
         date: data.date,
-        mood: toMood(data.mood),
+        type: "note",
+        mood: undefined,
         note: data.note ?? "",
       };
 
-      this.entries = this.entries.filter(
-        (entry) => normalizeDate(entry.date) !== today,
-      );
-
       this.entries.push(entry);
+
+      this.entries.sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+      );
     },
   },
 });

@@ -53,11 +53,10 @@ const CHART_GREEN = "#4caf50";
 
 const checkinEntries = computed(() =>
   store.entries
-    .filter((entry) => entry.mood != null)
+    .filter((entry) => entry.type === "checkin")
     .slice()
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 );
-
 const chartData = computed<ChartData<"line", (number | null)[], string>>(
   () => ({
     labels: checkinEntries.value.map((entry) =>
