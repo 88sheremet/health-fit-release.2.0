@@ -1,29 +1,30 @@
 import { defineStore } from "pinia";
 
-import type { JournalEntry } from "~/interfaces/JournalEntry.interface";
-import type { JournalState } from "~/interfaces/JournalState.interface";
+import type { JournalEntry } from "../interfaces/JournalEntry.interface";
+import type { JournalState } from "../interfaces/JournalState.interface";
 
 type Mood = 1 | 2 | 3 | 4 | 5;
 type JournalEntryType = "checkin" | "note";
 
-interface JournalRow {
+type JournalRow = {
   id: string;
   date: string;
   entry_type: JournalEntryType;
   mood: number | null;
   note: string | null;
-}
+};
 
 const toMood = (value: unknown): Mood | undefined => {
-  if (typeof value !== "number") {
-    return undefined;
+  if (
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= 1 &&
+    value <= 5
+  ) {
+    return value as Mood;
   }
 
-  if (value < 1 || value > 5) {
-    return undefined;
-  }
-
-  return value as Mood;
+  return undefined;
 };
 
 const getToday = (): string => {
@@ -32,6 +33,19 @@ const getToday = (): string => {
 
 const normalizeDate = (date: string): string => {
   return date.slice(0, 10);
+};
+
+/**
+ * Supabase generated types can incorrectly infer `entry_type`
+ * as `never` when the local Database type is outdated.
+ *
+ * The table structure is known in the application, so we isolate
+ * the cast in one place instead of using `as any` throughout the store.
+ */
+const getJournalTable = () => {
+  const supabase = useSupabaseClient();
+
+  return supabase.from("journal_entries") as any;
 };
 
 const mapRowToEntry = (row: JournalRow): JournalEntry => {
@@ -98,16 +112,17 @@ export const useJournalStore = defineStore("journal", {
         return;
       }
 
-      const { data, error } = await supabase
-        .from("journal_entries")
+      const journalTable = getJournalTable();
+
+      const { data, error } = await journalTable
         .select(
           `
-            id,
-            date,
-            entry_type,
-            mood,
-            note
-          `,
+          id,
+          date,
+          entry_type,
+          mood,
+          note
+        `,
         )
         .eq("user_id", user.id)
         .order("date", {
@@ -122,9 +137,7 @@ export const useJournalStore = defineStore("journal", {
         throw error;
       }
 
-      this.entries = ((data ?? []) as unknown as JournalRow[]).map(
-        mapRowToEntry,
-      );
+      this.entries = ((data ?? []) as JournalRow[]).map(mapRowToEntry);
     },
 
     async saveCheckin(payload: { mood: Mood; note: string }) {
@@ -139,7 +152,6 @@ export const useJournalStore = defineStore("journal", {
       }
 
       const today = getToday();
-
       const trimmedNote = payload.note.trim();
 
       const existingCheckin = this.entries.find(
@@ -147,35 +159,35 @@ export const useJournalStore = defineStore("journal", {
           entry.type === "checkin" && normalizeDate(entry.date) === today,
       );
 
-      let data: unknown;
-      let error: unknown;
+      const journalTable = getJournalTable();
+
+      let data: JournalRow | null;
+      let error: any;
 
       if (existingCheckin) {
-        const result = await supabase
-          .from("journal_entries")
+        const result = await journalTable
           .update({
             mood: payload.mood,
-            note: trimmedNote,
+            note: trimmedNote || existingCheckin.note,
             updated_at: new Date().toISOString(),
           })
           .eq("id", existingCheckin.id)
           .eq("user_id", user.id)
           .select(
             `
-              id,
-              date,
-              entry_type,
-              mood,
-              note
-            `,
+            id,
+            date,
+            entry_type,
+            mood,
+            note
+          `,
           )
           .single();
 
         data = result.data;
         error = result.error;
       } else {
-        const result = await supabase
-          .from("journal_entries")
+        const result = await journalTable
           .insert({
             user_id: user.id,
             date: today,
@@ -185,12 +197,12 @@ export const useJournalStore = defineStore("journal", {
           })
           .select(
             `
-              id,
-              date,
-              entry_type,
-              mood,
-              note
-            `,
+            id,
+            date,
+            entry_type,
+            mood,
+            note
+          `,
           )
           .single();
 
@@ -203,30 +215,29 @@ export const useJournalStore = defineStore("journal", {
         throw error;
       }
 
-      const row = data as unknown as JournalRow;
-
-      const entry = mapRowToEntry(row);
-
-      const existingIndex = this.entries.findIndex(
-        (item) => item.id === entry.id,
-      );
-
-      if (existingIndex !== -1) {
-        this.entries.splice(existingIndex, 1, entry);
-      } else if (existingCheckin) {
-        const oldIndex = this.entries.findIndex(
-          (item) =>
-            item.type === "checkin" && normalizeDate(item.date) === today,
-        );
-
-        if (oldIndex !== -1) {
-          this.entries.splice(oldIndex, 1, entry);
-        } else {
-          this.entries.push(entry);
-        }
-      } else {
-        this.entries.push(entry);
+      if (!data) {
+        throw new Error("Supabase не вернул сохранённую запись");
       }
+
+      const entry = mapRowToEntry(data);
+
+      /*
+       * Replace the existing local entry instead of pushing
+       * another one. This prevents duplicates in Pinia state.
+       */
+      this.entries = this.entries.filter((item) => item.id !== data.id);
+
+      /*
+       * If an old local checkin existed but Supabase returned
+       * another id, remove it as well.
+       */
+      if (existingCheckin) {
+        this.entries = this.entries.filter(
+          (item) => item.id !== existingCheckin.id,
+        );
+      }
+
+      this.entries.push(entry);
 
       this.entries.sort(
         (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
@@ -268,8 +279,9 @@ export const useJournalStore = defineStore("journal", {
         throw new Error("Пользователь не авторизован");
       }
 
-      const { error } = await supabase
-        .from("journal_entries")
+      const journalTable = getJournalTable();
+
+      const { error } = await journalTable
         .delete()
         .eq("id", id)
         .eq("user_id", user.id);
@@ -301,8 +313,13 @@ export const useJournalStore = defineStore("journal", {
 
       const today = getToday();
 
-      const { data, error } = await supabase
-        .from("journal_entries")
+      /*
+       * A note is a separate journal row.
+       * It must NOT replace today's check-in.
+       */
+      const journalTable = getJournalTable();
+
+      const { data, error } = await journalTable
         .insert({
           user_id: user.id,
           date: today,
@@ -312,12 +329,12 @@ export const useJournalStore = defineStore("journal", {
         })
         .select(
           `
-            id,
-            date,
-            entry_type,
-            mood,
-            note
-          `,
+          id,
+          date,
+          entry_type,
+          mood,
+          note
+        `,
         )
         .single();
 
@@ -326,9 +343,11 @@ export const useJournalStore = defineStore("journal", {
         throw error;
       }
 
-      const row = data as unknown as JournalRow;
+      if (!data) {
+        throw new Error("Supabase не вернул сохранённую заметку");
+      }
 
-      const entry = mapRowToEntry(row);
+      const entry = mapRowToEntry(data);
 
       this.entries.push(entry);
 
