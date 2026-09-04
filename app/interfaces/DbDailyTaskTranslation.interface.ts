@@ -1,4 +1,4 @@
-interface DbDailyTaskTranslation {
+export interface DbDailyTaskTranslation {
   task_id: string;
   locale: string;
   title: string;

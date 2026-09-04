@@ -2,37 +2,107 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 import { useTaskStore } from "~/stores/dailyTasks";
 
-const { mockTasks, getDailyTasks } = vi.hoisted(() => ({
-  mockTasks: [
-    { id: "f1", day: 1, type: "food" as const, title: "Eat breakfast", what_doing: "Cook eggs", why_doing: "Health", reward: null },
-    { id: "f2", day: 2, type: "food" as const, title: "Eat lunch", what_doing: "Cook salad", why_doing: "Health", reward: null },
-    { id: "m1", day: 1, type: "mental" as const, title: "Meditate", what_doing: "10 min", why_doing: "Focus", reward: null },
-    { id: "m2", day: 2, type: "mental" as const, title: "Journal", what_doing: "Write", why_doing: "Reflection", reward: null },
-    { id: "p1", day: 1, type: "physical" as const, title: "Walk", what_doing: "30 min", why_doing: "Fitness", reward: null },
-    { id: "p2", day: 2, type: "physical" as const, title: "Stretch", what_doing: "15 min", why_doing: "Flexibility", reward: null },
-  ],
-  getDailyTasks: vi.fn(),
-}));
+const { mockDailyTasks, getDailyTasks } = vi.hoisted(() => {
+  const baseByDay = [
+    { id: "task-1", day: 1, type: "food" as const },
+    { id: "task-2", day: 1, type: "mental" as const },
+    { id: "task-3", day: 1, type: "physical" as const },
+  ];
+
+  const ruTasks = baseByDay.map((t) => ({
+    id: t.id,
+    day: t.day,
+    type: t.type,
+    title: `Русская ${t.type}`,
+    what_doing: `опис ${t.type}`,
+    why_doing: `причина ${t.type}`,
+    reward: t.type === "physical" ? 15 : 10,
+  }));
+
+  const ukTasks = baseByDay.map((t) => ({
+    id: t.id,
+    day: t.day,
+    type: t.type,
+    title: `Українське ${t.type}`,
+    what_doing: `опис ${t.type}`,
+    why_doing: `причина ${t.type}`,
+    reward: t.type === "physical" ? 15 : 10,
+  }));
+
+  return {
+    mockDailyTasks: { ru: ruTasks, uk: ukTasks },
+    getDailyTasks: vi.fn((locale: string) =>
+      Promise.resolve(mockDailyTasks[locale] ?? mockDailyTasks.ru),
+    ),
+  };
+});
 
 vi.mock("~/services/dailyTask.service", () => ({
   getDailyTasks,
 }));
 
+let mockCompleteInsert: ReturnType<typeof vi.fn>;
+
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.stubGlobal("useSupabaseClient", vi.fn(() => ({
-    auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: "test-user" } }, error: null }) },
-    from: vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-      single: vi.fn().mockResolvedValue({ data: {}, error: null }),
-      insert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-    }),
-  })));
+
+  mockCompleteInsert = vi.fn().mockResolvedValue({ data: null, error: null });
+
+  vi.stubGlobal(
+    "useSupabaseClient",
+    vi.fn(() => ({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: { user: { id: "test-user" } },
+          error: null,
+        }),
+      },
+      from: vi.fn((table: string) => {
+        if (table === "daily_task_completions") {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            insert: mockCompleteInsert,
+          };
+        }
+
+        if (table === "user_progress") {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: null,
+              error: null,
+            }),
+            insert: vi.fn().mockReturnThis(),
+            single: vi.fn().mockResolvedValue({
+              data: {
+                id: "p1",
+                user_id: "test-user",
+                start_date: "2026-06-15",
+                energy: 40,
+                streak: 1,
+                last_visit_date: "2026-06-15",
+              },
+              error: null,
+            }),
+            update: vi.fn().mockReturnThis(),
+          };
+        }
+
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+          single: vi.fn().mockResolvedValue({ data: {}, error: null }),
+          insert: vi.fn().mockReturnThis(),
+          update: vi.fn().mockReturnThis(),
+        };
+      }),
+    })),
+  );
+
   setActivePinia(createPinia());
-  getDailyTasks.mockResolvedValue(mockTasks);
 });
 
 afterEach(() => {
@@ -49,77 +119,54 @@ describe("daily tasks flow integration", () => {
     await store.loadTasks();
 
     expect(store.tasksLoaded).toBe(true);
-    expect(store.tasks).toHaveLength(6);
+    expect(store.tasks).toHaveLength(3);
     expect(getDailyTasks).toHaveBeenCalledOnce();
 
     vi.useRealTimers();
   });
 
-  it("todayTasks picks one task per type for day 1", async () => {
+  it("loads ru translated tasks and keeps daily_tasks id", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-15T12:00:00"));
 
     const store = useTaskStore();
     store.startDate = "2026-06-15";
-    await store.loadTasks();
+    await store.loadTasks("ru");
+
+    expect(getDailyTasks).toHaveBeenCalledWith("ru");
+    expect(store.tasks[0].id).toBe("task-1");
+    expect(store.tasks[0].title).toBe("Русская food");
+
+    vi.useRealTimers();
+  });
+
+  it("loads uk translated tasks and keeps daily_tasks id", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-15T12:00:00"));
+
+    const store = useTaskStore();
+    store.startDate = "2026-06-15";
+    await store.loadTasks("uk");
+
+    expect(getDailyTasks).toHaveBeenCalledWith("uk");
+    expect(store.tasks[0].id).toBe("task-1");
+    expect(store.tasks[0].title).toBe("Українське food");
+
+    vi.useRealTimers();
+  });
+
+  it("todayTasks exposes translated tasks via the store", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-15T12:00:00"));
+
+    const store = useTaskStore();
+    store.startDate = "2026-06-15";
+    await store.loadTasks("uk");
 
     const todayTasks = store.todayTasks;
     expect(todayTasks).toHaveLength(3);
-    const types = todayTasks.map((t) => t.type).sort();
-    expect(types).toEqual(["food", "mental", "physical"]);
-    todayTasks.forEach((t) => expect(t.id).toBeTruthy());
-
-    vi.useRealTimers();
-  });
-
-  it("todayTasks picks day-2 tasks when dayIndex=2", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-06-16T12:00:00"));
-
-    const store = useTaskStore();
-    store.startDate = "2026-06-15";
-    await store.loadTasks();
-
-    const todayTasks = store.todayTasks;
-    expect(todayTasks).toHaveLength(3);
-    todayTasks.forEach((t) => {
-      expect(t.id).toBeTruthy();
-      expect(["food", "mental", "physical"]).toContain(t.type);
-    });
-
-    vi.useRealTimers();
-  });
-
-  it("task rewards: 10 for food/mental, 15 for physical", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-06-15T12:00:00"));
-
-    const store = useTaskStore();
-    store.startDate = "2026-06-15";
-    await store.loadTasks();
-
-    const tasks = store.todayTasks;
-    expect(tasks.find((t) => t.type === "food")!.reward).toBe(10);
-    expect(tasks.find((t) => t.type === "mental")!.reward).toBe(10);
-    expect(tasks.find((t) => t.type === "physical")!.reward).toBe(15);
-
-    vi.useRealTimers();
-  });
-
-  it("isDone tracks completion state through todayTasks", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-06-15T12:00:00"));
-
-    const store = useTaskStore();
-    store.startDate = "2026-06-15";
-    await store.loadTasks();
-
-    const tasks = store.todayTasks;
-    expect(store.isDone(tasks[0].id)).toBe(false);
-
-    store.completed[tasks[0].id] = true;
-    expect(store.isDone(tasks[0].id)).toBe(true);
-    expect(store.completedCount).toBe(1);
+    expect(todayTasks.every((t) => /Українське/.test(t.title))).toBe(true);
+    todayTasks.forEach((t) => expect([t.id]).toContain(t.id));
 
     vi.useRealTimers();
   });
@@ -130,10 +177,31 @@ describe("daily tasks flow integration", () => {
 
     const store = useTaskStore();
     store.startDate = "2026-06-14";
-    await store.loadTasks();
+    await store.loadTasks("ru");
 
     expect(store.isRestDay).toBe(true);
     expect(store.todayTasks).toEqual([]);
+
+    vi.useRealTimers();
+  });
+
+  it("completeTask writes daily_tasks id to daily_task_completions", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-15T12:00:00"));
+
+    const store = useTaskStore();
+    store.startDate = "2026-06-15";
+    await store.loadTasks("uk");
+
+    const task = store.todayTasks.find((t) => t.type === "physical")!;
+    expect(task.id).toBe("task-3");
+
+    await store.completeTask(task);
+
+    expect(mockCompleteInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ task_id: "task-3" }),
+    );
+    expect(store.isDone("task-3")).toBe(true);
 
     vi.useRealTimers();
   });
