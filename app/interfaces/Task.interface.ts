@@ -3,6 +3,6 @@ export interface Task {
   type: "food" | "mental" | "physical";
   title: string;
   reward: number;
-  whatDoing: any;
+  whatDoing: unknown;
   whyDoing: string;
 }
