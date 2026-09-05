@@ -123,7 +123,7 @@ test.describe("Register page", () => {
   test("shows error on empty submit", async ({ page }) => {
     await mockSupabaseNoSession(page);
     await page.goto("/register");
-    await page.locator(".register-card button").click();
+    await page.locator(".register-card button.bg-primary").click();
 
     await expect(page.locator(".register-error")).toHaveText("Заполните все поля");
   });
@@ -135,7 +135,7 @@ test.describe("Register page", () => {
     await page.getByRole("textbox", { name: /email/i }).fill("user@example.com");
     await page.getByRole("textbox", { name: /^Пароль$/ }).fill("123");
     await page.getByRole("textbox", { name: /повторите пароль/i }).fill("123");
-    await page.locator(".register-card button").click();
+    await page.locator(".register-card button.bg-primary").click();
 
     await expect(page.locator(".register-error")).toHaveText(
       "Пароль должен содержать минимум 6 символов",
@@ -149,7 +149,7 @@ test.describe("Register page", () => {
     await page.getByRole("textbox", { name: /email/i }).fill("user@example.com");
     await page.getByRole("textbox", { name: /^Пароль$/ }).fill("123456");
     await page.getByRole("textbox", { name: /повторите пароль/i }).fill("654321");
-    await page.locator(".register-card button").click();
+    await page.locator(".register-card button.bg-primary").click();
 
     await expect(page.locator(".register-error")).toHaveText("Пароли не совпадают");
   });

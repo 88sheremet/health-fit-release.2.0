@@ -46,6 +46,85 @@ const MOCK_SESSION = {
 };
 
 /**
+ * Daily tasks use a multilingual schema: `daily_tasks` holds stable ids/type/day
+ * while `daily_task_translations` holds the locale-specific title/what/why.
+ * ids stay stable across ru/uk; only the translated columns change.
+ */
+const DAILY_TASKS = [
+  { id: "task-1", day: 1, type: "food", reward: null },
+  { id: "task-2", day: 1, type: "mental", reward: null },
+  { id: "task-3", day: 1, type: "physical", reward: null },
+];
+
+type DailyTaskTranslation = {
+  task_id: string;
+  locale: "ru" | "uk";
+  title: string;
+  what_doing: string;
+  why_doing: string;
+};
+
+const DAILY_TASK_TRANSLATIONS: DailyTaskTranslation[] = [
+  {
+    task_id: "task-1",
+    locale: "ru",
+    title: "Завтрак",
+    what_doing: "Яичница на пару и овсянка",
+    why_doing: "Дают энергию на весь день",
+  },
+  {
+    task_id: "task-1",
+    locale: "uk",
+    title: "Сніданок",
+    what_doing: "Яєчня на пару та вівсянка",
+    why_doing: "Дають енергію на весь день",
+  },
+  {
+    task_id: "task-2",
+    locale: "ru",
+    title: "Медитация",
+    what_doing: "10 минут тишины и дыхания",
+    why_doing: "Помогает снять стресс",
+  },
+  {
+    task_id: "task-2",
+    locale: "uk",
+    title: "Медитація",
+    what_doing: "10 хвилин тиші та дихання",
+    why_doing: "Допомагає зняти стрес",
+  },
+  {
+    task_id: "task-3",
+    locale: "ru",
+    title: "Прогулка",
+    what_doing: "Прогулка 30 минут на свежем воздухе",
+    why_doing: "Укрепляет здоровье",
+  },
+  {
+    task_id: "task-3",
+    locale: "uk",
+    title: "Прогулянка",
+    what_doing: "Прогулянка 30 хвилин на свіжому повітрі",
+    why_doing: "Зміцнює здоров'я",
+  },
+];
+
+/** Extract the `locale` value from a PostgREST URL (locale=eq.ru or locale=ru). */
+function getRequestedLocale(url: string): string {
+  const match = url.match(/locale=eq\.([a-z]{2})/) ?? url.match(/locale=([a-z]{2})/);
+  return match?.[1] ?? "ru";
+}
+
+/** Extract requested task_ids from an `in.(...)` PostgREST filter. */
+function getRequestedTaskIds(url: string): string[] {
+  const match = url.match(/task_id=in\.\(([^)]*)\)/);
+  if (!match) {
+    return [];
+  }
+  return match[1].split(",").map((id) => id.trim());
+}
+
+/**
  * Seed Supabase session into localStorage so the `auth` middleware
  * (which calls getSession() → reads local storage, NOT HTTP) passes.
  */
@@ -65,11 +144,24 @@ export async function clearSupabaseSession(page: Page) {
   }, getSupabaseStorageKey());
 }
 
-function handleSupabaseRoute(
-  route: Route,
-  request: any,
-  opts?: { user?: typeof MOCK_USER | null; session?: typeof MOCK_SESSION | null; screeningResult?: any },
+type MockState = {
+  completions: Array<Record<string, unknown>>;
+};
+
+/**
+ * Build an instance of the Supabase route interceptor. Keeping `completions`
+ * (and any future mutable state) inside a per-call closure means data written
+ * during the page lifecycle survives `page.reload()` — the same `page.route`
+ * handler stays registered across navigations.
+ */
+function buildRouteHandler(
+  opts?: { user?: typeof MOCK_USER | null; session?: typeof MOCK_SESSION | null; screeningResult?: any; state?: Partial<MockState> },
 ) {
+  const state: MockState = {
+    completions: opts?.state?.completions ?? [],
+  };
+
+  return function handleSupabaseRoute(route: Route, request: any): void {
   const url = request.url();
   const method = request.method();
   const user = opts?.user !== undefined ? opts.user : MOCK_USER;
@@ -165,22 +257,45 @@ function handleSupabaseRoute(
     return route.fulfill({ status: 200, json: {}, headers: { "content-type": "application/json" } });
   }
 
-  // rest/v1/daily_tasks
-  if (url.includes("/rest/v1/daily_tasks") && !url.includes("completions")) {
+  // rest/v1/daily_tasks (stable ids/type/day — titles come from translations)
+  if (url.includes("/rest/v1/daily_tasks") && !url.includes("completions") && !url.includes("daily_task_translations")) {
     return route.fulfill({
       status: 200,
-      json: [
-        { id: "f1", day: 1, type: "food", title: "Завтрак", what_doing: "Яичница", why_doing: "Энергия", reward: null },
-        { id: "m1", day: 1, type: "mental", title: "Медитация", what_doing: "10 минут", why_doing: "Фокус", reward: null },
-        { id: "p1", day: 1, type: "physical", title: "Прогулка", what_doing: "30 минут", why_doing: "Здоровье", reward: null },
-      ],
+      json: DAILY_TASKS,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
+  // rest/v1/daily_task_translations (locale-filtered)
+  if (url.includes("/rest/v1/daily_task_translations")) {
+    const locale = getRequestedLocale(url);
+    const requestedIds = getRequestedTaskIds(url);
+    let rows = DAILY_TASK_TRANSLATIONS.filter((t) => t.locale === locale);
+    if (requestedIds.length > 0) {
+      rows = rows.filter(
+        (t) => requestedIds.includes(t.task_id),
+      );
+    }
+    return route.fulfill({
+      status: 200,
+      json: rows,
       headers: { "content-type": "application/json" },
     });
   }
 
   // rest/v1/daily_task_completions
   if (url.includes("/rest/v1/daily_task_completions")) {
-    return route.fulfill({ status: 200, json: [], headers: { "content-type": "application/json" } });
+    if (method === "POST") {
+      const completion = request.postDataJSON() ?? {};
+      state.completions.push(completion);
+      return route.fulfill({ status: 201, json: {}, headers: { "content-type": "application/json" } });
+    }
+    const dayMatch = url.match(/day_index=eq\.(\d+)/);
+    const day = dayMatch ? Number(dayMatch[1]) : null;
+    const rows = state.completions.filter(
+      (c) => day === null || c.day_index === day,
+    );
+    return route.fulfill({ status: 200, json: rows, headers: { "content-type": "application/json" } });
   }
 
   // rest/v1/weekly_tasks
@@ -201,35 +316,74 @@ function handleSupabaseRoute(
 
   // rest/v1/journal_entries
   if (url.includes("/rest/v1/journal_entries")) {
+    if (method === "POST") {
+      const body = request.postDataJSON() ?? {};
+      return route.fulfill({
+        status: 201,
+        json: {
+          id: "journal-1",
+          date: body.date ?? "2026-08-03",
+          entry_type: body.entry_type ?? "checkin",
+          mood: body.mood ?? 3,
+          note: body.note ?? "",
+          user_id: user.id,
+          created_at: "2026-08-03T12:00:00Z",
+        },
+        headers: { "content-type": "application/json" },
+      });
+    }
     return route.fulfill({ status: 200, json: [], headers: { "content-type": "application/json" } });
   }
 
   return route.fallback();
+  };
 }
 
 /** Mock Supabase for auth pages (no session = guest) */
 export async function mockSupabaseNoSession(page: Page) {
-  await page.route(SUPABASE_ROUTE, (route, request) =>
-    handleSupabaseRoute(route, request, { user: null, session: null }),
-  );
+  const handler = buildRouteHandler({ user: null, session: null });
+  await page.route(SUPABASE_ROUTE, handler);
 }
 
 /** Mock Supabase for logged-in user (sets localStorage + route mocks) */
 export async function mockSupabaseAuth(page: Page) {
   await seedSupabaseSession(page);
-  await page.route(SUPABASE_ROUTE, (route, request) =>
-    handleSupabaseRoute(route, request, { user: MOCK_USER, session: MOCK_SESSION }),
-  );
+  const handler = buildRouteHandler({ user: MOCK_USER, session: MOCK_SESSION });
+  await page.route(SUPABASE_ROUTE, handler);
 }
 
 /** Mock Supabase for logged-in user with screening completed */
 export async function mockScreeningCompleted(page: Page) {
   await seedSupabaseSession(page);
-  await page.route(SUPABASE_ROUTE, (route, request) =>
-    handleSupabaseRoute(route, request, {
-      user: MOCK_USER,
-      session: MOCK_SESSION,
-      screeningResult: { id: "sr-1", user_id: MOCK_USER.id },
-    }),
-  );
+  const handler = buildRouteHandler({
+    user: MOCK_USER,
+    session: MOCK_SESSION,
+    screeningResult: { id: "sr-1", user_id: MOCK_USER.id },
+  });
+  await page.route(SUPABASE_ROUTE, handler);
+}
+
+/**
+ * Freeze the page's Date to a fixed non-rest day (Monday 2026-08-03) so the
+ * daily page renders its task list deterministically regardless of when the
+ * tests run (rest day = Sunday returns [] from todayTasks).
+ */
+export async function freezeDateToMonday(page: Page) {
+  await page.addInitScript(() => {
+    const fixed = new Date(2026, 7, 3, 12, 0, 0).getTime();
+    class FixedDate extends Date {
+      constructor(...args: unknown[]) {
+        if (args.length === 0) {
+          super(fixed);
+        } else {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          super(...(args as any[]));
+        }
+      }
+      static now() {
+        return fixed;
+      }
+    }
+    window.Date = FixedDate as unknown as DateConstructor;
+  });
 }
