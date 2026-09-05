@@ -36,6 +36,8 @@ export const useSupabaseClient = vi.fn(() => {
       getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
       signInWithPassword: vi.fn().mockResolvedValue({ data: { user: null, session: null }, error: null }),
       signUp: vi.fn().mockResolvedValue({ data: { user: null, session: null }, error: null }),
+      signInWithOAuth: vi.fn().mockResolvedValue({ data: { url: null }, error: null }),
+      exchangeCodeForSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
       signOut: vi.fn().mockResolvedValue({ error: null }),
       onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
     },

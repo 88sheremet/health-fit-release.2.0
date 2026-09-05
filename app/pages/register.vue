@@ -94,6 +94,7 @@
 
 <script setup lang="ts">
 import { routes } from "~/router/routes";
+import { signInWithGoogle } from "~/services/googleAuth.service";
 
 definePageMeta({
   middleware: "guest",
@@ -192,27 +193,12 @@ const registerWithGoogle = async () => {
   googleLoading.value = true;
 
   try {
-    const redirectTo = `${window.location.origin}/auth/callback`;
-
-    console.log("[Auth] Google registration redirect:", redirectTo);
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo,
-      },
-    });
-
-    if (error) {
-      console.error("[Auth] Google registration error:", error);
-
-      errorMessage.value = error.message;
-      googleLoading.value = false;
-    }
+    await signInWithGoogle();
   } catch (error) {
-    console.error("[Auth] Google registration unexpected error:", error);
+    console.error("[Auth] Google registration error:", error);
 
-    errorMessage.value = t("auth.registerError");
+    errorMessage.value =
+      error instanceof Error ? error.message : t("auth.registerError");
     googleLoading.value = false;
   }
 };

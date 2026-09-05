@@ -155,7 +155,7 @@ type MockState = {
  * handler stays registered across navigations.
  */
 function buildRouteHandler(
-  opts?: { user?: typeof MOCK_USER | null; session?: typeof MOCK_SESSION | null; screeningResult?: any; state?: Partial<MockState> },
+  opts?: { user?: typeof MOCK_USER | null; session?: typeof MOCK_SESSION | null; screeningResult?: any; failOAuthExchange?: boolean; state?: Partial<MockState> },
 ) {
   const state: MockState = {
     completions: opts?.state?.completions ?? [],
@@ -167,9 +167,42 @@ function buildRouteHandler(
   const user = opts?.user !== undefined ? opts.user : MOCK_USER;
   const session = opts?.session !== undefined ? opts.session : MOCK_SESSION;
 
-  // auth/v1/token (signInWithPassword, signUp, refresh)
+  // auth/v1/token (signInWithPassword, signUp, refresh, oauth code exchange)
   if (url.includes("/auth/v1/token") && method === "POST") {
     const body = request.postDataJSON();
+    // @supabase/ssr sends `grant_type` as a URL query param for the PKCE
+    // exchange (e.g. /auth/v1/token?grant_type=pkce), so read it from the URL.
+    const grantType =
+      body?.grant_type ??
+      (url.match(/[?&]grant_type=([^&]+)/)?.[1] ?? "");
+
+    // PKCE / authorization_code exchange (exchangeCodeForSession).
+    // Google OAuth creates a brand-new session, independent of any prior one.
+    // auth-js expects a FLAT token response (hasSession requires top-level
+    // access_token + refresh_token + expires_in) to persist the session.
+    if (
+      grantType === "pkce" ||
+      grantType === "authorization_code"
+    ) {
+      if (opts?.failOAuthExchange) {
+        return route.fulfill({
+          status: 400,
+          json: { error: "invalid_grant", error_description: "Invalid code" },
+        });
+      }
+      return route.fulfill({
+        status: 200,
+        json: {
+          access_token: MOCK_SESSION.access_token,
+          refresh_token: MOCK_SESSION.refresh_token,
+          expires_in: MOCK_SESSION.expires_in,
+          expires_at: MOCK_SESSION.expires_at,
+          token_type: "bearer",
+          user: MOCK_USER,
+        },
+      });
+    }
+
     if (body?.grant_type === "password" && body?.email === "bad@example.com") {
       return route.fulfill({
         status: 400,
@@ -185,6 +218,25 @@ function buildRouteHandler(
     return route.fulfill({
       status: 200,
       json: { user, session, access_token: session.access_token },
+    });
+  }
+
+  // auth/v1/authorize (signInWithOAuth) — supabase-js navigates the browser
+  // directly to this URL. Redirect it straight back to the app's /auth/callback
+  // with a mock code so the whole Google flow completes without a real provider.
+  if (url.includes("/auth/v1/authorize")) {
+    const redirectMatch = url.match(/redirect_to=([^&]*)/);
+    const decoded = redirectMatch
+      ? decodeURIComponent(redirectMatch[1] || "")
+      : "";
+
+    const callbackBase = decoded || "http://localhost:3100/auth/callback";
+
+    return route.fulfill({
+      status: 302,
+      headers: {
+        location: `${callbackBase}?code=mock-oauth-code`,
+      },
     });
   }
 
@@ -359,6 +411,30 @@ export async function mockScreeningCompleted(page: Page) {
     user: MOCK_USER,
     session: MOCK_SESSION,
     screeningResult: { id: "sr-1", user_id: MOCK_USER.id },
+  });
+  await page.route(SUPABASE_ROUTE, handler);
+}
+
+/**
+ * Mock Supabase for the Google OAuth flow. The user starts without a session
+ * (so guest pages like /login render), but the OAuth code exchange produces a
+ * fresh MOCK_SESSION. Pass `screeningResult` to simulate an existing user.
+ */
+export async function mockSupabaseOAuth(page: Page, screeningResult?: any) {
+  const handler = buildRouteHandler({
+    user: null,
+    session: null,
+    screeningResult,
+  });
+  await page.route(SUPABASE_ROUTE, handler);
+}
+
+/** Mock Supabase where the OAuth code exchange fails (invalid code). */
+export async function mockSupabaseOAuthFailure(page: Page) {
+  const handler = buildRouteHandler({
+    user: null,
+    session: null,
+    failOAuthExchange: true,
   });
   await page.route(SUPABASE_ROUTE, handler);
 }
