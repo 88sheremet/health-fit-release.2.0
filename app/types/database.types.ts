@@ -63,6 +63,33 @@ export interface Database {
         };
         Relationships: [];
       };
+      daily_task_translations: {
+        Row: {
+          id: string;
+          task_id: string;
+          locale: string;
+          title: string;
+          what_doing: Json;
+          why_doing: string;
+        };
+        Insert: {
+          id?: string;
+          task_id: string;
+          locale: string;
+          title: string;
+          what_doing: Json;
+          why_doing: string;
+        };
+        Update: {
+          id?: string;
+          task_id?: string;
+          locale?: string;
+          title?: string;
+          what_doing?: Json;
+          why_doing?: string;
+        };
+        Relationships: [];
+      };
       daily_task_completions: {
         Row: {
           id: string;

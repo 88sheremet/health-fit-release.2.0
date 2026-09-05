@@ -8,6 +8,7 @@ import type { DbDailyTask } from "~/interfaces/DbDailyTask.interface";
 import type { TaskState } from "~/interfaces/TaskState.interface";
 
 const DAY_COUNT = 30;
+
 const TASK_TYPES = ["food", "mental", "physical"] as const;
 
 const STANDARD_TASK_REWARD = 10;
@@ -25,7 +26,8 @@ function normalizeWhatDoing(value: unknown): unknown {
       try {
         return JSON.parse(trimmed);
       } catch {
-        /* keep raw string */
+        // Если строка не является JSON,
+        // оставляем её как обычный текст.
       }
     }
   }
@@ -57,18 +59,22 @@ function dbTasksForDay(rows: DbDailyTask[], dayIndex: number): Task[] {
       list.find((item) => item.day === targetDay) ??
       list[(targetDay - 1) % list.length];
 
+    if (!row) {
+      return result;
+    }
+
     result.push({
-      id: row!.id,
+      id: row.id,
 
       type,
 
-      title: row!.title,
+      title: row.title,
 
-      reward: row!.reward ?? rewardForType(type),
+      reward: row.reward ?? rewardForType(type),
 
-      whatDoing: normalizeWhatDoing(row!.what_doing),
+      whatDoing: normalizeWhatDoing(row.what_doing),
 
-      whyDoing: row!.why_doing,
+      whyDoing: row.why_doing,
     });
 
     return result;
@@ -78,33 +84,22 @@ function dbTasksForDay(rows: DbDailyTask[], dayIndex: number): Task[] {
 export const useTaskStore = defineStore("tasks", {
   state: (): TaskState => ({
     startDate: "",
-
     completed: {},
-
     energy: 40,
-
     streak: 1,
-
     lastVisitDate: "",
-
     tasks: [],
-
     tasksLoaded: false,
-
     loading: false,
   }),
 
   getters: {
     dayIndex(state) {
       if (!state.startDate) {
-        console.log("[DailyTasks] Нет startDate → day 1");
-
         return 1;
       }
 
-      const day = getDayIndex(state.startDate);
-
-      return day;
+      return getDayIndex(state.startDate);
     },
 
     isRestDay(): boolean {
@@ -125,21 +120,34 @@ export const useTaskStore = defineStore("tasks", {
   },
 
   actions: {
-    async init() {
+    async init(locale = "ru") {
       this.loading = true;
 
       try {
         await this.loadProgress();
-
-        await this.loadTasks();
-
+        await this.loadTasks(locale);
         await this.loadCompletedTasks();
-
         await this.updateStreak();
       } catch (error) {
         console.error("[DailyTasks] Ошибка инициализации:", error);
+
+        throw error;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async loadTasks(locale = "ru") {
+      try {
+        this.tasksLoaded = false;
+
+        this.tasks = await getDailyTasks(locale);
+      } catch (error) {
+        console.error("[DailyTasks] Не удалось загрузить задачи:", error);
+
+        throw error;
+      } finally {
+        this.tasksLoaded = true;
       }
     },
 
@@ -158,13 +166,13 @@ export const useTaskStore = defineStore("tasks", {
         .from("user_progress")
         .select(
           `
-              id,
-              user_id,
-              start_date,
-              energy,
-              streak,
-              last_visit_date
-            `,
+            id,
+            user_id,
+            start_date,
+            energy,
+            streak,
+            last_visit_date
+          `,
         )
         .eq("user_id", user.id)
         .maybeSingle();
@@ -180,13 +188,9 @@ export const useTaskStore = defineStore("tasks", {
           .from("user_progress")
           .insert({
             user_id: user.id,
-
             start_date: startDate,
-
             energy: 40,
-
             streak: 1,
-
             last_visit_date: new Date().toISOString().slice(0, 10),
           })
           .select()
@@ -197,35 +201,17 @@ export const useTaskStore = defineStore("tasks", {
         }
 
         this.startDate = newProgress.start_date;
-
         this.energy = newProgress.energy;
-
         this.streak = newProgress.streak;
-
         this.lastVisitDate = newProgress.last_visit_date;
 
         return;
       }
 
       this.startDate = data.start_date;
-
       this.energy = Number(data.energy);
-
       this.streak = Number(data.streak);
-
       this.lastVisitDate = data.last_visit_date || "";
-    },
-
-    async loadTasks() {
-      try {
-        this.tasks = await getDailyTasks();
-      } catch (error) {
-        console.error("[DailyTasks] Не удалось загрузить задачи:", error);
-
-        throw error;
-      } finally {
-        this.tasksLoaded = true;
-      }
     },
 
     async loadCompletedTasks() {
@@ -243,9 +229,9 @@ export const useTaskStore = defineStore("tasks", {
         .from("daily_task_completions")
         .select(
           `
-              task_id,
-              day_index
-            `,
+            task_id,
+            day_index
+          `,
         )
         .eq("user_id", user.id)
         .eq("day_index", this.dayIndex);
@@ -278,7 +264,6 @@ export const useTaskStore = defineStore("tasks", {
         this.streak = 1;
       } else {
         const lastVisit = new Date(this.lastVisitDate);
-
         const currentDate = new Date(today);
 
         const diffDays = Math.floor(
@@ -298,9 +283,7 @@ export const useTaskStore = defineStore("tasks", {
         .from("user_progress")
         .update({
           streak: this.streak,
-
           last_visit_date: today,
-
           updated_at: new Date().toISOString(),
         })
         .eq("user_id", user.id);
@@ -331,18 +314,14 @@ export const useTaskStore = defineStore("tasks", {
         .from("daily_task_completions")
         .insert({
           user_id: user.id,
-
           task_id: task.id,
-
           day_index: this.dayIndex,
-
           completed_at: new Date().toISOString(),
         });
 
       if (completionError) {
         if (completionError.code === "23505") {
           this.completed[task.id] = true;
-
           return;
         }
 
@@ -350,14 +329,12 @@ export const useTaskStore = defineStore("tasks", {
       }
 
       this.completed[task.id] = true;
-
       this.energy = newEnergy;
 
       const { error: progressError } = await supabase
         .from("user_progress")
         .update({
           energy: this.energy,
-
           updated_at: new Date().toISOString(),
         })
         .eq("user_id", user.id);

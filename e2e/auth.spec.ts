@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { mockSupabaseAuth, mockSupabaseNoSession, seedSupabaseSession } from "./helpers/supabase-mock";
+import { mockSupabaseAuth, mockSupabaseNoSession, seedSupabaseSession, mockSupabaseOAuth, mockSupabaseOAuthFailure } from "./helpers/supabase-mock";
 
 const MOCK_USER_REF = {
   id: "test-user-id",
@@ -123,7 +123,7 @@ test.describe("Register page", () => {
   test("shows error on empty submit", async ({ page }) => {
     await mockSupabaseNoSession(page);
     await page.goto("/register");
-    await page.locator(".register-card button").click();
+    await page.locator(".register-card button.bg-primary").click();
 
     await expect(page.locator(".register-error")).toHaveText("Заполните все поля");
   });
@@ -135,7 +135,7 @@ test.describe("Register page", () => {
     await page.getByRole("textbox", { name: /email/i }).fill("user@example.com");
     await page.getByRole("textbox", { name: /^Пароль$/ }).fill("123");
     await page.getByRole("textbox", { name: /повторите пароль/i }).fill("123");
-    await page.locator(".register-card button").click();
+    await page.locator(".register-card button.bg-primary").click();
 
     await expect(page.locator(".register-error")).toHaveText(
       "Пароль должен содержать минимум 6 символов",
@@ -149,7 +149,7 @@ test.describe("Register page", () => {
     await page.getByRole("textbox", { name: /email/i }).fill("user@example.com");
     await page.getByRole("textbox", { name: /^Пароль$/ }).fill("123456");
     await page.getByRole("textbox", { name: /повторите пароль/i }).fill("654321");
-    await page.locator(".register-card button").click();
+    await page.locator(".register-card button.bg-primary").click();
 
     await expect(page.locator(".register-error")).toHaveText("Пароли не совпадают");
   });
@@ -159,5 +159,60 @@ test.describe("Register page", () => {
     await page.goto("/register");
 
     await expect(page.locator('.register-links a[href="/login"]')).toBeVisible();
+  });
+});
+
+test.describe("Google OAuth", () => {
+  test("login page shows the Google button", async ({ page }) => {
+    await mockSupabaseNoSession(page);
+    await page.goto("/login");
+
+    await expect(page.locator(".login-card .google-btn")).toBeVisible();
+  });
+
+  test("register page shows the Google button", async ({ page }) => {
+    await mockSupabaseNoSession(page);
+    await page.goto("/register");
+
+    await expect(page.locator(".register-card .google-btn")).toBeVisible();
+  });
+
+  test("login via Google completes the callback and lands on /daily when screening exists", async ({
+    page,
+  }) => {
+    await mockSupabaseOAuth(page, { id: "sr-1", user_id: "test-user-id" });
+    await page.goto("/login");
+
+    await page.locator(".login-card .google-btn").click();
+
+    await expect(page).toHaveURL(/\/auth\/callback/, { timeout: 15000 });
+
+    await expect(page).toHaveURL(/\/daily/, { timeout: 15000 });
+  });
+
+  test("OAuth callback for a new user (no screening) lands on /welcome", async ({
+    page,
+  }) => {
+    await mockSupabaseOAuth(page);
+    await page.goto("/login");
+
+    await page.locator(".login-card .google-btn").click();
+
+    await expect(page).toHaveURL(/\/auth\/callback/, { timeout: 15000 });
+
+    await expect(page).toHaveURL(/\/welcome/, { timeout: 15000 });
+  });
+
+  test("OAuth callback with a failed code exchange lands on /login", async ({
+    page,
+  }) => {
+    await mockSupabaseOAuthFailure(page);
+    await page.goto("/login");
+
+    await page.locator(".login-card .google-btn").click();
+
+    await expect(page).toHaveURL(/\/auth\/callback/, { timeout: 15000 });
+
+    await expect(page).toHaveURL(/\/login/, { timeout: 15000 });
   });
 });
