@@ -169,4 +169,24 @@ describe("weekly tasks flow integration", () => {
 
     vi.useRealTimers();
   });
+
+  it("loadTasks passes the active locale to the weekly service", async () => {
+    const store = useWeeklyTaskStore();
+    await store.loadTasks("uk");
+
+    expect(getWeeklyTasks).toHaveBeenCalledWith("uk");
+    expect(store.tasksLoaded).toBe(true);
+
+    vi.useRealTimers();
+  });
+
+  it("init passes the active locale to loadTasks", async () => {
+    const store = useWeeklyTaskStore();
+    await store.init("uk");
+
+    expect(getWeeklyTasks).toHaveBeenCalledWith("uk");
+    expect(getWeeklyCompletions).toHaveBeenCalledOnce();
+
+    vi.useRealTimers();
+  });
 });

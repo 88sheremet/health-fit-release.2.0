@@ -138,6 +138,33 @@ export interface Database {
         };
         Relationships: [];
       };
+      weekly_task_translations: {
+        Row: {
+          id: string;
+          weekly_task_id: string;
+          locale: string;
+          title: string;
+          what_doing: string;
+          why_doing: string;
+        };
+        Insert: {
+          id?: string;
+          weekly_task_id: string;
+          locale: string;
+          title: string;
+          what_doing: string;
+          why_doing: string;
+        };
+        Update: {
+          id?: string;
+          weekly_task_id?: string;
+          locale?: string;
+          title?: string;
+          what_doing?: string;
+          why_doing?: string;
+        };
+        Relationships: [];
+      };
       weekly_task_completions: {
         Row: {
           id: string;

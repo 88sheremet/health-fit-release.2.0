@@ -109,6 +109,70 @@ const DAILY_TASK_TRANSLATIONS: DailyTaskTranslation[] = [
   },
 ];
 
+/**
+ * Weekly tasks use the same multilingual schema as daily tasks: `weekly_tasks`
+ * holds the stable id/week, `weekly_task_translations` the locale text. The
+ * base rows stay empty of locale content so translations are the single source.
+ */
+const WEEKLY_TASKS = [
+  { id: "wk1", week: 1 },
+  { id: "wk2", week: 2 },
+  { id: "wk3", week: 3 },
+];
+
+type WeeklyTaskTranslation = {
+  weekly_task_id: string;
+  locale: "ru" | "uk";
+  title: string;
+  what_doing: string;
+  why_doing: string;
+};
+
+const WEEKLY_TASK_TRANSLATIONS: WeeklyTaskTranslation[] = [
+  {
+    weekly_task_id: "wk1",
+    locale: "ru",
+    title: "Дыхательная практика",
+    what_doing: "Техника 4-7-8",
+    why_doing: "Снижение тревожности",
+  },
+  {
+    weekly_task_id: "wk1",
+    locale: "uk",
+    title: "Дихальна практика",
+    what_doing: "Техніка 4-7-8",
+    why_doing: "Зниження тривожності",
+  },
+  {
+    weekly_task_id: "wk2",
+    locale: "ru",
+    title: "Холодный душ",
+    what_doing: "30 секунд холодной воды",
+    why_doing: "Повышает устойчивость",
+  },
+  {
+    weekly_task_id: "wk2",
+    locale: "uk",
+    title: "Холодний душ",
+    what_doing: "30 секунд холодної води",
+    why_doing: "Підвищує стійкість",
+  },
+  {
+    weekly_task_id: "wk3",
+    locale: "ru",
+    title: "Цифровой детокс",
+    what_doing: "Без экранов после 20:00",
+    why_doing: "Улучшает сон",
+  },
+  {
+    weekly_task_id: "wk3",
+    locale: "uk",
+    title: "Цифровий детокс",
+    what_doing: "Без екранів після 20:00",
+    why_doing: "Покращує сон",
+  },
+];
+
 /** Extract the `locale` value from a PostgREST URL (locale=eq.ru or locale=ru). */
 function getRequestedLocale(url: string): string {
   const match = url.match(/locale=eq\.([a-z]{2})/) ?? url.match(/locale=([a-z]{2})/);
@@ -118,6 +182,15 @@ function getRequestedLocale(url: string): string {
 /** Extract requested task_ids from an `in.(...)` PostgREST filter. */
 function getRequestedTaskIds(url: string): string[] {
   const match = url.match(/task_id=in\.\(([^)]*)\)/);
+  if (!match) {
+    return [];
+  }
+  return match[1].split(",").map((id) => id.trim());
+}
+
+/** Extract requested weekly_task_ids from an `in.(...)` PostgREST filter. */
+function getRequestedWeeklyTaskIds(url: string): string[] {
+  const match = url.match(/weekly_task_id=in\.\(([^)]*)\)/);
   if (!match) {
     return [];
   }
@@ -350,13 +423,28 @@ function buildRouteHandler(
     return route.fulfill({ status: 200, json: rows, headers: { "content-type": "application/json" } });
   }
 
-  // rest/v1/weekly_tasks
+  // rest/v1/weekly_task_translations (locale-filtered) — MUST come before the
+  // weekly_tasks branch, otherwise "/rest/v1/weekly_task_translations" is
+  // swallowed by the substring match below.
+  if (url.includes("/rest/v1/weekly_task_translations")) {
+    const locale = getRequestedLocale(url);
+    const requestedIds = getRequestedWeeklyTaskIds(url);
+    let rows = WEEKLY_TASK_TRANSLATIONS.filter((t) => t.locale === locale);
+    if (requestedIds.length > 0) {
+      rows = rows.filter((t) => requestedIds.includes(t.weekly_task_id));
+    }
+    return route.fulfill({
+      status: 200,
+      json: rows,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
+  // rest/v1/weekly_tasks (stable ids/weeks — titles come from translations)
   if (url.includes("/rest/v1/weekly_tasks") && !url.includes("completions")) {
     return route.fulfill({
       status: 200,
-      json: [
-        { id: "wk1", week: 1, title: "Дыхательная практика", what_doing: "Техника 4-7-8", why_doing: "Снижение тревожности" },
-      ],
+      json: WEEKLY_TASKS,
       headers: { "content-type": "application/json" },
     });
   }

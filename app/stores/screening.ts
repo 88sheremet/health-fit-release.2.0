@@ -122,11 +122,6 @@ export const useScreeningStore = defineStore("screening", {
           return;
         }
 
-        console.log(
-          "[Screening] Загружаем результат пользователя:",
-          user.id,
-        );
-
         const { data, error } = await supabase
           .from("screening_results")
           .select(
@@ -169,12 +164,6 @@ export const useScreeningStore = defineStore("screening", {
 
         this.currentBlock = 0;
 
-        console.log("[Screening] Результат успешно загружен", {
-          physical: this.blockScores[1],
-          food: this.blockScores[2],
-          mind: this.blockScores[3],
-          dominantProblem: data.dominant_problem,
-        });
       } catch (error: any) {
         console.error("[Screening] Ошибка загрузки:", error);
 

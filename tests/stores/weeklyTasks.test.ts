@@ -3,13 +3,23 @@ import { setActivePinia, createPinia } from "pinia";
 import { useWeeklyTaskStore } from "~/stores/weeklyTasks";
 import { useTaskStore } from "~/stores/dailyTasks";
 
-vi.mock("~/services/weeklyTask.service", () => ({
+const { getWeeklyTasks, getWeeklyCompletions, completeWeeklyTask } = vi.hoisted(() => ({
   getWeeklyTasks: vi.fn(),
   getWeeklyCompletions: vi.fn(),
   completeWeeklyTask: vi.fn(),
 }));
 
+vi.mock("~/services/weeklyTask.service", () => ({
+  getWeeklyTasks,
+  getWeeklyCompletions,
+  completeWeeklyTask,
+}));
+
 beforeEach(() => {
+  vi.clearAllMocks();
+  getWeeklyTasks.mockResolvedValue([]);
+  getWeeklyCompletions.mockResolvedValue([]);
+  completeWeeklyTask.mockResolvedValue({});
   setActivePinia(createPinia());
 });
 
@@ -155,6 +165,57 @@ describe("weeklyTasks store", () => {
     it("starts with tasksLoaded false", () => {
       const store = useWeeklyTaskStore();
       expect(store.tasksLoaded).toBe(false);
+    });
+  });
+
+  describe("loadTasks", () => {
+    it("loads tasks for the passed locale", async () => {
+      getWeeklyTasks.mockResolvedValue([
+        { id: "w1", week: 1, title: "UA", what_doing: "do", why_doing: "why" },
+      ]);
+
+      const store = useWeeklyTaskStore();
+      await store.loadTasks("uk");
+
+      expect(getWeeklyTasks).toHaveBeenCalledWith("uk");
+      expect(store.tasks).toHaveLength(1);
+    });
+
+    it("defaults to ru locale", async () => {
+      const store = useWeeklyTaskStore();
+      await store.loadTasks();
+
+      expect(getWeeklyTasks).toHaveBeenCalledWith("ru");
+    });
+
+    it("marks tasksLoaded false while loading and true after", async () => {
+      const store = useWeeklyTaskStore();
+      const loading = store.loadTasks("ru");
+
+      expect(store.tasksLoaded).toBe(false);
+
+      await loading;
+
+      expect(store.tasksLoaded).toBe(true);
+    });
+
+    it("rethrows the service error", async () => {
+      getWeeklyTasks.mockRejectedValue(new Error("tasks boom"));
+
+      const store = useWeeklyTaskStore();
+
+      await expect(store.loadTasks("ru")).rejects.toThrow("tasks boom");
+      expect(store.tasksLoaded).toBe(true);
+    });
+  });
+
+  describe("init", () => {
+    it("passes the locale to loadTasks", async () => {
+      const store = useWeeklyTaskStore();
+      await store.init("uk");
+
+      expect(getWeeklyTasks).toHaveBeenCalledWith("uk");
+      expect(getWeeklyCompletions).toHaveBeenCalledOnce();
     });
   });
 });
