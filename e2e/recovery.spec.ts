@@ -1,5 +1,20 @@
 import { test, expect } from "@playwright/test";
-import { mockScreeningCompleted } from "./helpers/supabase-mock";
+import {
+  mockScreeningCompleted,
+  freezeDateToMonday,
+} from "./helpers/supabase-mock";
+
+const LOCALE_COOKIE = {
+  name: "i18n_locale",
+  domain: "localhost",
+  path: "/",
+};
+
+async function setLocale(page: any, locale: "ru" | "uk") {
+  await page.context().addCookies([
+    { ...LOCALE_COOKIE, value: locale },
+  ]);
+}
 
 test.describe("Menu page", () => {
   test("renders menu with 3 navigation tabs", async ({ page }) => {
@@ -60,21 +75,45 @@ test.describe("Daily page", () => {
 });
 
 test.describe("Weekly page", () => {
-  test("renders weekly task card", async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
+    await freezeDateToMonday(page);
     await mockScreeningCompleted(page);
+    await setLocale(page, "ru");
+  });
+
+  test("renders weekly task card with Russian title", async ({ page }) => {
     await page.goto("/weekly");
 
     await expect(page.locator(".page .title")).toBeVisible();
     await expect(page.locator(".task-card")).toBeVisible();
-    await expect(page.locator(".task-title")).toBeVisible();
+    await expect(page.locator(".task-title")).toHaveText("Дыхательная практика");
   });
 
   test("shows week number and day", async ({ page }) => {
-    await mockScreeningCompleted(page);
     await page.goto("/weekly");
 
     await expect(page.locator(".subtitle").first()).toBeVisible();
     await expect(page.locator(".week-day")).toBeVisible();
+  });
+
+  test("renders Ukrainian title when locale is uk", async ({ page }) => {
+    await setLocale(page, "uk");
+    await page.goto("/weekly");
+
+    await expect(page.locator(".task-card")).toBeVisible({ timeout: 20000 });
+    await expect(page.locator(".task-title")).toHaveText("Дихальна практика");
+  });
+
+  test("switching locale reloads translated task title", async ({ page }) => {
+    await page.goto("/weekly");
+    await expect(page.locator(".task-title")).toHaveText("Дыхательная практика", {
+      timeout: 20000,
+    });
+
+    await setLocale(page, "uk");
+    await page.reload();
+
+    await expect(page.locator(".task-title")).toHaveText("Дихальна практика");
   });
 });
 

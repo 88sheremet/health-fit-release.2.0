@@ -63,6 +63,33 @@ export interface Database {
         };
         Relationships: [];
       };
+      daily_task_translations: {
+        Row: {
+          id: string;
+          task_id: string;
+          locale: string;
+          title: string;
+          what_doing: Json;
+          why_doing: string;
+        };
+        Insert: {
+          id?: string;
+          task_id: string;
+          locale: string;
+          title: string;
+          what_doing: Json;
+          why_doing: string;
+        };
+        Update: {
+          id?: string;
+          task_id?: string;
+          locale?: string;
+          title?: string;
+          what_doing?: Json;
+          why_doing?: string;
+        };
+        Relationships: [];
+      };
       daily_task_completions: {
         Row: {
           id: string;
@@ -105,6 +132,33 @@ export interface Database {
         Update: {
           id?: string;
           week?: number;
+          title?: string;
+          what_doing?: string;
+          why_doing?: string;
+        };
+        Relationships: [];
+      };
+      weekly_task_translations: {
+        Row: {
+          id: string;
+          weekly_task_id: string;
+          locale: string;
+          title: string;
+          what_doing: string;
+          why_doing: string;
+        };
+        Insert: {
+          id?: string;
+          weekly_task_id: string;
+          locale: string;
+          title: string;
+          what_doing: string;
+          why_doing: string;
+        };
+        Update: {
+          id?: string;
+          weekly_task_id?: string;
+          locale?: string;
           title?: string;
           what_doing?: string;
           why_doing?: string;
