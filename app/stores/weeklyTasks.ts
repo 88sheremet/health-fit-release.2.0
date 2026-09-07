@@ -75,14 +75,18 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
   },
 
   actions: {
-    async loadTasks() {
+    async loadTasks(locale = "ru") {
       try {
-        this.tasks = await getWeeklyTasks();
+        this.tasksLoaded = false;
+
+        this.tasks = await getWeeklyTasks(locale);
       } catch (error) {
         console.error(
           "[WeeklyTasks] Не удалось загрузить weekly_tasks:",
           error,
         );
+
+        throw error;
       } finally {
         this.tasksLoaded = true;
       }
@@ -102,11 +106,13 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
           "[WeeklyTasks] Не удалось загрузить weekly completions:",
           error,
         );
+
+        throw error;
       }
     },
 
-    async init() {
-      await Promise.all([this.loadTasks(), this.loadCompletions()]);
+    async init(locale = "ru") {
+      await Promise.all([this.loadTasks(locale), this.loadCompletions()]);
     },
 
     async completeCurrentTask() {
@@ -117,8 +123,6 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
       const task = this.currentTask;
 
       if (!task.id) {
-        console.error("[WeeklyTasks] Не удалось определить ID задания");
-
         return;
       }
 
@@ -130,18 +134,13 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
         const dailyStore = useTaskStore();
 
         await dailyStore.addEnergy(100);
-
-        console.log("[WeeklyTasks] Задание выполнено:", {
-          week: this.currentWeek,
-          taskId: task.id,
-          reward: 100,
-        });
       } catch (error) {
         console.error("[WeeklyTasks] Ошибка выполнения задания:", error);
 
         throw error;
       }
     },
+
     isCompleted(): boolean {
       return !!this.completed[this.currentWeek];
     },
