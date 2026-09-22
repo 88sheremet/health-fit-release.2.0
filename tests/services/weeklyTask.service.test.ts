@@ -70,8 +70,12 @@ function mockTables(tables: Record<string, Result>) {
 
   const client = {
     auth: {
-      getUser: vi.fn().mockResolvedValue({ data: { user: { id: "u1" } }, error: null }),
-      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+      getUser: vi
+        .fn()
+        .mockResolvedValue({ data: { user: { id: "u1" } }, error: null }),
+      getSession: vi
+        .fn()
+        .mockResolvedValue({ data: { session: null }, error: null }),
     },
     from: mockFrom,
   };
@@ -142,7 +146,7 @@ describe("getWeeklyTasks", () => {
 
     expect(chainByTable["weekly_task_translations"].eq).toHaveBeenCalledWith(
       "locale",
-      "uk",
+      "uk"
     );
   });
 
@@ -156,7 +160,7 @@ describe("getWeeklyTasks", () => {
 
     expect(chainByTable["weekly_task_translations"].in).toHaveBeenCalledWith(
       "weekly_task_id",
-      ["wk1"],
+      ["wk1"]
     );
   });
 
@@ -168,7 +172,8 @@ describe("getWeeklyTasks", () => {
 
     await getWeeklyTasks("uk");
 
-    const selectCall = chainByTable["weekly_task_translations"].select.mock.calls[0][0];
+    const selectCall =
+      chainByTable["weekly_task_translations"].select.mock.calls[0][0];
     expect(selectCall).toContain("weekly_task_id");
     expect(selectCall).toContain("locale");
     expect(selectCall).toContain("title");
@@ -238,7 +243,11 @@ describe("getWeeklyCompletions", () => {
     mockTables({});
 
     vi.mocked(useSupabaseClient).mockReturnValue({
-      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }) },
+      auth: {
+        getUser: vi
+          .fn()
+          .mockResolvedValue({ data: { user: null }, error: null }),
+      },
       from: mockFrom,
     } as any);
 
@@ -261,14 +270,17 @@ describe("getWeeklyCompletions", () => {
     expect(mockFrom).toHaveBeenCalledWith("weekly_task_completions");
     expect(chainByTable["weekly_task_completions"].eq).toHaveBeenCalledWith(
       "user_id",
-      "u1",
+      "u1"
     );
     expect(result).toEqual([1, 2, 1]);
   });
 
   it("throws on completion query error", async () => {
     mockTables({
-      weekly_task_completions: { data: null, error: new Error("completions boom") },
+      weekly_task_completions: {
+        data: null,
+        error: new Error("completions boom"),
+      },
     });
 
     await expect(getWeeklyCompletions()).rejects.toThrow("completions boom");
@@ -280,12 +292,16 @@ describe("completeWeeklyTask", () => {
     mockTables({});
 
     vi.mocked(useSupabaseClient).mockReturnValue({
-      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }) },
+      auth: {
+        getUser: vi
+          .fn()
+          .mockResolvedValue({ data: { user: null }, error: null }),
+      },
       from: mockFrom,
     } as any);
 
     await expect(completeWeeklyTask("wk1", 1)).rejects.toThrow(
-      "Пользователь не авторизован",
+      "Пользователь не авторизован"
     );
   });
 

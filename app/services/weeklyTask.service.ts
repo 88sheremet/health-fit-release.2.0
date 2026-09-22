@@ -30,7 +30,7 @@ export async function getWeeklyTasks(locale = "ru"): Promise<DbWeeklyTask[]> {
   if (translationsError) {
     console.error(
       "[WeeklyTasks] Ошибка загрузки weekly_task_translations:",
-      translationsError,
+      translationsError
     );
 
     throw translationsError;
@@ -77,7 +77,7 @@ export async function getWeeklyCompletions(): Promise<number[]> {
   if (error) {
     console.error(
       "[WeeklyTasks] Ошибка загрузки weekly_task_completions:",
-      error,
+      error
     );
 
     throw error;

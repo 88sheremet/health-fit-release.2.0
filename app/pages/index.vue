@@ -17,10 +17,7 @@ if (!user) {
     .maybeSingle();
 
   if (error) {
-    console.error(
-      "[Index] Ошибка проверки screening:",
-      error,
-    );
+    console.error("[Index] Ошибка проверки screening:", error);
 
     await navigateTo(routes.onboarding.welcome);
   } else if (screening) {

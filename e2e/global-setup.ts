@@ -25,7 +25,10 @@ export default async function globalSetup(config: FullConfig) {
       try {
         await page.goto(`${baseURL}${route}`, { waitUntil: "networkidle" });
         await page.waitForTimeout(250);
-        const text = await page.locator("#__nuxt").innerText().catch(() => "");
+        const text = await page
+          .locator("#__nuxt")
+          .innerText()
+          .catch(() => "");
         if (text.trim().length > 0) break;
       } catch {
         // dev server still warming up

@@ -713,7 +713,7 @@ describe("journal store", () => {
         store.saveCheckin({
           mood: 4,
           note: "",
-        }),
+        })
       ).rejects.toThrow("Пользователь не авторизован");
 
       expect(mockInsert).not.toHaveBeenCalled();
@@ -751,7 +751,7 @@ describe("journal store", () => {
         store.saveCheckin({
           mood: 4,
           note: "",
-        }),
+        })
       ).rejects.toEqual({
         message: "write failed",
       });
@@ -867,7 +867,7 @@ describe("journal store", () => {
       expect(store.getCheckinByDate("2026-06-15")?.mood).toBe(5);
 
       expect(store.entries.find((entry) => entry.id === "e2")?.note).toBe(
-        "note",
+        "note"
       );
     });
 
@@ -879,7 +879,7 @@ describe("journal store", () => {
       const store = useJournalStore();
 
       await expect(store.addNote("hi")).rejects.toThrow(
-        "Пользователь не авторизован",
+        "Пользователь не авторизован"
       );
 
       expect(mockInsert).not.toHaveBeenCalled();
@@ -957,7 +957,7 @@ describe("journal store", () => {
       const store = useJournalStore();
 
       await expect(store.deleteEntry("e1")).rejects.toThrow(
-        "Пользователь не авторизован",
+        "Пользователь не авторизован"
       );
 
       expect(mockDelete).not.toHaveBeenCalled();

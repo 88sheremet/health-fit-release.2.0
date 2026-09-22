@@ -151,8 +151,24 @@ describe("dailyTasks store", () => {
       const store = useTaskStore();
       store.startDate = "2026-06-14";
       store.tasks = [
-        { id: "f1", day: 1, type: "food", title: "Завтрак", reward: 10, whatDoing: "Яичница", whyDoing: "Энергия" },
-        { id: "m1", day: 1, type: "mental", title: "Медитация", reward: 10, whatDoing: "10 минут", whyDoing: "Фокус" },
+        {
+          id: "f1",
+          day: 1,
+          type: "food",
+          title: "Завтрак",
+          reward: 10,
+          whatDoing: "Яичница",
+          whyDoing: "Энергия",
+        },
+        {
+          id: "m1",
+          day: 1,
+          type: "mental",
+          title: "Медитация",
+          reward: 10,
+          whatDoing: "10 минут",
+          whyDoing: "Фокус",
+        },
       ];
       expect(store.isRestDay).toBe(true);
       expect(store.todayTasks).toEqual([]);
@@ -165,8 +181,24 @@ describe("dailyTasks store", () => {
       const store = useTaskStore();
       store.startDate = "2026-06-15";
       store.tasks = [
-        { id: "f1", day: 1, type: "food", title: "Завтрак", reward: 10, whatDoing: "Яичница", whyDoing: "Энергия" },
-        { id: "m1", day: 1, type: "mental", title: "Медитация", reward: 10, whatDoing: "10 минут", whyDoing: "Фокус" },
+        {
+          id: "f1",
+          day: 1,
+          type: "food",
+          title: "Завтрак",
+          reward: 10,
+          whatDoing: "Яичница",
+          whyDoing: "Энергия",
+        },
+        {
+          id: "m1",
+          day: 1,
+          type: "mental",
+          title: "Медитация",
+          reward: 10,
+          whatDoing: "10 минут",
+          whyDoing: "Фокус",
+        },
       ];
       expect(store.isRestDay).toBe(false);
       expect(store.todayTasks.map((t) => t.id)).toEqual(["f1", "m1"]);
@@ -203,7 +235,15 @@ describe("dailyTasks store", () => {
   describe("loadTasks", () => {
     it('loadTasks("ru") calls getDailyTasks("ru") and sets tasks', async () => {
       mockedGetDailyTasks.mockResolvedValue([
-        { id: "task-1", day: 1, type: "physical", title: "Русская задача", what_doing: "опис", why_doing: "причина", reward: 15 },
+        {
+          id: "task-1",
+          day: 1,
+          type: "physical",
+          title: "Русская задача",
+          what_doing: "опис",
+          why_doing: "причина",
+          reward: 15,
+        },
       ] as any);
 
       const store = useTaskStore();
@@ -217,7 +257,15 @@ describe("dailyTasks store", () => {
 
     it('loadTasks("uk") calls getDailyTasks("uk")', async () => {
       mockedGetDailyTasks.mockResolvedValue([
-        { id: "task-1", day: 1, type: "physical", title: "Українське завдання", what_doing: "опис", why_doing: "причина", reward: 15 },
+        {
+          id: "task-1",
+          day: 1,
+          type: "physical",
+          title: "Українське завдання",
+          what_doing: "опис",
+          why_doing: "причина",
+          reward: 15,
+        },
       ] as any);
 
       const store = useTaskStore();
@@ -277,14 +325,30 @@ describe("dailyTasks store", () => {
   describe("locale switch preserves progress", () => {
     it("loadTasks('uk') replaces tasks but keeps completed/startDate/energy/streak", async () => {
       mockedGetDailyTasks.mockResolvedValueOnce([
-        { id: "task-1", day: 1, type: "physical", title: "Русская задача", what_doing: "опис", why_doing: "причина", reward: 15 },
+        {
+          id: "task-1",
+          day: 1,
+          type: "physical",
+          title: "Русская задача",
+          what_doing: "опис",
+          why_doing: "причина",
+          reward: 15,
+        },
       ] as any);
 
       const store = useTaskStore();
       await store.loadTasks("ru");
 
       mockedGetDailyTasks.mockResolvedValueOnce([
-        { id: "task-1", day: 1, type: "physical", title: "Українське завдання", what_doing: "український опис", why_doing: "причина", reward: 15 },
+        {
+          id: "task-1",
+          day: 1,
+          type: "physical",
+          title: "Українське завдання",
+          what_doing: "український опис",
+          why_doing: "причина",
+          reward: 15,
+        },
       ] as any);
 
       store.completed = { "task-1": true };
@@ -307,7 +371,14 @@ describe("dailyTasks store", () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date("2026-06-15T12:00:00"));
       setupSupabaseClient({ id: "u1" });
-      progressRow = { id: "p1", user_id: "u1", start_date: "2026-06-15", energy: 40, streak: 1, last_visit_date: "2026-06-15" };
+      progressRow = {
+        id: "p1",
+        user_id: "u1",
+        start_date: "2026-06-15",
+        energy: 40,
+        streak: 1,
+        last_visit_date: "2026-06-15",
+      };
 
       const store = useTaskStore();
       store.energy = 40;
@@ -324,7 +395,7 @@ describe("dailyTasks store", () => {
       await store.completeTask(task);
 
       expect(mockCompleteInsert).toHaveBeenCalledWith(
-        expect.objectContaining({ task_id: "task-1" }),
+        expect.objectContaining({ task_id: "task-1" })
       );
       expect(store.completed["task-1"]).toBe(true);
       expect(store.energy).toBe(55);

@@ -22,7 +22,7 @@ describe("DominantProblem enum", () => {
   it("string values are lowercase", () => {
     for (const key of Object.keys(DominantProblem)) {
       expect(DominantProblem[key as keyof typeof DominantProblem]).toBe(
-        DominantProblem[key as keyof typeof DominantProblem].toLowerCase(),
+        DominantProblem[key as keyof typeof DominantProblem].toLowerCase()
       );
     }
   });

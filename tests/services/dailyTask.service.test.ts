@@ -68,8 +68,12 @@ function mockTables(tables: Record<string, Result>) {
 
   const client = {
     auth: {
-      getUser: vi.fn().mockResolvedValue({ data: { user: { id: "u1" } }, error: null }),
-      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+      getUser: vi
+        .fn()
+        .mockResolvedValue({ data: { user: { id: "u1" } }, error: null }),
+      getSession: vi
+        .fn()
+        .mockResolvedValue({ data: { session: null }, error: null }),
     },
     from: mockFrom,
   };
@@ -140,7 +144,7 @@ describe("getDailyTasks", () => {
 
     expect(chainByTable["daily_task_translations"].eq).toHaveBeenCalledWith(
       "locale",
-      "uk",
+      "uk"
     );
   });
 
@@ -154,7 +158,7 @@ describe("getDailyTasks", () => {
 
     expect(chainByTable["daily_task_translations"].in).toHaveBeenCalledWith(
       "task_id",
-      ["task-1"],
+      ["task-1"]
     );
   });
 
@@ -166,7 +170,8 @@ describe("getDailyTasks", () => {
 
     await getDailyTasks("uk");
 
-    const selectCall = chainByTable["daily_task_translations"].select.mock.calls[0][0];
+    const selectCall =
+      chainByTable["daily_task_translations"].select.mock.calls[0][0];
     expect(selectCall).toContain("task_id");
     expect(selectCall).toContain("locale");
     expect(selectCall).toContain("title");

@@ -38,7 +38,7 @@ function buildFlowMocks(opts: {
     ["select", "eq", "single", "maybeSingle", "insert", "order"].forEach(
       (m) => {
         target[m] = vi.fn().mockReturnValue(target);
-      },
+      }
     );
 
     return target;
@@ -59,7 +59,12 @@ function buildFlowMocks(opts: {
         error: opts.getSessionError ?? null,
       }),
     },
-    from: vi.fn(() => chainFor({ data: opts.screening ?? null, error: opts.screeningError ?? null })),
+    from: vi.fn(() =>
+      chainFor({
+        data: opts.screening ?? null,
+        error: opts.screeningError ?? null,
+      })
+    ),
   };
 
   vi.mocked(useSupabaseClient).mockReturnValue(client as any);
@@ -90,7 +95,7 @@ describe("google auth integration flow", () => {
     const destination = await getGoogleAuthDestination("oauth-code");
 
     expect(client.auth.exchangeCodeForSession).toHaveBeenCalledWith(
-      "oauth-code",
+      "oauth-code"
     );
     expect(destination).toBe(routes.recovery.daily);
   });

@@ -94,7 +94,7 @@ export const useJournalStore = defineStore("journal", {
 
       const todayCheckin = this.entries.find(
         (entry) =>
-          entry.type === "checkin" && normalizeDate(entry.date) === today,
+          entry.type === "checkin" && normalizeDate(entry.date) === today
       );
 
       this.showCheckin = !todayCheckin;
@@ -122,7 +122,7 @@ export const useJournalStore = defineStore("journal", {
           entry_type,
           mood,
           note
-        `,
+        `
         )
         .eq("user_id", user.id)
         .order("date", {
@@ -156,7 +156,7 @@ export const useJournalStore = defineStore("journal", {
 
       const existingCheckin = this.entries.find(
         (entry) =>
-          entry.type === "checkin" && normalizeDate(entry.date) === today,
+          entry.type === "checkin" && normalizeDate(entry.date) === today
       );
 
       const journalTable = getJournalTable();
@@ -180,7 +180,7 @@ export const useJournalStore = defineStore("journal", {
             entry_type,
             mood,
             note
-          `,
+          `
           )
           .single();
 
@@ -202,7 +202,7 @@ export const useJournalStore = defineStore("journal", {
             entry_type,
             mood,
             note
-          `,
+          `
           )
           .single();
 
@@ -233,14 +233,14 @@ export const useJournalStore = defineStore("journal", {
        */
       if (existingCheckin) {
         this.entries = this.entries.filter(
-          (item) => item.id !== existingCheckin.id,
+          (item) => item.id !== existingCheckin.id
         );
       }
 
       this.entries.push(entry);
 
       this.entries.sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
       );
 
       this.showCheckin = false;
@@ -256,7 +256,7 @@ export const useJournalStore = defineStore("journal", {
       return this.entries.find(
         (entry) =>
           entry.type === "checkin" &&
-          normalizeDate(entry.date) === normalizedDate,
+          normalizeDate(entry.date) === normalizedDate
       );
     },
 
@@ -264,7 +264,7 @@ export const useJournalStore = defineStore("journal", {
       const normalizedDate = normalizeDate(date);
 
       return this.entries.find(
-        (entry) => normalizeDate(entry.date) === normalizedDate,
+        (entry) => normalizeDate(entry.date) === normalizedDate
       );
     },
 
@@ -334,7 +334,7 @@ export const useJournalStore = defineStore("journal", {
           entry_type,
           mood,
           note
-        `,
+        `
         )
         .single();
 
@@ -352,7 +352,7 @@ export const useJournalStore = defineStore("journal", {
       this.entries.push(entry);
 
       this.entries.sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
       );
     },
   },

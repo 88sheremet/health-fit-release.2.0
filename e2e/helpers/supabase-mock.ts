@@ -9,7 +9,7 @@ function getSupabaseUrl(): string {
   const url = process.env.SUPABASE_URL;
   if (!url) {
     throw new Error(
-      "SUPABASE_URL is not set. Add it to .env so the Supabase storage key can be derived from the project ref.",
+      "SUPABASE_URL is not set. Add it to .env so the Supabase storage key can be derived from the project ref."
     );
   }
   return url.replace(/\/+$/, "");
@@ -23,7 +23,9 @@ function getSupabaseUrl(): string {
  */
 function getSupabaseStorageKey(): string {
   const url = getSupabaseUrl();
-  const projectRef = url.replace("https://", "").replace(/\.supabase\.co.*$/, "");
+  const projectRef = url
+    .replace("https://", "")
+    .replace(/\.supabase\.co.*$/, "");
   return `sb-${projectRef}-auth-token`;
 }
 
@@ -175,7 +177,8 @@ const WEEKLY_TASK_TRANSLATIONS: WeeklyTaskTranslation[] = [
 
 /** Extract the `locale` value from a PostgREST URL (locale=eq.ru or locale=ru). */
 function getRequestedLocale(url: string): string {
-  const match = url.match(/locale=eq\.([a-z]{2})/) ?? url.match(/locale=([a-z]{2})/);
+  const match =
+    url.match(/locale=eq\.([a-z]{2})/) ?? url.match(/locale=([a-z]{2})/);
   return match?.[1] ?? "ru";
 }
 
@@ -202,10 +205,13 @@ function getRequestedWeeklyTaskIds(url: string): string[] {
  * (which calls getSession() → reads local storage, NOT HTTP) passes.
  */
 export async function seedSupabaseSession(page: Page) {
-  await page.addInitScript((args) => {
-    const [key, data] = args as [string, string];
-    localStorage.setItem(key, data);
-  }, [getSupabaseStorageKey(), JSON.stringify(MOCK_SESSION)]);
+  await page.addInitScript(
+    (args) => {
+      const [key, data] = args as [string, string];
+      localStorage.setItem(key, data);
+    },
+    [getSupabaseStorageKey(), JSON.stringify(MOCK_SESSION)]
+  );
 }
 
 /**
@@ -227,255 +233,299 @@ type MockState = {
  * during the page lifecycle survives `page.reload()` — the same `page.route`
  * handler stays registered across navigations.
  */
-function buildRouteHandler(
-  opts?: { user?: typeof MOCK_USER | null; session?: typeof MOCK_SESSION | null; screeningResult?: any; failOAuthExchange?: boolean; state?: Partial<MockState> },
-) {
+function buildRouteHandler(opts?: {
+  user?: typeof MOCK_USER | null;
+  session?: typeof MOCK_SESSION | null;
+  screeningResult?: any;
+  failOAuthExchange?: boolean;
+  state?: Partial<MockState>;
+}) {
   const state: MockState = {
     completions: opts?.state?.completions ?? [],
   };
 
   return function handleSupabaseRoute(route: Route, request: any): void {
-  const url = request.url();
-  const method = request.method();
-  const user = opts?.user !== undefined ? opts.user : MOCK_USER;
-  const session = opts?.session !== undefined ? opts.session : MOCK_SESSION;
+    const url = request.url();
+    const method = request.method();
+    const user = opts?.user !== undefined ? opts.user : MOCK_USER;
+    const session = opts?.session !== undefined ? opts.session : MOCK_SESSION;
 
-  // auth/v1/token (signInWithPassword, signUp, refresh, oauth code exchange)
-  if (url.includes("/auth/v1/token") && method === "POST") {
-    const body = request.postDataJSON();
-    // @supabase/ssr sends `grant_type` as a URL query param for the PKCE
-    // exchange (e.g. /auth/v1/token?grant_type=pkce), so read it from the URL.
-    const grantType =
-      body?.grant_type ??
-      (url.match(/[?&]grant_type=([^&]+)/)?.[1] ?? "");
+    // auth/v1/token (signInWithPassword, signUp, refresh, oauth code exchange)
+    if (url.includes("/auth/v1/token") && method === "POST") {
+      const body = request.postDataJSON();
+      // @supabase/ssr sends `grant_type` as a URL query param for the PKCE
+      // exchange (e.g. /auth/v1/token?grant_type=pkce), so read it from the URL.
+      const grantType =
+        body?.grant_type ?? url.match(/[?&]grant_type=([^&]+)/)?.[1] ?? "";
 
-    // PKCE / authorization_code exchange (exchangeCodeForSession).
-    // Google OAuth creates a brand-new session, independent of any prior one.
-    // auth-js expects a FLAT token response (hasSession requires top-level
-    // access_token + refresh_token + expires_in) to persist the session.
-    if (
-      grantType === "pkce" ||
-      grantType === "authorization_code"
-    ) {
-      if (opts?.failOAuthExchange) {
+      // PKCE / authorization_code exchange (exchangeCodeForSession).
+      // Google OAuth creates a brand-new session, independent of any prior one.
+      // auth-js expects a FLAT token response (hasSession requires top-level
+      // access_token + refresh_token + expires_in) to persist the session.
+      if (grantType === "pkce" || grantType === "authorization_code") {
+        if (opts?.failOAuthExchange) {
+          return route.fulfill({
+            status: 400,
+            json: { error: "invalid_grant", error_description: "Invalid code" },
+          });
+        }
+        return route.fulfill({
+          status: 200,
+          json: {
+            access_token: MOCK_SESSION.access_token,
+            refresh_token: MOCK_SESSION.refresh_token,
+            expires_in: MOCK_SESSION.expires_in,
+            expires_at: MOCK_SESSION.expires_at,
+            token_type: "bearer",
+            user: MOCK_USER,
+          },
+        });
+      }
+
+      if (
+        body?.grant_type === "password" &&
+        body?.email === "bad@example.com"
+      ) {
         return route.fulfill({
           status: 400,
-          json: { error: "invalid_grant", error_description: "Invalid code" },
+          json: {
+            error: "invalid_grant",
+            error_description: "Invalid login credentials",
+          },
+        });
+      }
+      if (!user || !session) {
+        return route.fulfill({
+          status: 400,
+          json: {
+            error: "invalid_grant",
+            error_description: "Invalid login credentials",
+          },
         });
       }
       return route.fulfill({
         status: 200,
-        json: {
-          access_token: MOCK_SESSION.access_token,
-          refresh_token: MOCK_SESSION.refresh_token,
-          expires_in: MOCK_SESSION.expires_in,
-          expires_at: MOCK_SESSION.expires_at,
-          token_type: "bearer",
-          user: MOCK_USER,
+        json: { user, session, access_token: session.access_token },
+      });
+    }
+
+    // auth/v1/authorize (signInWithOAuth) — supabase-js navigates the browser
+    // directly to this URL. Redirect it straight back to the app's /auth/callback
+    // with a mock code so the whole Google flow completes without a real provider.
+    if (url.includes("/auth/v1/authorize")) {
+      const redirectMatch = url.match(/redirect_to=([^&]*)/);
+      const decoded = redirectMatch
+        ? decodeURIComponent(redirectMatch[1] || "")
+        : "";
+
+      const callbackBase = decoded || "http://localhost:3100/auth/callback";
+
+      return route.fulfill({
+        status: 302,
+        headers: {
+          location: `${callbackBase}?code=mock-oauth-code`,
         },
       });
     }
 
-    if (body?.grant_type === "password" && body?.email === "bad@example.com") {
-      return route.fulfill({
-        status: 400,
-        json: { error: "invalid_grant", error_description: "Invalid login credentials" },
-      });
+    // auth/v1/user (GET = getUser, PUT = updateUser)
+    if (url.includes("/auth/v1/user") && method === "GET") {
+      if (!user) {
+        return route.fulfill({ status: 200, json: { user: null } });
+      }
+      return route.fulfill({ status: 200, json: { user } });
     }
-    if (!user || !session) {
-      return route.fulfill({
-        status: 400,
-        json: { error: "invalid_grant", error_description: "Invalid login credentials" },
-      });
+
+    if (url.includes("/auth/v1/user") && method === "PUT") {
+      return route.fulfill({ status: 200, json: { user: MOCK_USER } });
     }
-    return route.fulfill({
-      status: 200,
-      json: { user, session, access_token: session.access_token },
-    });
-  }
 
-  // auth/v1/authorize (signInWithOAuth) — supabase-js navigates the browser
-  // directly to this URL. Redirect it straight back to the app's /auth/callback
-  // with a mock code so the whole Google flow completes without a real provider.
-  if (url.includes("/auth/v1/authorize")) {
-    const redirectMatch = url.match(/redirect_to=([^&]*)/);
-    const decoded = redirectMatch
-      ? decodeURIComponent(redirectMatch[1] || "")
-      : "";
-
-    const callbackBase = decoded || "http://localhost:3100/auth/callback";
-
-    return route.fulfill({
-      status: 302,
-      headers: {
-        location: `${callbackBase}?code=mock-oauth-code`,
-      },
-    });
-  }
-
-  // auth/v1/user (GET = getUser, PUT = updateUser)
-  if (url.includes("/auth/v1/user") && method === "GET") {
-    if (!user) {
-      return route.fulfill({ status: 200, json: { user: null } });
+    // auth/v1/session (getSession)
+    if (url.includes("/auth/v1/session") && method === "GET") {
+      if (!session) {
+        return route.fulfill({ status: 200, json: { session: null } });
+      }
+      return route.fulfill({ status: 200, json: { session } });
     }
-    return route.fulfill({ status: 200, json: { user } });
-  }
 
-  if (url.includes("/auth/v1/user") && method === "PUT") {
-    return route.fulfill({ status: 200, json: { user: MOCK_USER } });
-  }
-
-  // auth/v1/session (getSession)
-  if (url.includes("/auth/v1/session") && method === "GET") {
-    if (!session) {
-      return route.fulfill({ status: 200, json: { session: null } });
-    }
-    return route.fulfill({ status: 200, json: { session } });
-  }
-
-  // auth/v1/signup
-  if (url.includes("/auth/v1/signup") && method === "POST") {
-    if (!user || !session) {
-      return route.fulfill({ status: 200, json: { user: null, session: null } });
-    }
-    return route.fulfill({
-      status: 200,
-      json: { user, session, access_token: session.access_token },
-    });
-  }
-
-  // auth/v1/recover
-  if (url.includes("/auth/v1/recover") && method === "POST") {
-    return route.fulfill({ status: 200, json: {} });
-  }
-
-  // rest/v1/screening_results
-  if (url.includes("/rest/v1/screening_results") && method === "GET") {
-    if (opts?.screeningResult) {
+    // auth/v1/signup
+    if (url.includes("/auth/v1/signup") && method === "POST") {
+      if (!user || !session) {
+        return route.fulfill({
+          status: 200,
+          json: { user: null, session: null },
+        });
+      }
       return route.fulfill({
         status: 200,
-        json: opts.screeningResult,
+        json: { user, session, access_token: session.access_token },
+      });
+    }
+
+    // auth/v1/recover
+    if (url.includes("/auth/v1/recover") && method === "POST") {
+      return route.fulfill({ status: 200, json: {} });
+    }
+
+    // rest/v1/screening_results
+    if (url.includes("/rest/v1/screening_results") && method === "GET") {
+      if (opts?.screeningResult) {
+        return route.fulfill({
+          status: 200,
+          json: opts.screeningResult,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      return route.fulfill({
+        status: 200,
+        json: null,
         headers: { "content-type": "application/json" },
       });
     }
-    return route.fulfill({
-      status: 200,
-      json: null,
-      headers: { "content-type": "application/json" },
-    });
-  }
 
-  if (url.includes("/rest/v1/screening_results") && (method === "POST" || method === "PATCH")) {
-    return route.fulfill({ status: 201, json: {}, headers: { "content-type": "application/json" } });
-  }
-
-  // rest/v1/user_progress
-  if (url.includes("/rest/v1/user_progress") && method === "GET") {
-    return route.fulfill({
-      status: 200,
-      json: null,
-      headers: { "content-type": "application/json" },
-    });
-  }
-
-  if (url.includes("/rest/v1/user_progress") && (method === "POST" || method === "PATCH" || method === "PUT")) {
-    return route.fulfill({ status: 200, json: {}, headers: { "content-type": "application/json" } });
-  }
-
-  // rest/v1/daily_tasks (stable ids/type/day — titles come from translations)
-  if (url.includes("/rest/v1/daily_tasks") && !url.includes("completions") && !url.includes("daily_task_translations")) {
-    return route.fulfill({
-      status: 200,
-      json: DAILY_TASKS,
-      headers: { "content-type": "application/json" },
-    });
-  }
-
-  // rest/v1/daily_task_translations (locale-filtered)
-  if (url.includes("/rest/v1/daily_task_translations")) {
-    const locale = getRequestedLocale(url);
-    const requestedIds = getRequestedTaskIds(url);
-    let rows = DAILY_TASK_TRANSLATIONS.filter((t) => t.locale === locale);
-    if (requestedIds.length > 0) {
-      rows = rows.filter(
-        (t) => requestedIds.includes(t.task_id),
-      );
-    }
-    return route.fulfill({
-      status: 200,
-      json: rows,
-      headers: { "content-type": "application/json" },
-    });
-  }
-
-  // rest/v1/daily_task_completions
-  if (url.includes("/rest/v1/daily_task_completions")) {
-    if (method === "POST") {
-      const completion = request.postDataJSON() ?? {};
-      state.completions.push(completion);
-      return route.fulfill({ status: 201, json: {}, headers: { "content-type": "application/json" } });
-    }
-    const dayMatch = url.match(/day_index=eq\.(\d+)/);
-    const day = dayMatch ? Number(dayMatch[1]) : null;
-    const rows = state.completions.filter(
-      (c) => day === null || c.day_index === day,
-    );
-    return route.fulfill({ status: 200, json: rows, headers: { "content-type": "application/json" } });
-  }
-
-  // rest/v1/weekly_task_translations (locale-filtered) — MUST come before the
-  // weekly_tasks branch, otherwise "/rest/v1/weekly_task_translations" is
-  // swallowed by the substring match below.
-  if (url.includes("/rest/v1/weekly_task_translations")) {
-    const locale = getRequestedLocale(url);
-    const requestedIds = getRequestedWeeklyTaskIds(url);
-    let rows = WEEKLY_TASK_TRANSLATIONS.filter((t) => t.locale === locale);
-    if (requestedIds.length > 0) {
-      rows = rows.filter((t) => requestedIds.includes(t.weekly_task_id));
-    }
-    return route.fulfill({
-      status: 200,
-      json: rows,
-      headers: { "content-type": "application/json" },
-    });
-  }
-
-  // rest/v1/weekly_tasks (stable ids/weeks — titles come from translations)
-  if (url.includes("/rest/v1/weekly_tasks") && !url.includes("completions")) {
-    return route.fulfill({
-      status: 200,
-      json: WEEKLY_TASKS,
-      headers: { "content-type": "application/json" },
-    });
-  }
-
-  // rest/v1/weekly_task_completions
-  if (url.includes("/rest/v1/weekly_task_completions")) {
-    return route.fulfill({ status: 200, json: [], headers: { "content-type": "application/json" } });
-  }
-
-  // rest/v1/journal_entries
-  if (url.includes("/rest/v1/journal_entries")) {
-    if (method === "POST") {
-      const body = request.postDataJSON() ?? {};
+    if (
+      url.includes("/rest/v1/screening_results") &&
+      (method === "POST" || method === "PATCH")
+    ) {
       return route.fulfill({
         status: 201,
-        json: {
-          id: "journal-1",
-          date: body.date ?? "2026-08-03",
-          entry_type: body.entry_type ?? "checkin",
-          mood: body.mood ?? 3,
-          note: body.note ?? "",
-          user_id: user.id,
-          created_at: "2026-08-03T12:00:00Z",
-        },
+        json: {},
         headers: { "content-type": "application/json" },
       });
     }
-    return route.fulfill({ status: 200, json: [], headers: { "content-type": "application/json" } });
-  }
 
-  return route.fallback();
+    // rest/v1/user_progress
+    if (url.includes("/rest/v1/user_progress") && method === "GET") {
+      return route.fulfill({
+        status: 200,
+        json: null,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (
+      url.includes("/rest/v1/user_progress") &&
+      (method === "POST" || method === "PATCH" || method === "PUT")
+    ) {
+      return route.fulfill({
+        status: 200,
+        json: {},
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    // rest/v1/daily_tasks (stable ids/type/day — titles come from translations)
+    if (
+      url.includes("/rest/v1/daily_tasks") &&
+      !url.includes("completions") &&
+      !url.includes("daily_task_translations")
+    ) {
+      return route.fulfill({
+        status: 200,
+        json: DAILY_TASKS,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    // rest/v1/daily_task_translations (locale-filtered)
+    if (url.includes("/rest/v1/daily_task_translations")) {
+      const locale = getRequestedLocale(url);
+      const requestedIds = getRequestedTaskIds(url);
+      let rows = DAILY_TASK_TRANSLATIONS.filter((t) => t.locale === locale);
+      if (requestedIds.length > 0) {
+        rows = rows.filter((t) => requestedIds.includes(t.task_id));
+      }
+      return route.fulfill({
+        status: 200,
+        json: rows,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    // rest/v1/daily_task_completions
+    if (url.includes("/rest/v1/daily_task_completions")) {
+      if (method === "POST") {
+        const completion = request.postDataJSON() ?? {};
+        state.completions.push(completion);
+        return route.fulfill({
+          status: 201,
+          json: {},
+          headers: { "content-type": "application/json" },
+        });
+      }
+      const dayMatch = url.match(/day_index=eq\.(\d+)/);
+      const day = dayMatch ? Number(dayMatch[1]) : null;
+      const rows = state.completions.filter(
+        (c) => day === null || c.day_index === day
+      );
+      return route.fulfill({
+        status: 200,
+        json: rows,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    // rest/v1/weekly_task_translations (locale-filtered) — MUST come before the
+    // weekly_tasks branch, otherwise "/rest/v1/weekly_task_translations" is
+    // swallowed by the substring match below.
+    if (url.includes("/rest/v1/weekly_task_translations")) {
+      const locale = getRequestedLocale(url);
+      const requestedIds = getRequestedWeeklyTaskIds(url);
+      let rows = WEEKLY_TASK_TRANSLATIONS.filter((t) => t.locale === locale);
+      if (requestedIds.length > 0) {
+        rows = rows.filter((t) => requestedIds.includes(t.weekly_task_id));
+      }
+      return route.fulfill({
+        status: 200,
+        json: rows,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    // rest/v1/weekly_tasks (stable ids/weeks — titles come from translations)
+    if (url.includes("/rest/v1/weekly_tasks") && !url.includes("completions")) {
+      return route.fulfill({
+        status: 200,
+        json: WEEKLY_TASKS,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    // rest/v1/weekly_task_completions
+    if (url.includes("/rest/v1/weekly_task_completions")) {
+      return route.fulfill({
+        status: 200,
+        json: [],
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    // rest/v1/journal_entries
+    if (url.includes("/rest/v1/journal_entries")) {
+      if (method === "POST") {
+        const body = request.postDataJSON() ?? {};
+        return route.fulfill({
+          status: 201,
+          json: {
+            id: "journal-1",
+            date: body.date ?? "2026-08-03",
+            entry_type: body.entry_type ?? "checkin",
+            mood: body.mood ?? 3,
+            note: body.note ?? "",
+            user_id: user.id,
+            created_at: "2026-08-03T12:00:00Z",
+          },
+          headers: { "content-type": "application/json" },
+        });
+      }
+      return route.fulfill({
+        status: 200,
+        json: [],
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    return route.fallback();
   };
 }
 

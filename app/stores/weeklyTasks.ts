@@ -46,7 +46,7 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
 
       if (state.tasksLoaded && state.tasks.length) {
         const currentWeekTask = state.tasks.find(
-          (task) => task.week === this.currentWeek,
+          (task) => task.week === this.currentWeek
         );
 
         const fallbackTask = state.tasks[weekIndex % state.tasks.length];
@@ -83,7 +83,7 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
       } catch (error) {
         console.error(
           "[WeeklyTasks] Не удалось загрузить weekly_tasks:",
-          error,
+          error
         );
 
         throw error;
@@ -104,7 +104,7 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
       } catch (error) {
         console.error(
           "[WeeklyTasks] Не удалось загрузить weekly completions:",
-          error,
+          error
         );
 
         throw error;

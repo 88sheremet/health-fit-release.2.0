@@ -3,14 +3,51 @@ import { setActivePinia, createPinia } from "pinia";
 import { useTaskStore } from "~/stores/dailyTasks";
 import { useWeeklyTaskStore } from "~/stores/weeklyTasks";
 
-const { mockDailyTasks, mockWeeklyTasks, getDailyTasks, getWeeklyTasks, getWeeklyCompletions, completeWeeklyTask } = vi.hoisted(() => ({
+const {
+  mockDailyTasks,
+  mockWeeklyTasks,
+  getDailyTasks,
+  getWeeklyTasks,
+  getWeeklyCompletions,
+  completeWeeklyTask,
+} = vi.hoisted(() => ({
   mockDailyTasks: [
-    { id: "f1", day: 1, type: "food" as const, title: "Breakfast", what_doing: "Cook", why_doing: "Health", reward: null },
-    { id: "m1", day: 1, type: "mental" as const, title: "Meditate", what_doing: "10 min", why_doing: "Focus", reward: null },
-    { id: "p1", day: 1, type: "physical" as const, title: "Walk", what_doing: "30 min", why_doing: "Fitness", reward: null },
+    {
+      id: "f1",
+      day: 1,
+      type: "food" as const,
+      title: "Breakfast",
+      what_doing: "Cook",
+      why_doing: "Health",
+      reward: null,
+    },
+    {
+      id: "m1",
+      day: 1,
+      type: "mental" as const,
+      title: "Meditate",
+      what_doing: "10 min",
+      why_doing: "Focus",
+      reward: null,
+    },
+    {
+      id: "p1",
+      day: 1,
+      type: "physical" as const,
+      title: "Walk",
+      what_doing: "30 min",
+      why_doing: "Fitness",
+      reward: null,
+    },
   ],
   mockWeeklyTasks: [
-    { id: "wk1", week: 1, title: "Breathing", what_doing: "4-7-8", why_doing: "Calm" },
+    {
+      id: "wk1",
+      week: 1,
+      title: "Breathing",
+      what_doing: "4-7-8",
+      why_doing: "Calm",
+    },
   ],
   getDailyTasks: vi.fn(),
   getWeeklyTasks: vi.fn(),
@@ -30,17 +67,25 @@ vi.mock("~/services/weeklyTask.service", () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.stubGlobal("useSupabaseClient", vi.fn(() => ({
-    auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: "test-user" } }, error: null }) },
-    from: vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-      single: vi.fn().mockResolvedValue({ data: {}, error: null }),
-      insert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-    }),
-  })));
+  vi.stubGlobal(
+    "useSupabaseClient",
+    vi.fn(() => ({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: { user: { id: "test-user" } },
+          error: null,
+        }),
+      },
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+        single: vi.fn().mockResolvedValue({ data: {}, error: null }),
+        insert: vi.fn().mockReturnThis(),
+        update: vi.fn().mockReturnThis(),
+      }),
+    }))
+  );
   setActivePinia(createPinia());
   getDailyTasks.mockResolvedValue(mockDailyTasks);
   getWeeklyTasks.mockResolvedValue(mockWeeklyTasks);

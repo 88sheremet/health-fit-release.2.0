@@ -1,9 +1,9 @@
 import { routes } from "~/router/routes";
 
 export type GoogleAuthDestination =
-  | (typeof routes.auth.login)
-  | (typeof routes.recovery.daily)
-  | (typeof routes.onboarding.welcome);
+  | typeof routes.auth.login
+  | typeof routes.recovery.daily
+  | typeof routes.onboarding.welcome;
 
 export const GOOGLE_CALLBACK_PATH = "/auth/callback";
 
@@ -25,13 +25,13 @@ export async function signInWithGoogle(): Promise<void> {
 }
 
 export async function getGoogleAuthDestination(
-  code?: unknown,
+  code?: unknown
 ): Promise<GoogleAuthDestination> {
   const supabase = useSupabaseClient();
 
   if (typeof code === "string" && code) {
     const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(
-      code,
+      code
     );
 
     if (exchangeError) {

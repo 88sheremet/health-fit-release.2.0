@@ -14,15 +14,21 @@
 
       <q-card flat class="benefits-card">
         <div class="benefit-item">
-          <div class="benefit-icon"><span class="material-icons">psychology</span></div>
+          <div class="benefit-icon">
+            <span class="material-icons">psychology</span>
+          </div>
           <div class="benefit-text">{{ $t("welcome.benefit1") }}</div>
         </div>
         <div class="benefit-item">
-          <div class="benefit-icon"><span class="material-icons">assignment_turned_in</span></div>
+          <div class="benefit-icon">
+            <span class="material-icons">assignment_turned_in</span>
+          </div>
           <div class="benefit-text">{{ $t("welcome.benefit2") }}</div>
         </div>
         <div class="benefit-item">
-          <div class="benefit-icon"><span class="material-icons">trending_up</span></div>
+          <div class="benefit-icon">
+            <span class="material-icons">trending_up</span>
+          </div>
           <div class="benefit-text">{{ $t("welcome.benefit3") }}</div>
         </div>
       </q-card>
@@ -160,8 +166,17 @@ import { routes } from "~/router/routes";
   color: var(--grey);
 }
 @keyframes pulse {
-  0% { transform: scale(1); opacity: 0.7; }
-  50% { transform: scale(1.15); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.7; }
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
 }
 </style>
