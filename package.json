@@ -1,0 +1,51 @@
+{
+  "name": "nuxt-app",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "mobile:sync": "nuxt generate && cap sync",
+    "mobile:android": "npm run mobile:sync && cap open android",
+    "mobile:ios": "npm run mobile:sync && cap open ios",
+    "postinstall": "nuxt prepare && node scripts/patch-nuxt-b2005.mjs",
+    "import:daily": "node scripts/importDailyTasks.mjs",
+    "import:weekly": "node scripts/importWeeklyTasks.mjs",
+    "assets:build": "node scripts/generateAppAssets.mjs && capacitor-assets generate --ios --android",
+    "test": "vitest run && npm run typecheck",
+    "test:watch": "vitest",
+    "typecheck": "nuxt typecheck",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/ios": "^8.5.0",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@nuxtjs/i18n": "^10.6.0",
+    "@nuxtjs/supabase": "^2.0.10",
+    "@pinia/nuxt": "^1.0.1",
+    "@supabase/supabase-js": "^2.110.8",
+    "@vueuse/core": "^14.3.0",
+    "chart.js": "^4.5.1",
+    "cookie-es": "^3.1.1",
+    "dotenv": "^17.4.2",
+    "nuxt": "^4.5.0",
+    "nuxt-quasar-ui": "^3.1.0",
+    "pinia-plugin-persistedstate": "^4.7.1",
+    "vue": "^3.5.40",
+    "vue-chartjs": "^5.3.4"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.0",
+    "@playwright/test": "^1.62.1",
+    "sass-embedded": "^1.100.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.11",
+    "vue-tsc": "^3.3.11"
+  }
+}
