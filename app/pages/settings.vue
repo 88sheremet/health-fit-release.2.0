@@ -266,99 +266,81 @@ async function changePassword() {
   padding: 24px 20px 100px;
   background: var(--bg-gradient-main);
 }
-
 .header {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-bottom: 24px;
 }
-
 .back-btn {
   color: var(--grey);
 }
-
 .title {
   font-size: 30px;
   font-weight: 700;
 }
-
 .subtitle {
   margin-top: 4px;
   color: var(--grey);
   font-size: 15px;
 }
-
 .settings-card {
   padding: 24px;
   margin-bottom: 20px;
   border-radius: 24px;
 }
-
 .card-header {
   display: flex;
   align-items: center;
   gap: 14px;
   margin-bottom: 22px;
 }
-
 .icon-wrapper {
   width: 52px;
   height: 52px;
   border-radius: 16px;
-
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
 .language-icon {
   background: var(--green-bg);
   color: var(--green);
 }
-
 .password-icon {
   background: var(--grey-icon-bg);
   color: var(--toast-info);
 }
-
 .card-title {
   font-size: 20px;
   font-weight: 700;
 }
-
 .card-subtitle {
   margin-top: 4px;
   color: var(--grey);
   font-size: 14px;
 }
-
 .language-select {
   width: 100%;
 }
-
 .password-fields {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
-
 .password-btn {
   width: 100%;
   height: 52px;
   border-radius: 16px;
   margin-top: 4px;
 }
-
 @media (max-width: 600px) {
   .page {
     padding: 20px 16px 100px;
   }
-
   .settings-card {
     padding: 20px;
   }
-
   .title {
     font-size: 26px;
   }

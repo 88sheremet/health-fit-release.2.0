@@ -170,22 +170,18 @@ watch(
   width: 100%;
   min-height: 100vh;
 }
-
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
 .title {
   font-size: 28px;
   font-weight: 700;
 }
-
 .subtitle {
   color: var(--grey);
 }
-
 .streak-avatar {
   width: 40px;
   height: 40px;
@@ -198,32 +194,27 @@ watch(
   font-weight: 700;
   font-size: 14px;
 }
-
 .energy-card {
   margin-top: 20px;
   padding: 20px;
   border-radius: 20px;
   background: var(--white);
 }
-
 .energy-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
 .value {
   font-size: 22px;
   font-weight: 700;
 }
-
 .tasks {
   margin-top: 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-
 .task-card {
   padding: 16px;
   border-radius: 18px;
@@ -231,33 +222,27 @@ watch(
   transition: 0.2s;
   cursor: pointer;
 }
-
 .task-card.done {
   opacity: 0.6;
   transform: scale(0.98);
 }
-
 .task-title {
   font-weight: 600;
   margin-bottom: 10px;
   margin-right: 10px;
 }
-
 .task-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
 .task-footer .q-btn {
   border-radius: 14px;
 }
-
 .reward {
   font-size: 13px;
   color: var(--green);
 }
-
 .rest-card {
   margin-top: 30px;
   text-align: center;
@@ -265,38 +250,31 @@ watch(
   border-radius: 24px;
   background: var(--white);
 }
-
 .emoji {
   font-size: 40px;
 }
-
 .rest-title {
   font-size: 20px;
   font-weight: 700;
   margin-top: 10px;
 }
-
 .rest-text {
   color: var(--grey);
 }
-
 .task-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
 }
-
 .click-icon {
   width: 28px;
   height: 30px;
   object-fit: contain;
 }
-
 .select-btn {
   padding-left: 10px;
   padding-right: 10px;
 }
-
 .icon-popup {
   margin-bottom: 10px;
   background: none;

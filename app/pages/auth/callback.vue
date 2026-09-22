@@ -43,7 +43,6 @@ onMounted(async () => {
   gap: 20px;
   background: var(--bg-gradient-main);
 }
-
 .callback-text {
   font-size: 16px;
   color: var(--grey);

@@ -139,7 +139,6 @@ onMounted(async () => {
   margin-top: 32px;
   padding: 0 20px 32px;
 }
-
 .logout-wrapper :deep(.q-btn) {
   width: 100%;
   max-width: 400px;

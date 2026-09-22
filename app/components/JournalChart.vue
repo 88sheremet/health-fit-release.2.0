@@ -236,47 +236,38 @@ ChartJS.register(emojiPlugin);
   background: var(--bg-gradient-main);
   min-height: 100vh;
 }
-
 .header {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 24px;
 }
-
 .back-btn {
   background: none;
   border: none;
   cursor: pointer;
   padding: 4px;
   border-radius: 50%;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   color: var(--black1);
 }
-
 .back-btn:hover {
   background: var(--shadow-md);
 }
-
 .chart-card {
   padding: 24px;
   border-radius: 24px;
 }
-
 .title {
   font-size: 24px;
   font-weight: 700;
   margin-bottom: 4px;
 }
-
 .back-btn > .material-icons {
   font-size: 34px;
 }
-
 .chart-wrapper {
   width: 100%;
   margin-top: 20px;

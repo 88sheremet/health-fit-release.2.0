@@ -43,20 +43,17 @@ onMounted(async () => {
   color: var(--black1);
   box-shadow: 0 2px 10px var(--shadow-sm);
 }
-
 .q-toolbar {
   min-height: 56px;
   display: flex;
   align-items: center;
 }
-
 .app-logo {
   width: 140px;
   height: 42px;
   object-fit: contain;
   object-position: left center;
 }
-
 .settings-btn {
   margin-left: auto;
   width: 42px;
@@ -65,7 +62,6 @@ onMounted(async () => {
   color: var(--grey);
   font-size: 1.5em;
 }
-
 .settings-btn:hover {
   background: var(--grey-hover);
   color: var(--black1);
