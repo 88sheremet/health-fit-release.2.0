@@ -11,9 +11,7 @@ const LOCALE_COOKIE = {
 };
 
 async function setLocale(page: any, locale: "ru" | "uk") {
-  await page.context().addCookies([
-    { ...LOCALE_COOKIE, value: locale },
-  ]);
+  await page.context().addCookies([{ ...LOCALE_COOKIE, value: locale }]);
 }
 
 /**
@@ -43,9 +41,15 @@ test.describe("Daily tasks localization", () => {
     await expect(page.locator(".energy-card")).toBeVisible({ timeout: 20000 });
 
     await expect(page.locator(".task-card")).toHaveCount(3);
-    await expect(page.locator(".task-card").nth(0).locator(".task-title")).toHaveText("Завтрак");
-    await expect(page.locator(".task-card").nth(1).locator(".task-title")).toHaveText("Медитация");
-    await expect(page.locator(".task-card").nth(2).locator(".task-title")).toHaveText("Прогулка");
+    await expect(
+      page.locator(".task-card").nth(0).locator(".task-title")
+    ).toHaveText("Завтрак");
+    await expect(
+      page.locator(".task-card").nth(1).locator(".task-title")
+    ).toHaveText("Медитация");
+    await expect(
+      page.locator(".task-card").nth(2).locator(".task-title")
+    ).toHaveText("Прогулка");
   });
 
   test("renders Ukrainian translations when locale is uk", async ({ page }) => {
@@ -53,22 +57,32 @@ test.describe("Daily tasks localization", () => {
     await page.goto("/daily");
 
     await expect(page.locator(".task-card")).toHaveCount(3, { timeout: 20000 });
-    await expect(page.locator(".task-card").nth(0).locator(".task-title")).toHaveText("Сніданок");
-    await expect(page.locator(".task-card").nth(1).locator(".task-title")).toHaveText("Медитація");
-    await expect(page.locator(".task-card").nth(2).locator(".task-title")).toHaveText("Прогулянка");
+    await expect(
+      page.locator(".task-card").nth(0).locator(".task-title")
+    ).toHaveText("Сніданок");
+    await expect(
+      page.locator(".task-card").nth(1).locator(".task-title")
+    ).toHaveText("Медитація");
+    await expect(
+      page.locator(".task-card").nth(2).locator(".task-title")
+    ).toHaveText("Прогулянка");
   });
 
   test("switching locale reloads translated tasks without a fresh auth session", async ({
     page,
   }) => {
     await page.goto("/daily");
-    await expect(page.locator(".task-card").nth(0).locator(".task-title")).toHaveText("Завтрак", { timeout: 20000 });
+    await expect(
+      page.locator(".task-card").nth(0).locator(".task-title")
+    ).toHaveText("Завтрак", { timeout: 20000 });
 
     await setLocale(page, "uk");
     await page.reload();
 
     await expect(page.locator(".task-card")).toHaveCount(3, { timeout: 20000 });
-    await expect(page.locator(".task-card").nth(0).locator(".task-title")).toHaveText("Сніданок");
+    await expect(
+      page.locator(".task-card").nth(0).locator(".task-title")
+    ).toHaveText("Сніданок");
   });
 
   test("task details dialog shows translated what/why without undefined text", async ({
@@ -99,7 +113,9 @@ test.describe("Daily tasks localization", () => {
 
     await page.reload();
 
-    await expect(page.locator(".task-card").nth(0).locator(".select-btn")).toBeDisabled();
+    await expect(
+      page.locator(".task-card").nth(0).locator(".select-btn")
+    ).toBeDisabled();
   });
 
   test("completion survives a locale switch (same stable task id)", async ({
@@ -109,13 +125,19 @@ test.describe("Daily tasks localization", () => {
     await dismissCheckIn(page);
 
     await page.locator(".task-card").nth(1).locator(".select-btn").click();
-    await expect(page.locator(".task-card").nth(1).locator(".select-btn")).toBeDisabled();
+    await expect(
+      page.locator(".task-card").nth(1).locator(".select-btn")
+    ).toBeDisabled();
 
     await setLocale(page, "uk");
     await page.reload();
 
-    await expect(page.locator(".task-card").nth(1).locator(".task-title")).toHaveText("Медитація");
-    await expect(page.locator(".task-card").nth(1).locator(".select-btn")).toBeDisabled();
+    await expect(
+      page.locator(".task-card").nth(1).locator(".task-title")
+    ).toHaveText("Медитація");
+    await expect(
+      page.locator(".task-card").nth(1).locator(".select-btn")
+    ).toBeDisabled();
   });
 
   test("writes a stable task id (not translation id) on completion", async ({

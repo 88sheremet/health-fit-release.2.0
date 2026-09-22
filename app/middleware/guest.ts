@@ -5,7 +5,6 @@ export default defineNuxtRouteMiddleware(async () => {
     data: { user },
   } = await supabase.auth.getUser();
 
-
   if (!user) {
     return;
   }
@@ -17,10 +16,7 @@ export default defineNuxtRouteMiddleware(async () => {
     .maybeSingle();
 
   if (error) {
-    console.error(
-      "[Guest Middleware] Ошибка проверки screening:",
-      error
-    );
+    console.error("[Guest Middleware] Ошибка проверки screening:", error);
 
     return;
   }

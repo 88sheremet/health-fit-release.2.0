@@ -171,12 +171,10 @@ const hasExerciseData = computed(() => {
   flex-direction: column;
   background: var(--white);
 }
-
 .header {
   position: relative;
   padding: 20px 24px 16px 24px;
 }
-
 .close-btn {
   position: absolute;
   top: 12px;
@@ -192,7 +190,6 @@ const hasExerciseData = computed(() => {
   justify-content: center;
   z-index: 2;
 }
-
 .title {
   font-size: 24px;
   font-weight: 700;
@@ -200,7 +197,6 @@ const hasExerciseData = computed(() => {
   padding-right: 40px;
   margin-bottom: 12px;
 }
-
 .reward-chip {
   display: inline-block;
   padding: 4px 12px;
@@ -211,44 +207,37 @@ const hasExerciseData = computed(() => {
   font-weight: 600;
   margin-bottom: 4px;
 }
-
 .separator {
   border: none;
   height: 1px;
   background: var(--border-default);
   margin: 0;
 }
-
 .content {
   flex: 1;
   overflow-y: auto;
   padding: 24px;
 }
-
 .section-title {
   font-size: 20px;
   font-weight: 700;
   margin-bottom: 14px;
 }
-
 .exercise-block {
   margin-bottom: 20px;
 }
-
 .exercise-title {
   font-size: 17px;
   font-weight: 700;
   margin-bottom: 8px;
   color: var(--green);
 }
-
 .text {
   font-size: 15px;
   line-height: 1.7;
   color: var(--grey-dark);
   white-space: pre-line;
 }
-
 .content-separator {
   margin: 24px 0;
 }

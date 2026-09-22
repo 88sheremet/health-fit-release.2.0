@@ -11,9 +11,7 @@ const LOCALE_COOKIE = {
 };
 
 async function setLocale(page: any, locale: "ru" | "uk") {
-  await page.context().addCookies([
-    { ...LOCALE_COOKIE, value: locale },
-  ]);
+  await page.context().addCookies([{ ...LOCALE_COOKIE, value: locale }]);
 }
 
 test.describe("Menu page", () => {
@@ -86,7 +84,9 @@ test.describe("Weekly page", () => {
 
     await expect(page.locator(".page .title")).toBeVisible();
     await expect(page.locator(".task-card")).toBeVisible();
-    await expect(page.locator(".task-title")).toHaveText("Дыхательная практика");
+    await expect(page.locator(".task-title")).toHaveText(
+      "Дыхательная практика"
+    );
   });
 
   test("shows week number and day", async ({ page }) => {
@@ -106,9 +106,12 @@ test.describe("Weekly page", () => {
 
   test("switching locale reloads translated task title", async ({ page }) => {
     await page.goto("/weekly");
-    await expect(page.locator(".task-title")).toHaveText("Дыхательная практика", {
-      timeout: 20000,
-    });
+    await expect(page.locator(".task-title")).toHaveText(
+      "Дыхательная практика",
+      {
+        timeout: 20000,
+      }
+    );
 
     await setLocale(page, "uk");
     await page.reload();

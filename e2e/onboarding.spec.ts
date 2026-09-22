@@ -1,5 +1,8 @@
 import { test, expect } from "@playwright/test";
-import { mockSupabaseAuth, mockScreeningCompleted } from "./helpers/supabase-mock";
+import {
+  mockSupabaseAuth,
+  mockScreeningCompleted,
+} from "./helpers/supabase-mock";
 
 test.describe("Welcome page", () => {
   test("renders welcome content", async ({ page }) => {
@@ -53,7 +56,9 @@ test.describe("Questions flow", () => {
     await page.goto("/questions");
 
     await expect(page.locator(".question-card").first()).toBeVisible();
-    await expect(page.locator(".question-card .answer-btn").first()).toBeVisible();
+    await expect(
+      page.locator(".question-card .answer-btn").first()
+    ).toBeVisible();
     await expect(page.locator(".next-btn")).toBeVisible();
   });
 
@@ -69,7 +74,11 @@ test.describe("Questions flow", () => {
     await mockSupabaseAuth(page);
     await page.goto("/questions");
 
-    const firstAnswer = page.locator(".question-card").first().locator(".answer-btn").first();
+    const firstAnswer = page
+      .locator(".question-card")
+      .first()
+      .locator(".answer-btn")
+      .first();
     await firstAnswer.click();
     await expect(firstAnswer).toHaveClass(/active/);
   });
@@ -80,16 +89,20 @@ test.describe("Questions flow", () => {
 
     await page.locator(".next-btn").click();
 
-    await expect(
-      page.locator(".question-card.invalid").first()
-    ).toBeVisible({ timeout: 5000 });
+    await expect(page.locator(".question-card.invalid").first()).toBeVisible({
+      timeout: 5000,
+    });
   });
 
-  test("answering all block 1 questions and clicking next advances to block 2", async ({ page }) => {
+  test("answering all block 1 questions and clicking next advances to block 2", async ({
+    page,
+  }) => {
     await mockSupabaseAuth(page);
     await page.goto("/questions");
 
-    await expect(page.locator(".question-card").first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator(".question-card").first()).toBeVisible({
+      timeout: 15000,
+    });
     const count = await page.locator(".question-card").count();
     expect(count).toBeGreaterThan(0);
 
@@ -102,6 +115,8 @@ test.describe("Questions flow", () => {
     await page.locator(".next-btn").scrollIntoViewIfNeeded();
     await page.locator(".next-btn").click();
 
-    await expect(page.locator(".block-counter")).toContainText("2", { timeout: 10000 });
+    await expect(page.locator(".block-counter")).toContainText("2", {
+      timeout: 10000,
+    });
   });
 });

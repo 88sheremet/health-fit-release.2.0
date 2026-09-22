@@ -13,7 +13,9 @@
       <div class="card-main">{{ $t("results.food.cardMain") }}</div>
       <div class="divider"></div>
       <div class="card-list">
-        <div v-for="item in 5" :key="item">{{ $t("results.food.list." + (item - 1)) }}</div>
+        <div v-for="item in 5" :key="item">
+          {{ $t("results.food.list." + (item - 1)) }}
+        </div>
       </div>
     </q-card>
 
@@ -34,7 +36,9 @@
     <q-card flat class="recovery-card">
       <div class="info-title">{{ $t("results.food.recoveryTitle") }}</div>
       <div class="card-list">
-        <div v-for="item in 4" :key="item">{{ $t("results.food.recoveryList." + (item - 1)) }}</div>
+        <div v-for="item in 4" :key="item">
+          {{ $t("results.food.recoveryList." + (item - 1)) }}
+        </div>
       </div>
     </q-card>
 

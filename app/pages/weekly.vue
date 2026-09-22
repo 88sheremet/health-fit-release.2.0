@@ -101,26 +101,21 @@ async function completeWeeklyTask() {
   background: var(--bg-gradient-main);
   min-height: 100vh;
 }
-
 .header {
   margin-bottom: 20px;
 }
-
 .title {
   font-size: 30px;
   font-weight: 700;
 }
-
 .subtitle {
   color: var(--grey);
   margin-top: 4px;
 }
-
 .task-card {
   border-radius: 24px;
   padding: 24px;
 }
-
 .badge {
   display: inline-flex;
   align-items: center;
@@ -132,35 +127,29 @@ async function completeWeeklyTask() {
   font-weight: 600;
   margin-bottom: 20px;
 }
-
 .task-title {
   font-size: 24px;
   font-weight: 700;
   margin-bottom: 24px;
 }
-
 .section {
   margin-bottom: 24px;
 }
-
 .section-title {
   font-size: 18px;
   font-weight: 700;
   margin-bottom: 10px;
 }
-
 .text {
   line-height: 1.7;
   color: var(--grey-dark);
   white-space: pre-line;
 }
-
 .complete-btn {
   width: 100%;
   height: 54px;
   border-radius: 16px;
 }
-
 .success-banner {
   padding: 12px 16px;
   border-radius: 12px;
@@ -169,13 +158,11 @@ async function completeWeeklyTask() {
   text-align: center;
   font-weight: 600;
 }
-
 .week-day {
   margin-top: 6px;
   font-size: 14px;
   color: var(--green);
 }
-
 .week-info {
   margin-top: 12px;
   text-align: center;

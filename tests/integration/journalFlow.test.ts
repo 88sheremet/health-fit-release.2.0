@@ -24,7 +24,7 @@ function setupSupabaseClient(user: any) {
         Promise.resolve({
           data: selectResult,
           error: null,
-        }),
+        })
       ),
     }),
   });
@@ -68,7 +68,7 @@ function setupSupabaseClient(user: any) {
                 Promise.resolve({
                   data: selectResult,
                   error: null,
-                }),
+                })
               ),
             })),
           })),
@@ -254,11 +254,11 @@ describe("journal flow integration", () => {
     expect(store.entries).toHaveLength(2);
 
     expect(store.entries.find((entry) => entry.type === "checkin")?.mood).toBe(
-      5,
+      5
     );
 
     expect(store.entries.find((entry) => entry.type === "note")?.note).toBe(
-      "hello",
+      "hello"
     );
   });
 

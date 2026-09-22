@@ -31,7 +31,7 @@ function buildChain(result: ScreeningResult) {
   ["select", "eq", "single", "maybeSingle", "insert", "order"].forEach(
     (method) => {
       target[method] = vi.fn().mockReturnValue(target);
-    },
+    }
   );
 
   return target;
@@ -109,7 +109,9 @@ describe("signInWithGoogle", () => {
       error: supabaseError,
     });
 
-    await expect(signInWithGoogle()).rejects.toThrow("OAuth provider unavailable");
+    await expect(signInWithGoogle()).rejects.toThrow(
+      "OAuth provider unavailable"
+    );
   });
 });
 
@@ -120,7 +122,7 @@ describe("getGoogleAuthDestination", () => {
     await getGoogleAuthDestination("some-code");
 
     expect(client.auth.exchangeCodeForSession).toHaveBeenCalledWith(
-      "some-code",
+      "some-code"
     );
   });
 
@@ -141,9 +143,7 @@ describe("getGoogleAuthDestination", () => {
     const destination = await getGoogleAuthDestination("bad-code");
 
     expect(destination).toBe(routes.auth.login);
-    expect(client.auth.exchangeCodeForSession).toHaveBeenCalledWith(
-      "bad-code",
-    );
+    expect(client.auth.exchangeCodeForSession).toHaveBeenCalledWith("bad-code");
   });
 
   it("routes to /login when getSession errors", async () => {
@@ -199,7 +199,7 @@ describe("getGoogleAuthDestination", () => {
     expect(client.screeningChain.select).toHaveBeenCalled();
     expect(client.screeningChain.eq).toHaveBeenCalledWith(
       "user_id",
-      MOCK_USER.id,
+      MOCK_USER.id
     );
   });
 });

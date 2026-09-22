@@ -53,10 +53,8 @@ const logout = async () => {
   height: 52px;
   margin-top: 4px;
   margin-bottom: 20px;
-
   border: 1px solid var(--grey-hover);
   border-radius: 16px;
-
   color: var(--red);
   font-size: 16px;
   font-weight: 600;

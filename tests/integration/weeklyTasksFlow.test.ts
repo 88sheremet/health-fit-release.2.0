@@ -3,11 +3,34 @@ import { setActivePinia, createPinia } from "pinia";
 import { useWeeklyTaskStore } from "~/stores/weeklyTasks";
 import { useTaskStore } from "~/stores/dailyTasks";
 
-const { mockWeeklyTasks, getWeeklyTasks, getWeeklyCompletions, completeWeeklyTask } = vi.hoisted(() => ({
+const {
+  mockWeeklyTasks,
+  getWeeklyTasks,
+  getWeeklyCompletions,
+  completeWeeklyTask,
+} = vi.hoisted(() => ({
   mockWeeklyTasks: [
-    { id: "wk1", week: 1, title: "Breathing Exercise", what_doing: "4-7-8 technique", why_doing: "Reduce anxiety" },
-    { id: "wk2", week: 2, title: "Cold Shower", what_doing: "30 seconds", why_doing: "Resilience" },
-    { id: "wk3", week: 3, title: "Digital Detox", what_doing: "No screens after 8pm", why_doing: "Better sleep" },
+    {
+      id: "wk1",
+      week: 1,
+      title: "Breathing Exercise",
+      what_doing: "4-7-8 technique",
+      why_doing: "Reduce anxiety",
+    },
+    {
+      id: "wk2",
+      week: 2,
+      title: "Cold Shower",
+      what_doing: "30 seconds",
+      why_doing: "Resilience",
+    },
+    {
+      id: "wk3",
+      week: 3,
+      title: "Digital Detox",
+      what_doing: "No screens after 8pm",
+      why_doing: "Better sleep",
+    },
   ],
   getWeeklyTasks: vi.fn(),
   getWeeklyCompletions: vi.fn(),
@@ -22,17 +45,25 @@ vi.mock("~/services/weeklyTask.service", () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.stubGlobal("useSupabaseClient", vi.fn(() => ({
-    auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: "test-user" } }, error: null }) },
-    from: vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-      single: vi.fn().mockResolvedValue({ data: {}, error: null }),
-      insert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-    }),
-  })));
+  vi.stubGlobal(
+    "useSupabaseClient",
+    vi.fn(() => ({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: { user: { id: "test-user" } },
+          error: null,
+        }),
+      },
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+        single: vi.fn().mockResolvedValue({ data: {}, error: null }),
+        insert: vi.fn().mockReturnThis(),
+        update: vi.fn().mockReturnThis(),
+      }),
+    }))
+  );
   setActivePinia(createPinia());
   getWeeklyTasks.mockResolvedValue(mockWeeklyTasks);
   getWeeklyCompletions.mockResolvedValue([]);

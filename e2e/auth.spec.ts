@@ -1,5 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { mockSupabaseAuth, mockSupabaseNoSession, seedSupabaseSession, mockSupabaseOAuth, mockSupabaseOAuthFailure } from "./helpers/supabase-mock";
+import {
+  mockSupabaseAuth,
+  mockSupabaseNoSession,
+  seedSupabaseSession,
+  mockSupabaseOAuth,
+  mockSupabaseOAuthFailure,
+} from "./helpers/supabase-mock";
 
 const MOCK_USER_REF = {
   id: "test-user-id",
@@ -17,7 +23,9 @@ test.describe("Login page", () => {
 
     await expect(page.locator(".login-card h1")).toBeVisible();
     await expect(page.locator(".login-card")).toBeVisible();
-    await expect(page.locator(".login-card button[type='submit']")).toBeVisible();
+    await expect(
+      page.locator(".login-card button[type='submit']")
+    ).toBeVisible();
   });
 
   test("shows error on empty submit", async ({ page }) => {
@@ -25,7 +33,9 @@ test.describe("Login page", () => {
     await page.goto("/login");
     await page.locator(".login-card button[type='submit']").click();
 
-    await expect(page.locator(".login-error")).toHaveText("Введите email и пароль");
+    await expect(page.locator(".login-error")).toHaveText(
+      "Введите email и пароль"
+    );
   });
 
   test("shows error on wrong credentials", async ({ page }) => {
@@ -36,10 +46,14 @@ test.describe("Login page", () => {
     await page.getByRole("textbox", { name: /пароль/i }).fill("wrongpassword");
     await page.locator(".login-card button[type='submit']").click();
 
-    await expect(page.locator(".login-error")).toHaveText("Invalid login credentials");
+    await expect(page.locator(".login-error")).toHaveText(
+      "Invalid login credentials"
+    );
   });
 
-  test("navigates to daily on successful login when screening exists", async ({ page }) => {
+  test("navigates to daily on successful login when screening exists", async ({
+    page,
+  }) => {
     const MOCK_SESSION_OBJ = {
       access_token: "tok",
       refresh_token: "ref",
@@ -70,7 +84,10 @@ test.describe("Login page", () => {
         return route.fulfill({ status: 200, json: { user: null } });
       }
       if (url.includes("/auth/v1/session")) {
-        return route.fulfill({ status: 200, json: { session: MOCK_SESSION_OBJ } });
+        return route.fulfill({
+          status: 200,
+          json: { session: MOCK_SESSION_OBJ },
+        });
       }
       if (url.includes("/rest/v1/screening_results")) {
         return route.fulfill({
@@ -80,7 +97,11 @@ test.describe("Login page", () => {
         });
       }
       if (url.includes("/rest/v1/")) {
-        return route.fulfill({ status: 200, json: [], headers: { "content-type": "application/json" } });
+        return route.fulfill({
+          status: 200,
+          json: [],
+          headers: { "content-type": "application/json" },
+        });
       }
       return route.fallback();
     });
@@ -89,7 +110,9 @@ test.describe("Login page", () => {
 
     await expect(page.locator(".login-card")).toBeVisible({ timeout: 15000 });
 
-    await page.getByRole("textbox", { name: /email/i }).fill("test@example.com");
+    await page
+      .getByRole("textbox", { name: /email/i })
+      .fill("test@example.com");
     await page.getByRole("textbox", { name: /пароль/i }).fill("password123");
     await page.locator(".login-card button[type='submit']").click();
 
@@ -100,14 +123,18 @@ test.describe("Login page", () => {
     await mockSupabaseNoSession(page);
     await page.goto("/login");
 
-    await expect(page.locator('.login-links a[href="/register"]')).toBeVisible();
+    await expect(
+      page.locator('.login-links a[href="/register"]')
+    ).toBeVisible();
   });
 
   test("has link to forgot password", async ({ page }) => {
     await mockSupabaseNoSession(page);
     await page.goto("/login");
 
-    await expect(page.locator('.login-links a[href="/forgot-password"]')).toBeVisible();
+    await expect(
+      page.locator('.login-links a[href="/forgot-password"]')
+    ).toBeVisible();
   });
 });
 
@@ -125,20 +152,24 @@ test.describe("Register page", () => {
     await page.goto("/register");
     await page.locator(".register-card button.bg-primary").click();
 
-    await expect(page.locator(".register-error")).toHaveText("Заполните все поля");
+    await expect(page.locator(".register-error")).toHaveText(
+      "Заполните все поля"
+    );
   });
 
   test("shows error on short password", async ({ page }) => {
     await mockSupabaseNoSession(page);
     await page.goto("/register");
 
-    await page.getByRole("textbox", { name: /email/i }).fill("user@example.com");
+    await page
+      .getByRole("textbox", { name: /email/i })
+      .fill("user@example.com");
     await page.getByRole("textbox", { name: /^Пароль$/ }).fill("123");
     await page.getByRole("textbox", { name: /повторите пароль/i }).fill("123");
     await page.locator(".register-card button.bg-primary").click();
 
     await expect(page.locator(".register-error")).toHaveText(
-      "Пароль должен содержать минимум 6 символов",
+      "Пароль должен содержать минимум 6 символов"
     );
   });
 
@@ -146,19 +177,27 @@ test.describe("Register page", () => {
     await mockSupabaseNoSession(page);
     await page.goto("/register");
 
-    await page.getByRole("textbox", { name: /email/i }).fill("user@example.com");
+    await page
+      .getByRole("textbox", { name: /email/i })
+      .fill("user@example.com");
     await page.getByRole("textbox", { name: /^Пароль$/ }).fill("123456");
-    await page.getByRole("textbox", { name: /повторите пароль/i }).fill("654321");
+    await page
+      .getByRole("textbox", { name: /повторите пароль/i })
+      .fill("654321");
     await page.locator(".register-card button.bg-primary").click();
 
-    await expect(page.locator(".register-error")).toHaveText("Пароли не совпадают");
+    await expect(page.locator(".register-error")).toHaveText(
+      "Пароли не совпадают"
+    );
   });
 
   test("has link back to login", async ({ page }) => {
     await mockSupabaseNoSession(page);
     await page.goto("/register");
 
-    await expect(page.locator('.register-links a[href="/login"]')).toBeVisible();
+    await expect(
+      page.locator('.register-links a[href="/login"]')
+    ).toBeVisible();
   });
 });
 

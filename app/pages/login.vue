@@ -190,18 +190,15 @@ const redirectAfterLogin = async (userId: string) => {
   justify-content: center;
   padding: 24px;
 }
-
 .login-card {
   width: 100%;
   max-width: 400px;
 }
-
 .login-error {
   margin-bottom: 16px;
   color: var(--red);
   font-size: 14px;
 }
-
 .oauth-divider {
   display: flex;
   align-items: center;
@@ -210,7 +207,6 @@ const redirectAfterLogin = async (userId: string) => {
   color: var(--grey);
   font-size: 14px;
 }
-
 .oauth-divider::before,
 .oauth-divider::after {
   content: "";
@@ -218,7 +214,6 @@ const redirectAfterLogin = async (userId: string) => {
   height: 1px;
   background: var(--border-default);
 }
-
 .google-btn {
   height: 48px;
   border-radius: 12px;
@@ -229,43 +224,34 @@ const redirectAfterLogin = async (userId: string) => {
   font-weight: 600;
   transition: background 0.2s, border-color 0.2s, transform 0.2s;
 }
-
 .google-btn:hover {
   background: var(--grey-hover);
   border-color: var(--green);
 }
-
 .google-btn:active {
   transform: scale(0.98);
 }
-
 .google-icon {
   width: 22px;
   height: 22px;
   margin-right: 10px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   font-family: Arial, sans-serif;
   font-size: 20px;
   font-weight: 700;
-
-  color: #4285f4;
+  color: var(--google-blue);
 }
-
 .google-text {
   line-height: 1;
 }
-
 .login-links {
   display: flex;
   justify-content: space-between;
   gap: 16px;
   margin-top: 20px;
 }
-
 .login-links a {
   color: var(--green);
   text-decoration: none;

@@ -207,113 +207,81 @@ const registerWithGoogle = async () => {
 <style scoped>
 .register-page {
   min-height: 100vh;
-
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
 }
-
 .register-card {
   width: 100%;
   max-width: 400px;
 }
-
 .register-error {
   margin-bottom: 16px;
-
   color: var(--red);
   font-size: 14px;
 }
-
 .register-success {
   margin-bottom: 16px;
-
   color: var(--green);
   font-size: 14px;
 }
-
 .oauth-divider {
   display: flex;
   align-items: center;
   gap: 12px;
-
   margin: 24px 0;
-
   color: var(--grey);
   font-size: 14px;
 }
-
 .oauth-divider::before,
 .oauth-divider::after {
   content: "";
-
   flex: 1;
-
   height: 1px;
-
   background: var(--border-default);
 }
-
 .google-btn {
   height: 48px;
-
   border-radius: 12px;
-
   background: var(--white);
   color: var(--black1);
-
   border: 1px solid var(--border-default);
-
   font-size: 15px;
   font-weight: 600;
-
   transition: background 0.2s, border-color 0.2s, transform 0.2s;
 }
-
 .google-btn:hover {
   background: var(--grey-hover);
   border-color: var(--green);
 }
-
 .google-btn:active {
   transform: scale(0.98);
 }
-
 .google-icon {
   width: 22px;
   height: 22px;
-
   margin-right: 10px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   font-family: Arial, sans-serif;
   font-size: 20px;
   font-weight: 700;
-
-  color: #4285f4;
+  color: var(--google-blue);
 }
-
 .google-text {
   line-height: 1;
 }
-
 .register-links {
   display: flex;
   justify-content: center;
   align-items: center;
-
   gap: 6px;
-
   margin-top: 20px;
 }
-
 .register-links a {
   color: var(--green);
-
   text-decoration: none;
 }
 </style>

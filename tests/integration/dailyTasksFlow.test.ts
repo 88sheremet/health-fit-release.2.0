@@ -32,7 +32,7 @@ const { mockDailyTasks, getDailyTasks } = vi.hoisted(() => {
   return {
     mockDailyTasks: { ru: ruTasks, uk: ukTasks },
     getDailyTasks: vi.fn((locale: string) =>
-      Promise.resolve(mockDailyTasks[locale] ?? mockDailyTasks.ru),
+      Promise.resolve(mockDailyTasks[locale] ?? mockDailyTasks.ru)
     ),
   };
 });
@@ -99,7 +99,7 @@ beforeEach(() => {
           update: vi.fn().mockReturnThis(),
         };
       }),
-    })),
+    }))
   );
 
   setActivePinia(createPinia());
@@ -199,7 +199,7 @@ describe("daily tasks flow integration", () => {
     await store.completeTask(task);
 
     expect(mockCompleteInsert).toHaveBeenCalledWith(
-      expect.objectContaining({ task_id: "task-3" }),
+      expect.objectContaining({ task_id: "task-3" })
     );
     expect(store.isDone("task-3")).toBe(true);
 

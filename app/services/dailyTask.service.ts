@@ -30,7 +30,7 @@ export async function getDailyTasks(locale = "ru"): Promise<DbDailyTask[]> {
       title,
       what_doing,
       why_doing
-    `,
+    `
     )
     .in("task_id", taskIds)
     .eq("locale", locale);

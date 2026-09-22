@@ -4,11 +4,15 @@ export const isRequired = (value: string): boolean => value.trim().length > 0;
 
 export const isEmail = (value: string): boolean => EMAIL_REGEX.test(value);
 
-export const minLength = (min: number) => (value: string): boolean =>
-  value.length >= min;
+export const minLength =
+  (min: number) =>
+  (value: string): boolean =>
+    value.length >= min;
 
-export const matchesField = (other: string) => (value: string): boolean =>
-  value === other;
+export const matchesField =
+  (other: string) =>
+  (value: string): boolean =>
+    value === other;
 
 export type ValidationRule = {
   check: (value: string) => boolean;
@@ -24,9 +28,7 @@ export function createValidator(rules: ValidationRule[]) {
   };
 }
 
-export function validateForm(
-  ...results: Array<string | null>
-): string | null {
+export function validateForm(...results: Array<string | null>): string | null {
   for (const error of results) {
     if (error) return error;
   }

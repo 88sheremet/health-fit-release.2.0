@@ -100,14 +100,12 @@ onMounted(async () => {
   padding: 24px;
   background: var(--bg-gradient-main);
 }
-
 .header {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-bottom: 24px;
 }
-
 .back-btn {
   width: 40px;
   height: 40px;
@@ -115,35 +113,28 @@ onMounted(async () => {
   background: var(--white);
   border: 1px solid var(--border-default);
   cursor: pointer;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   color: var(--black1);
   transition: background 0.2s, border-color 0.2s;
-
   flex-shrink: 0;
 }
-
 .back-btn:hover {
   background: var(--grey-hover);
   border-color: var(--green);
 }
-
 .title {
   font-size: 28px;
   font-weight: 700;
   color: var(--black1);
 }
-
 .loading-state {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 200px;
 }
-
 .entry-card {
   padding: 20px;
   margin-bottom: 16px;
@@ -151,51 +142,42 @@ onMounted(async () => {
   background: var(--white);
   box-shadow: 0 10px 25px var(--shadow-md);
 }
-
 .entry-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
 }
-
 .entry-date {
   font-size: 15px;
   font-weight: 600;
   color: var(--grey);
 }
-
 .entry-mood {
   font-size: 34px;
 }
-
 .entry-note {
   font-size: 16px;
   line-height: 1.7;
   color: var(--black1);
 }
-
 .empty-state {
   margin-top: 80px;
   text-align: center;
 }
-
 .empty-icon {
   font-size: 72px;
 }
-
 .empty-title {
   margin-top: 20px;
   font-size: 24px;
   font-weight: 700;
 }
-
 .empty-text {
   margin-top: 10px;
   color: var(--grey);
   line-height: 1.6;
 }
-
 .back-btn > .material-icons {
   font-size: 27px;
 }

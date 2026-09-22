@@ -78,8 +78,7 @@ export const useScreeningStore = defineStore("screening", {
       return SCREENING_BLOCKS[this.currentBlock]!;
     },
 
-    progress: (state) =>
-      (state.currentBlock + 1) / SCREENING_BLOCKS.length,
+    progress: (state) => (state.currentBlock + 1) / SCREENING_BLOCKS.length,
 
     dominantProblem(state): DominantProblem {
       const physical = state.blockScores[1] || 0;
@@ -134,7 +133,7 @@ export const useScreeningStore = defineStore("screening", {
               dominant_problem,
               completed_at,
               updated_at
-            `,
+            `
           )
           .eq("user_id", user.id)
           .maybeSingle();
@@ -144,9 +143,7 @@ export const useScreeningStore = defineStore("screening", {
         }
 
         if (!data) {
-          console.log(
-            "[Screening] Результат не найден — скрининг не пройден",
-          );
+          console.log("[Screening] Результат не найден — скрининг не пройден");
 
           this.resetScreening();
           return;
@@ -163,13 +160,11 @@ export const useScreeningStore = defineStore("screening", {
         this.screeningCompleted = true;
 
         this.currentBlock = 0;
-
       } catch (error: any) {
         console.error("[Screening] Ошибка загрузки:", error);
 
         this.error =
-          error?.message ||
-          "Не удалось загрузить результат скрининга";
+          error?.message || "Не удалось загрузить результат скрининга";
 
         this.screeningCompleted = false;
       } finally {
@@ -201,33 +196,28 @@ export const useScreeningStore = defineStore("screening", {
 
         const dominantProblem = this.dominantProblem;
 
-        const { error } = await supabase
-          .from("screening_results")
-          .upsert(
-            {
-              user_id: user.id,
+        const { error } = await supabase.from("screening_results").upsert(
+          {
+            user_id: user.id,
 
-              answers: this.answers,
+            answers: this.answers,
 
-              physical_score:
-                this.blockScores[1] || 0,
+            physical_score: this.blockScores[1] || 0,
 
-              food_score:
-                this.blockScores[2] || 0,
+            food_score: this.blockScores[2] || 0,
 
-              mind_score:
-                this.blockScores[3] || 0,
+            mind_score: this.blockScores[3] || 0,
 
-              dominant_problem: dominantProblem,
+            dominant_problem: dominantProblem,
 
-              completed_at: now,
+            completed_at: now,
 
-              updated_at: now,
-            },
-            {
-              onConflict: "user_id",
-            },
-          );
+            updated_at: now,
+          },
+          {
+            onConflict: "user_id",
+          }
+        );
 
         if (error) {
           throw error;
@@ -235,24 +225,17 @@ export const useScreeningStore = defineStore("screening", {
 
         this.screeningCompleted = true;
 
-        console.log(
-          "[Screening] Результат сохранён в Supabase",
-          {
-            physical: this.blockScores[1],
-            food: this.blockScores[2],
-            mind: this.blockScores[3],
-            dominantProblem,
-          },
-        );
+        console.log("[Screening] Результат сохранён в Supabase", {
+          physical: this.blockScores[1],
+          food: this.blockScores[2],
+          mind: this.blockScores[3],
+          dominantProblem,
+        });
       } catch (error: any) {
-        console.error(
-          "[Screening] Ошибка сохранения:",
-          error,
-        );
+        console.error("[Screening] Ошибка сохранения:", error);
 
         this.error =
-          error?.message ||
-          "Не удалось сохранить результат скрининга";
+          error?.message || "Не удалось сохранить результат скрининга";
 
         throw error;
       } finally {
@@ -266,17 +249,13 @@ export const useScreeningStore = defineStore("screening", {
       await this.saveScreening();
     },
 
-    setAnswer(
-      questionId: number,
-      value: number,
-    ) {
+    setAnswer(questionId: number, value: number) {
       this.answers[questionId] = value;
     },
 
     validateCurrentBlock() {
       return this.currentBlockData.questions.every(
-        (question) =>
-          this.answers[question.id] !== undefined,
+        (question) => this.answers[question.id] !== undefined
       );
     },
 
@@ -295,19 +274,13 @@ export const useScreeningStore = defineStore("screening", {
     nextBlock() {
       this.calculateCurrentBlockScore();
 
-      if (
-        this.currentBlock <
-        this.blocks.length - 1
-      ) {
+      if (this.currentBlock < this.blocks.length - 1) {
         this.currentBlock++;
       }
     },
 
     isLastBlock() {
-      return (
-        this.currentBlock ===
-        this.blocks.length - 1
-      );
+      return this.currentBlock === this.blocks.length - 1;
     },
 
     resetScreening() {

@@ -36,7 +36,7 @@ describe("routes", () => {
 
   it("all routes start with /", () => {
     const flat = Object.values(routes).flatMap((group) =>
-      typeof group === "string" ? [group] : Object.values(group),
+      typeof group === "string" ? [group] : Object.values(group)
     );
 
     for (const route of flat) {
@@ -46,7 +46,7 @@ describe("routes", () => {
 
   it("no route has trailing slash", () => {
     const flat = Object.values(routes).flatMap((group) =>
-      typeof group === "string" ? [group] : Object.values(group),
+      typeof group === "string" ? [group] : Object.values(group)
     );
 
     for (const route of flat) {
@@ -56,7 +56,7 @@ describe("routes", () => {
 
   it("all routes are unique", () => {
     const flat = Object.values(routes).flatMap((group) =>
-      typeof group === "string" ? [group] : Object.values(group),
+      typeof group === "string" ? [group] : Object.values(group)
     );
 
     expect(new Set(flat).size).toBe(flat.length);

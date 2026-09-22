@@ -132,44 +132,37 @@ function save() {
   border-radius: 24px;
   background: var(--grey-hover);
 }
-
 .note-input .q-field--outlined .q-field__control,
 .note-input .q-field--outlined .q-field__control:before {
   border-radius: 14px;
 }
-
 .hero {
   text-align: center;
   margin-bottom: 28px;
 }
-
 .hero .title {
   font-size: 28px;
   font-weight: 700;
   line-height: 1.3;
   color: var(--black1);
 }
-
 .hero .subtitle {
   margin-top: 8px;
   font-size: 14px;
   color: var(--grey);
 }
-
 .section-title {
   margin-bottom: 14px;
   font-size: 18px;
   font-weight: 700;
   color: var(--black1);
 }
-
 .moods {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 10px;
   margin-bottom: 28px;
 }
-
 .mood-btn {
   border: none;
   border-radius: 18px;
@@ -178,46 +171,38 @@ function save() {
   background: var(--grey-hover);
   transition: 0.2s;
 }
-
 .mood-btn.active {
   background: var(--green-bg);
   transform: translateY(-2px);
   box-shadow: 0 0 0 2px var(--green), 0 10px 20px var(--shadow-green);
 }
-
 .emoji {
   font-size: 28px;
 }
-
 .emoji-label {
   margin-top: 6px;
   font-size: 11px;
   color: var(--grey-dark);
 }
-
 .note-input {
   margin-bottom: 20px;
 }
-
 .tip-card {
   padding: 16px;
   border-radius: 18px;
   background: var(--green-bg);
   margin-bottom: 22px;
 }
-
 .tip-title {
   font-weight: 700;
   margin-bottom: 8px;
   color: var(--green-deep);
 }
-
 .tip-text {
   font-size: 14px;
   line-height: 1.6;
   color: var(--green-deep);
 }
-
 .checkin-card .save-btn {
   width: 100%;
   height: 56px;
@@ -227,7 +212,6 @@ function save() {
   font-weight: 700;
   background: var(--gradient-green-bright);
 }
-
 .checkin-card .save-btn:disabled {
   opacity: 0.5;
 }

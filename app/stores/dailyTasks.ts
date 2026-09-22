@@ -172,7 +172,7 @@ export const useTaskStore = defineStore("tasks", {
             energy,
             streak,
             last_visit_date
-          `,
+          `
         )
         .eq("user_id", user.id)
         .maybeSingle();
@@ -231,7 +231,7 @@ export const useTaskStore = defineStore("tasks", {
           `
             task_id,
             day_index
-          `,
+          `
         )
         .eq("user_id", user.id)
         .eq("day_index", this.dayIndex);
@@ -267,7 +267,7 @@ export const useTaskStore = defineStore("tasks", {
         const currentDate = new Date(today);
 
         const diffDays = Math.floor(
-          (currentDate.getTime() - lastVisit.getTime()) / (1000 * 60 * 60 * 24),
+          (currentDate.getTime() - lastVisit.getTime()) / (1000 * 60 * 60 * 24)
         );
 
         if (diffDays === 1) {

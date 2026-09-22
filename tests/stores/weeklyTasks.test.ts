@@ -3,11 +3,13 @@ import { setActivePinia, createPinia } from "pinia";
 import { useWeeklyTaskStore } from "~/stores/weeklyTasks";
 import { useTaskStore } from "~/stores/dailyTasks";
 
-const { getWeeklyTasks, getWeeklyCompletions, completeWeeklyTask } = vi.hoisted(() => ({
-  getWeeklyTasks: vi.fn(),
-  getWeeklyCompletions: vi.fn(),
-  completeWeeklyTask: vi.fn(),
-}));
+const { getWeeklyTasks, getWeeklyCompletions, completeWeeklyTask } = vi.hoisted(
+  () => ({
+    getWeeklyTasks: vi.fn(),
+    getWeeklyCompletions: vi.fn(),
+    completeWeeklyTask: vi.fn(),
+  })
+);
 
 vi.mock("~/services/weeklyTask.service", () => ({
   getWeeklyTasks,
@@ -97,8 +99,20 @@ describe("weeklyTasks store", () => {
       const store = useWeeklyTaskStore();
       store.tasksLoaded = true;
       store.tasks = [
-        { id: "w1", week: 1, title: "Week 1", what_doing: "do1", why_doing: "why1" },
-        { id: "w2", week: 2, title: "Week 2", what_doing: "do2", why_doing: "why2" },
+        {
+          id: "w1",
+          week: 1,
+          title: "Week 1",
+          what_doing: "do1",
+          why_doing: "why1",
+        },
+        {
+          id: "w2",
+          week: 2,
+          title: "Week 2",
+          what_doing: "do2",
+          why_doing: "why2",
+        },
       ];
       const daily = useTaskStore();
       daily.startDate = "";
@@ -111,7 +125,13 @@ describe("weeklyTasks store", () => {
       const store = useWeeklyTaskStore();
       store.tasksLoaded = true;
       store.tasks = [
-        { id: "w1", week: 1, title: "Week 1", what_doing: "do1", why_doing: "why1" },
+        {
+          id: "w1",
+          week: 1,
+          title: "Week 1",
+          what_doing: "do1",
+          why_doing: "why1",
+        },
       ];
       const daily = useTaskStore();
       daily.startDate = "";
@@ -123,7 +143,13 @@ describe("weeklyTasks store", () => {
       const store = useWeeklyTaskStore();
       store.tasksLoaded = true;
       store.tasks = [
-        { id: "w1", week: 1, title: "My Program", what_doing: "Exercise", why_doing: "Health" },
+        {
+          id: "w1",
+          week: 1,
+          title: "My Program",
+          what_doing: "Exercise",
+          why_doing: "Health",
+        },
       ];
       const daily = useTaskStore();
       daily.startDate = "";
