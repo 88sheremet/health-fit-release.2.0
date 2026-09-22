@@ -252,7 +252,7 @@ const redirectAfterLogin = async (userId: string) => {
   font-size: 20px;
   font-weight: 700;
 
-  color: #4285f4;
+  color: var(--google-blue);
 }
 
 .google-text {
