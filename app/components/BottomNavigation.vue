@@ -1,34 +1,91 @@
-<template>
+<template>  <!--
+    Нижняя навигация: три вкладки — daily / weekly / journal.
+    Активная вкладка определяется совпадением route.path,
+    переход — через централизованные routes.recovery.* .
+  -->
   <div class="bottom-nav">
+    <!--
+      Вкладка «День»: активна при route.path === "/daily",
+      клик ведёт на routes.recovery.daily.
+    -->
     <div
       class="nav-item"
       :class="{ active: route.path === '/daily' }"
       @click="navigateTo(routes.recovery.daily)"
     >
+      <!--
+        Material-иконка вкладки (task_alt = план дня).
+      -->
       <span class="material-icons">task_alt</span>
+      <!--
+        Подпись вкладки (ключ nav.daily, $t локализован).
+      -->
       <span class="nav-label">{{ $t("nav.daily") }}</span>
     </div>
+    <!--
+      Вкладка «Неделя»: активна при route.path === "/weekly",
+      клик ведёт на routes.recovery.weekly.
+    -->
     <div
       class="nav-item"
       :class="{ active: route.path === '/weekly' }"
       @click="navigateTo(routes.recovery.weekly)"
     >
+      <!--
+        Material-иконка вкладки (event_note = недельный план).
+      -->
       <span class="material-icons">event_note</span>
+      <!--
+        Подпись вкладки (ключ nav.weekly, $t локализован).
+      -->
       <span class="nav-label">{{ $t("nav.weekly") }}</span>
     </div>
+    <!--
+      Вкладка «Дневник»: активна при route.path === "/journal",
+      клик ведёт на routes.recovery.journal.
+    -->
     <div
       class="nav-item"
       :class="{ active: route.path === '/journal' }"
       @click="navigateTo(routes.recovery.journal)"
     >
+      <!--
+        Material-иконка вкладки (menu_book = дневник/журнал).
+      -->
       <span class="material-icons">menu_book</span>
+      <!--
+        Подпись вкладки (ключ nav.journal, $t локализован).
+      -->
       <span class="nav-label">{{ $t("nav.journal") }}</span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+/*
+ * ============================================================
+ * IMPORTS
+ * ============================================================
+ */
+
+/*
+ * Централизованная система маршрутов: клики по вкладкам
+ * ведут на routes.recovery.daily / weekly / journal
+ * (вместо хардкода строк в навигации).
+ */
 import { routes } from "~/router/routes";
+
+/*
+ * ============================================================
+ * DEPENDENCIES
+ * ============================================================
+ */
+
+/*
+ * Текущий route: route.path сравнивается с "/daily" / "/weekly"
+ * / "/journal", чтобы подсветить активную вкладку классом active.
+ * Значения совпадают с путями, которые отдают routes.recovery.*.
+ */
 const route = useRoute();
 </script>
 

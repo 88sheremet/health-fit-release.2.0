@@ -1,3 +1,30 @@
+/*
+ * ============================================================
+ * OVERVIEW
+ * ============================================================
+ * Сгенерированные Supabase-типы для схемы `public` базы данных
+ * (получены через `supabase gen types typescript`). Файл описывает
+ * форму всех таблиц, представлений и функций БД и автоматически
+ * обновляется при изменениях схемы — править его вручную не нужно.
+ *
+ * Для каждой таблицы используется стандартный набор форм Supabase:
+ *   Row     — точная форма строки, возвращаемой SELECT-запросом;
+ *   Insert  — допустимые поля при добавлении (опциональные помечены «?»);
+ *   Update  — допустимые поля при обновлении (все опциональные);
+ *   Relationships — связи с другими таблицами (здесь пусто).
+ */
+
+/*
+ * ============================================================
+ * TYPES
+ * ============================================================
+ */
+
+/*
+ * `Json` — рекурсивный тип для значений JSON-формата. Используется
+ * для колонок с свободной структурой вроде answers / what_doing,
+ * хранящих негомогенные данные.
+ */
 export type Json =
   | string
   | number
@@ -6,9 +33,18 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
+/*
+ * `Database` — корневой интерфейс, описывающий схему `public`.
+ * Хранит карту таблиц (Tables), представлений (Views) и функций
+ * (Functions); последние два здесь пусты, т.к. в БД их нет.
+ */
 export interface Database {
   public: {
     Tables: {
+      /*
+       * journal_entries — записи дневника пользователя: оценка
+       * настроения (mood) и текстовая заметка (note) на дату.
+       */
       journal_entries: {
         Row: {
           id: string;
@@ -33,6 +69,11 @@ export interface Database {
         };
         Relationships: [];
       };
+      /*
+       * daily_tasks — шаблоны ежедневных задач программы. Тип задачи
+       * ограничен перечислением "food" | "mental" | "physical"; состав
+       * действий (what_doing) хранится как JSON-структура шагов.
+       */
       daily_tasks: {
         Row: {
           id: string;
@@ -63,6 +104,10 @@ export interface Database {
         };
         Relationships: [];
       };
+      /*
+       * daily_task_translations — локализованные тексты ежедневных
+       * задач (title, what_doing, why_doing) для каждого locale.
+       */
       daily_task_translations: {
         Row: {
           id: string;
@@ -90,6 +135,10 @@ export interface Database {
         };
         Relationships: [];
       };
+      /*
+       * daily_task_completions — факты выполнения ежедневной задачи
+       * конкретным пользователем в конкретный день цикла (day_index).
+       */
       daily_task_completions: {
         Row: {
           id: string;
@@ -114,6 +163,10 @@ export interface Database {
         };
         Relationships: [];
       };
+      /*
+       * weekly_tasks — шаблоны недельных задач: контент фиксирован,
+       * привязан к номеру недели цикла (week).
+       */
       weekly_tasks: {
         Row: {
           id: string;
@@ -138,6 +191,10 @@ export interface Database {
         };
         Relationships: [];
       };
+      /*
+       * weekly_task_translations — локализованные тексты недельных
+       * задач (аналог ежедневных переводов, но для weekly_tasks).
+       */
       weekly_task_translations: {
         Row: {
           id: string;
@@ -165,6 +222,11 @@ export interface Database {
         };
         Relationships: [];
       };
+      /*
+       * weekly_task_completions — факты выполнения недельных задач
+       * пользователем. Привязка идёт к неделе цикла (week) и к
+       * конкретному шаблону через weekly_task_id.
+       */
       weekly_task_completions: {
         Row: {
           id: string;
@@ -189,6 +251,10 @@ export interface Database {
         };
         Relationships: [];
       };
+      /*
+       * user_progress — сводный прогресс пользователя: дата старта,
+       * уровень энергии, серия дней (streak) и время последнего визита.
+       */
       user_progress: {
         Row: {
           id: string;
@@ -219,6 +285,11 @@ export interface Database {
         };
         Relationships: [];
       };
+      /*
+       * screening_results — результаты скрининга пользователя: сырые
+       * ответы (answers), баллы по трём доменам и доминирующая
+       * проблема (dominant_problem), определяющая страницу результата.
+       */
       screening_results: {
         Row: {
           user_id: string;

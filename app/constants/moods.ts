@@ -1,3 +1,16 @@
+/*
+ * ============================================================
+ * CONSTANTS
+ * ============================================================
+ */
+
+/*
+ * Эмодзи шкалы настроения 1..5.
+ * Ключ — значение JournalEntry.mood, значение — эмодзи.
+ * Применяется в архиве (journal-archive.vue), на оси Y
+ * и в тултипе графика (JournalChart.vue), а также
+ * в кнопках чек-ина (CheckInDialog через moodOptions).
+ */
 export const moodEmojis: Record<number, string> = {
   1: "😡",
   2: "😞",
@@ -6,6 +19,14 @@ export const moodEmojis: Record<number, string> = {
   5: "😄",
 };
 
+/*
+ * Варианты сетки выбора настроения для CheckInDialog.
+ * Порядок — от лучшего (5) к худшему (1), как в вёрстке.
+ * Свойства каждого элемента:
+ *   value    — числовой балл, уходит в payload события save;
+ *   emoji    — копия из таблицы moodEmojis;
+ *   labelKey — ключ i18n (moods.*), текст зависит от локали.
+ */
 export const moodOptions = [
   { value: 5, emoji: moodEmojis[5], labelKey: "moods.great" },
   { value: 4, emoji: moodEmojis[4], labelKey: "moods.good" },

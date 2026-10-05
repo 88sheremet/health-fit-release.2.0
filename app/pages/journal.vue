@@ -1,5 +1,12 @@
-<template>
+<template>  <!--
+    Главная страница журнала: переходы к графику настроения
+    и архиву записей, а также создание заметки в диалоге.
+  -->
   <div class="journal-page">
+    <!--
+      Шапка-«герой»: заголовок, подзаголовок и декоративная
+      иконка книги. Тексты берутся из i18n (journal.*).
+    -->
     <section class="hero">
       <div class="hero-content">
         <h1 class="hero-title">{{ $t("journal.title") }}</h1>
@@ -14,7 +21,17 @@
       </div>
     </section>
 
+    <!--
+      Три карточки-действия. График и архив переходят по
+      централизованным маршрутам routes.recovery.*,
+      заметка открывает модальное окно ниже.
+      Подписи — из i18n-пространства journal.*.
+    -->
     <div class="actions">
+      <!--
+        «График настроения» — переход на страницу графика
+        (routes.recovery.journalChart).
+      -->
       <q-card
         flat
         class="action-card"
@@ -37,6 +54,10 @@
         <span class="material-icons icon-green"> chevron_right </span>
       </q-card>
 
+      <!--
+        «Новая заметка» — открывает диалог создания заметки
+        (showNoteDialog = true).
+      -->
       <q-card flat class="action-card note-card" @click="showNoteDialog = true">
         <div class="action-icon orange-bg">
           <span class="material-icons icon-orange"> edit </span>
@@ -57,6 +78,10 @@
         </div>
       </q-card>
 
+      <!--
+        «Архив» — переход к списку всех записей журнала
+        (routes.recovery.journalArchive).
+      -->
       <q-card
         flat
         class="action-card"
@@ -80,12 +105,21 @@
       </q-card>
     </div>
 
+    <!--
+      Модальное окно новой заметки: многострочное поле ввода,
+      кнопка отмены и кнопка сохранения (saveNote).
+      Сохранение доступно только при непустом тексте.
+    -->
     <q-dialog v-model="showNoteDialog">
       <q-card class="dialog-card">
         <div class="dialog-title">
           {{ $t("journal.newNote") }}
         </div>
 
+        <!--
+          Текст заметки; блокируется на время сохранения
+          (savingNote), плейсхолдер — из i18n.
+        -->
         <q-input
           v-model="note"
           type="textarea"
@@ -95,7 +129,9 @@
           :disable="savingNote"
         />
 
+        <!-- Кнопки диалога: отмена и сохранение. -->
         <div class="dialog-actions">
+          <!-- Отмена: просто закрывает окно без сохранения. -->
           <q-btn
             flat
             no-caps
@@ -105,6 +141,10 @@
             @click="showNoteDialog = false"
           />
 
+          <!--
+            Сохранение: индикатор savingNote, кнопка
+            неактивна, пока поле пустое.
+          -->
           <q-btn
             unelevated
             no-caps
@@ -118,41 +158,98 @@
       </q-card>
     </q-dialog>
 
+    <!-- Нижняя навигация приложения (общий компонент). -->
     <BottomNavigation />
   </div>
 </template>
 
 <script setup lang="ts">
+/*
+ * ============================================================
+ * IMPORTS
+ * ============================================================
+ */
+
+/* ref — реактивные флаги и текст диалога заметки. */
 import { ref } from "vue";
+
+/* Pinia-стор журнала: сохранение заметок через Supabase. */
 import { useJournalStore } from "~/stores/journal";
+
+/* Централизованные маршруты: переходы к графику и архиву. */
 import { routes } from "~/router/routes";
 
+/*
+ * ============================================================
+ * PAGE META
+ * ============================================================
+ */
+
+/* Страница только для авторизованных, в layout с навигацией. */
 definePageMeta({
   middleware: "auth",
   layout: "authenticated",
 });
 
+/*
+ * ============================================================
+ * DEPENDENCIES
+ * ============================================================
+ */
+
+/* Экземпляр стора — вызывает addNote при сохранении. */
 const journalStore = useJournalStore();
 
+/*
+ * ============================================================
+ * REACTIVE STATE
+ * ============================================================
+ */
+
+/* Видимость диалога новой заметки (v-model q-dialog). */
 const showNoteDialog = ref(false);
+
+/* Текст заметки из textarea; очищается после сохранения. */
 const note = ref("");
+
+/* Индикатор сохранения: блокирует кнопки и защищает
+   от повторной отправки запроса в Supabase. */
 const savingNote = ref(false);
 
+/*
+ * ============================================================
+ * SAVE NOTE FLOW
+ * ============================================================
+ */
+
+/*
+ * Сохраняет свободную заметку отдельной записью журнала.
+ * 1. Обрезает текст; выходит, если он пуст или идёт сохранение.
+ * 2. Включает индикатор savingNote.
+ * 3. Передаёт текст в стор (insert строки типа "note").
+ * 4. При успехе закрывает диалог и сбрасывает поле.
+ * 5. При ошибке пишет детали в консоль; флаг снимается всегда.
+ */
 async function saveNote() {
   const trimmedNote = note.value.trim();
 
+  /* Защита от пустой заметки и двойного клика. */
   if (!trimmedNote || savingNote.value) {
     return;
   }
 
+  /* Блокируем UI на время запроса. */
   savingNote.value = true;
 
   try {
+    /* Стор создаёт запись и обновляет entries. */
     await journalStore.addNote(trimmedNote);
 
+    /* Успех: закрываем окно и очищаем текст. */
     showNoteDialog.value = false;
     note.value = "";
   } catch (error: any) {
+    /* Логируем поля ошибки Supabase для диагностики. */
     console.error("[Journal] Ошибка сохранения заметки:", {
       message: error?.message,
       details: error?.details,
@@ -160,6 +257,7 @@ async function saveNote() {
       code: error?.code,
     });
   } finally {
+    /* Снимаем блокировку в любом случае. */
     savingNote.value = false;
   }
 }

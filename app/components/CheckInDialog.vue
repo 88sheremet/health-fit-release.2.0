@@ -1,6 +1,15 @@
-<template>
+<template>  <!--
+    Модальный диалог ежедневного чек-ина: выбор настроения
+    (шкала 1..5), необязательная заметка и совет-карточка.
+    Результат уходит родителю через emit события "save".
+  -->
   <q-dialog v-model="dialogModel" persistent>
+    <!--
+      Карточка диалога; persistent заставляет закрывать окно
+      только явным действием пользователя.
+    -->
     <q-card class="checkin-card">
+      <!-- Шапка: заголовок и подзаголовок из i18n (checkin.*). -->
       <div class="hero">
         <div class="title">
           {{ $t("checkin.title") }}
@@ -11,10 +20,16 @@
         </div>
       </div>
 
+      <!-- Заголовок блока выбора настроения. -->
       <div class="section-title">
         {{ $t("checkin.moodTitle") }}
       </div>
 
+      <!--
+        Кнопки настроения: по одной на значение 1..5
+        (moodOptions из constants/moods). Подсветка активной,
+        подпись — перевод labelKey (зависит от локали).
+      -->
       <div class="moods">
         <button
           v-for="item in moods"
@@ -24,6 +39,7 @@
           :class="{ active: mood === item.value }"
           @click="selectMood(item.value)"
         >
+          <!-- Эмодзи и текстовая подпись варианта настроения. -->
           <div class="emoji">
             {{ item.emoji }}
           </div>
@@ -34,10 +50,15 @@
         </button>
       </div>
 
+      <!-- Заголовок блока заметки. -->
       <div class="section-title">
         {{ $t("checkin.noteTitle") }}
       </div>
 
+      <!--
+        Текст заметки к чек-ину (необязательное поле);
+        отправляется в payload события save.
+      -->
       <q-input
         v-model="note"
         type="textarea"
@@ -47,6 +68,7 @@
         :placeholder="$t('checkin.notePlaceholder')"
       />
 
+      <!-- Совет-карточка дня: текст из i18n (checkin.tip*). -->
       <div class="tip-card">
         <div class="tip-title">
           {{ $t("checkin.tipTitle") }}
@@ -57,6 +79,11 @@
         </div>
       </div>
 
+      <!--
+        Сохранение: кнопка неактивна, пока настроение
+        не выбрано (mood === null). Данные передаёт
+        событием "save" методу save().
+      -->
       <q-btn
         unelevated
         no-caps
@@ -72,31 +99,77 @@
 </template>
 
 <script setup lang="ts">
+/*
+ * ============================================================
+ * IMPORTS
+ * ============================================================
+ */
+
+/* computed — v-model-обёртка диалога; ref — поля формы. */
 import { computed, ref } from "vue";
+
+/* Готовые варианты настроения (value/emoji/ключ i18n). */
 import { moodOptions } from "~/constants/moods";
 
+/*
+ * ============================================================
+ * TYPES
+ * ============================================================
+ */
+
+/* Шкала настроения чек-ина: 1 (худшее) .. 5 (лучшее). */
 type Mood = 1 | 2 | 3 | 4 | 5;
 
+/* Данные события save: выбранное настроение и текст заметки. */
 interface CheckinPayload {
+  /* Оценка дня; сохраняется в journal_entries.mood. */
   mood: Mood;
+
+  /* Обрезанный текст заметки (может быть пустой строкой). */
   note: string;
 }
 
+/* Локальная форма элемента moodOptions для шаблона. */
 interface MoodOption {
+  /* Числовая оценка настроения 1..5. */
   value: Mood;
+
+  /* Эмодзи из таблицы moodEmojis. */
   emoji: string;
+
+  /* Ключ i18n (moods.*) — подпись в текущей локали. */
   labelKey: string;
 }
 
+/*
+ * ============================================================
+ * DEPENDENCIES
+ * ============================================================
+ */
+
+/* Входные пропсы: modelValue управляет видимостью диалога. */
 const props = defineProps<{
   modelValue: boolean;
 }>();
 
+/*
+ * Отдаваемые события:
+ * "update:modelValue" — синхронизация v-model;
+ * "save" — заполненный чек-ин на обработку родителем.
+ */
 const emit = defineEmits<{
   "update:modelValue": [value: boolean];
   save: [payload: CheckinPayload];
 }>();
 
+/*
+ * ============================================================
+ * COMPUTED
+ * ============================================================
+ */
+
+/* Двусторонняя модель: чтение берёт из props.modelValue,
+   запись шлёт emit — стандартный паттерн v-model компонента. */
 const dialogModel = computed({
   get: (): boolean => props.modelValue,
   set: (value: boolean) => {
@@ -104,15 +177,40 @@ const dialogModel = computed({
   },
 });
 
+/*
+ * ============================================================
+ * REACTIVE STATE
+ * ============================================================
+ */
+
+/* Текст заметки к чек-ину (поле textarea). */
 const note = ref("");
+
+/* Выбранное настроение; null — ничего не выбрано, кнопка
+   сохранения остаётся неактивной. */
 const mood = ref<Mood | null>(null);
 
+/* Варианты для v-for; приведение к MoodOption[] для шаблона. */
 const moods = moodOptions as MoodOption[];
 
+/*
+ * ============================================================
+ * METHODS
+ * ============================================================
+ */
+
+/* Запоминает выбранную оценку — подсвечивает кнопку
+   и активирует кнопку сохранения. */
 function selectMood(value: Mood) {
   mood.value = value;
 }
 
+/*
+ * САВЕ FLOW (клиентская часть).
+ * 1. Выход, если настроение не выбрано.
+ * 2. emit "save" с payload: mood и обрезанный note.
+ *    Саму запись в Supabase выполняет родитель через стор.
+ */
 function save() {
   if (mood.value === null) {
     return;

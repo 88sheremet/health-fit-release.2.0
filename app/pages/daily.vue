@@ -1,21 +1,37 @@
-<template>
+<template>  <!--
+    Основной контейнер страницы ежедневных задач.
+    Включает шапку, карточку энергии, список задач/отдыха и диалоги.
+  -->
   <div class="page">
+    <!--
+      Шапка страницы: приветствие, номер дня и бейдж серии (streak).
+    -->
     <div class="header">
       <div>
+        <!-- Название дня по локали i18n (daily.greeting). -->
         <div class="title">
           {{ $t("daily.greeting") }}
         </div>
 
+        <!-- Номер текущего дня программы из геттера dayIndex стора tasks. -->
         <div class="subtitle">
           {{ $t("daily.day", { n: store.dayIndex }) }}
         </div>
       </div>
 
+      <!--
+        Круглый бейдж с количеством дней подряд (streak).
+        Значение приходит из стора и обновляется при инициализации.
+      -->
       <div class="streak-avatar">
         {{ store.streak }}
       </div>
     </div>
 
+    <!--
+      Карточка текущего запаса энергии.
+      Числовое значение + круговой прогресс до максимума 1000.
+    -->
     <q-card class="energy-card">
       <div class="energy-row">
         <div>
@@ -23,9 +39,11 @@
             {{ $t("daily.energy") }}
           </div>
 
+          <!-- Текущая энергия и эмодзи-индикатор. -->
           <div class="value">{{ store.energy }} ⚡</div>
         </div>
 
+        <!-- Кольцевой индикатор энергии: value от 0 до max=1000. -->
         <q-circular-progress
           :value="store.energy"
           :max="1000"
@@ -37,6 +55,10 @@
       </div>
     </q-card>
 
+    <!--
+      Карточка дня отдыха. Показывается только в воскресенье
+      (геттер isRestDay); список задач в этот день скрыт.
+    -->
     <div v-if="store.isRestDay" class="rest-card">
       <div class="emoji">🌿</div>
 
@@ -49,11 +71,17 @@
       </div>
     </div>
 
+    <!-- Спиннер: обычный день, но стор ещё загружает данные (loading = true). -->
     <div v-else-if="store.loading" class="flex justify-center q-pa-xl">
       <q-spinner color="primary" size="40px" />
     </div>
 
+    <!--
+      Список задач дня: обычный день и загрузка завершена.
+      Одна карточка на каждую задачу из геттера todayTasks.
+    -->
     <div v-else class="tasks">
+      <!-- Карточка задачи: клик по карточке или иконке открывает детали. -->
       <q-card
         v-for="task in tasks"
         :key="task.id"
@@ -61,16 +89,22 @@
         @click="openTask(task)"
       >
         <div class="task-header">
+          <!-- Название задачи (уже локализовано сервисом). -->
           <div class="task-title">
             {{ task.title }}
           </div>
 
+          <!--
+            Иконка-подсказка: открывает диалог деталей.
+            stop — чтобы не дублировать клик по всей карточке.
+          -->
           <button class="icon-popup" @click.stop="openTask(task)">
             <img :src="click" class="click-icon" />
           </button>
         </div>
 
         <div class="task-footer">
+          <!-- Награда за выполнение (task.reward) в тексте из i18n. -->
           <div class="reward">
             {{
               $t("daily.reward", {
@@ -79,6 +113,10 @@
             }}
           </div>
 
+          <!--
+            Кнопка выполнения: «Выполнено» и disabled, если задача уже
+            сделана (isDone), иначе «Выполнить» с начислением награды.
+          -->
           <q-btn
             class="select-btn"
             dense
@@ -96,61 +134,150 @@
       </q-card>
     </div>
 
+    <!-- Диалог деталей задачи: управляет showDialog, получает selectedTask. -->
     <TaskDetailsDialog v-model="showDialog" :task="selectedTask" />
 
+    <!-- Диалог чек-ина дневника: управляется стором journal. -->
     <CheckInDialog
       v-model="journalStore.showCheckin"
       @save="journalStore.saveCheckin"
     />
 
+    <!-- Нижняя навигация аутентифицированного layout. -->
     <BottomNavigation />
   </div>
 </template>
 
 <script setup lang="ts">
+/*
+ * ============================================================
+ * IMPORTS
+ * ============================================================
+ */
+
+/* Реактивные примитивы Vue: вычисляемое, хуки жизненного цикла, ссылки. */
 import { computed, onMounted, ref, watch } from "vue";
+
+/* Текущая локаль интерфейса — для перезагрузки задач при смене языка. */
 import { useI18n } from "vue-i18n";
 
+/* Стор ежедневных задач (id "tasks"): задачи, энергия, streak, прогресс. */
 import { useTaskStore } from "~/stores/dailyTasks";
+
+/* Стор дневника: показ/сохранение чек-ина на этой же странице. */
 import { useJournalStore } from "~/stores/journal";
 
+/* Тип доменной задачи для selectedTask и openTask. */
 import type { Task } from "~/interfaces/Task.interface";
 
+/* Иконка-подсказка (PNG) на карточке задачи. */
 import click from "~/assets/click.png";
 
+/*
+ * ============================================================
+ * PAGE META
+ * ============================================================
+ */
+
+/*
+ * Метаданные страницы: доступ только для авторизованных
+ * (middleware auth) и layout с нижней навигацией.
+ */
 definePageMeta({
   middleware: "auth",
   layout: "authenticated",
 });
 
+/*
+ * ============================================================
+ * DEPENDENCIES
+ * ============================================================
+ */
+
+/* Стор задач — источник данных страницы (dayIndex, energy, streak и т.д.). */
 const store = useTaskStore();
+
+/* Стор дневника — владеет видимостью и сохранением чек-ина. */
 const journalStore = useJournalStore();
 
+/* Реактивная локаль vue-i18n; отслеживается в watch ниже. */
 const { locale } = useI18n();
 
+/*
+ * ============================================================
+ * REACTIVE STATE
+ * ============================================================
+ */
+
+/* Список задач сегодня из геттера todayTasks (пусто в выходной). */
 const tasks = computed(() => store.todayTasks);
 
+/* Задача, выбранная для показа в диалоге деталей; null — диалог закрыт. */
 const selectedTask = ref<Task | null>(null);
+
+/* Видимость TaskDetailsDialog: true — диалог открыт. */
 const showDialog = ref(false);
 
+/*
+ * ============================================================
+ * METHODS
+ * ============================================================
+ */
+
+/*
+ * Открывает диалог деталей для выбранной задачи.
+ *
+ * 1. Кладём задачу в selectedTask.
+ * 2. Переключаем флаг видимости диалога.
+ */
 function openTask(task: Task) {
+  /* Запоминаем, какую задачу показывать. */
   selectedTask.value = task;
+
+  /* Открываем диалог. */
   showDialog.value = true;
 }
 
+/*
+ * ============================================================
+ * LIFECYCLE
+ * ============================================================
+ */
+
+/*
+ * При монтировании страницы инициализируем оба стора.
+ *
+ * 1. store.init — прогресс, задачи, выполненные, streak (с учётом локали).
+ * 2. journalStore.init — состояние дневника для чек-ина.
+ */
 onMounted(async () => {
   await store.init(locale.value);
   await journalStore.init();
 });
 
+/*
+ * ============================================================
+ * WATCH LOCALE FLOW
+ * ============================================================
+ */
+
+/*
+ * При смене языка интерфейса перезагружаем задачи на новой локали.
+ *
+ * 1. Если локаль не изменилась — выходим.
+ * 2. Повторно вызываем loadTasks с новым кодом языка.
+ * 3. Ошибки загрузки логируем, не роняя страницу.
+ */
 watch(
   locale,
   async (newLocale, oldLocale) => {
+    /* Язык остался прежним — перезагрузка не нужна. */
     if (newLocale === oldLocale) {
       return;
     }
 
     try {
+      /* Запрашиваем задачи на новой локали (мерж перевотов в сервисе). */
       await store.loadTasks(newLocale);
     } catch (error) {
       console.error("[Daily] Ошибка загрузки задач после смены языка:", error);

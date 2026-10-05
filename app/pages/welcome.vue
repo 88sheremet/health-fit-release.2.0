@@ -1,30 +1,43 @@
-<template>
+<template>  <!--
+    Приветственная страница онбординга: название приложения,
+    ключевые преимущества и кнопка перехода к вводной части
+    скрининга (экран screening.vue).
+  -->
   <div class="welcome-page flex flex-center">
+    <!-- Контейнер ограниченной ширины, центрирующий контент. -->
     <div class="welcome-container">
+      <!-- Блок приветствия: иконка, заголовок и подзаголовок. -->
       <div class="hero-section">
+        <!-- Круглая иконка с золотым свечением и эмодзи. -->
         <div class="hero-icon">
           <div class="glow"></div>
           <span class="icon-emoji">☀️</span>
         </div>
+        <!-- Заголовок страницы (i18n: welcome.title). -->
         <h1 class="title">{{ $t("welcome.title") }}</h1>
+        <!-- Подзаголовок с кратким описанием (i18n: welcome.subtitle). -->
         <p class="subtitle">
           {{ $t("welcome.subtitle") }}
         </p>
       </div>
 
+      <!-- Карточка с тремя ключевыми преимуществами приложения. -->
       <q-card flat class="benefits-card">
+        <!-- Преимущество 1: психология и эмоциональное состояние. -->
         <div class="benefit-item">
           <div class="benefit-icon">
             <span class="material-icons">psychology</span>
           </div>
           <div class="benefit-text">{{ $t("welcome.benefit1") }}</div>
         </div>
+        <!-- Преимущество 2: готовые и понятные задания. -->
         <div class="benefit-item">
           <div class="benefit-icon">
             <span class="material-icons">assignment_turned_in</span>
           </div>
           <div class="benefit-text">{{ $t("welcome.benefit2") }}</div>
         </div>
+        <!-- Преимущество 3: отслеживание динамики и прогресса. -->
         <div class="benefit-item">
           <div class="benefit-icon">
             <span class="material-icons">trending_up</span>
@@ -33,7 +46,9 @@
         </div>
       </q-card>
 
+      <!-- Нижний блок: основная CTA-кнопка и подсказка под ней. -->
       <div class="bottom-section">
+        <!-- Кнопка старта: переход к странице вводной информации. -->
         <q-btn
           unelevated
           no-caps
@@ -41,6 +56,7 @@
           :label="$t('welcome.startBtn')"
           @click="navigateTo(routes.onboarding.screening)"
         />
+        <!-- Дополнительная подсказка под кнопкой (i18n: welcome.hint). -->
         <div class="hint-text">{{ $t("welcome.hint") }}</div>
       </div>
     </div>
@@ -48,6 +64,16 @@
 </template>
 
 <script setup lang="ts">
+/*
+ * ============================================================
+ * IMPORTS
+ * ============================================================
+ */
+
+/*
+ * Централизованный роутер приложения (единый источник путей).
+ * routes.onboarding.screening ведёт на вводный экран скрининга.
+ */
 import { routes } from "~/router/routes";
 </script>
 

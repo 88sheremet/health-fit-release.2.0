@@ -1,18 +1,29 @@
-<template>
+<template>  <!--
+    Вводная страница скрининга: правила и длительность опросника,
+    что пользователь получит по итогам, а также кнопки старта
+    и пропуска скрининга.
+  -->
   <div class="screening-page">
+    <!-- Контейнер ограниченной ширины с вертикальной раскладкой. -->
     <div class="screening-container">
+      <!-- Шапка страницы: иконка, заголовок и подзаголовок. -->
       <div class="top-section">
+        <!-- Круглая иконка с зелёным свечением (тема психологии). -->
         <div class="hero-icon">
           <div class="glow"></div>
           <span class="material-icons main-icon">psychology</span>
         </div>
+        <!-- Заголовок страницы (i18n: screening.title). -->
         <div class="title">{{ $t("screening.title") }}</div>
+        <!-- Описание скрининга (i18n: screening.subtitle). -->
         <div class="subtitle">
           {{ $t("screening.subtitle") }}
         </div>
       </div>
 
+      <!-- Карточка с тремя информационными пунктами об опроснике. -->
       <q-card flat class="info-card">
+        <!-- Пункт 1: сколько времени занимает прохождение. -->
         <div class="info-item">
           <div class="info-icon green">
             <span class="material-icons">schedule</span>
@@ -22,6 +33,7 @@
             <div class="info-text">{{ $t("screening.infoMinutesText") }}</div>
           </div>
         </div>
+        <!-- Пункт 2: какой результат получит пользователь. -->
         <div class="info-item">
           <div class="info-icon blue">
             <span class="material-icons">monitoring</span>
@@ -31,6 +43,7 @@
             <div class="info-text">{{ $t("screening.infoResultText") }}</div>
           </div>
         </div>
+        <!-- Пункт 3: что появится после завершения скрининга. -->
         <div class="info-item">
           <div class="info-icon orange">
             <span class="material-icons">task_alt</span>
@@ -42,10 +55,13 @@
         </div>
       </q-card>
 
+      <!-- Нижний блок: подсказка и кнопки старта / пропуска. -->
       <div class="bottom-section">
+        <!-- Предупреждение о важности честных ответов (i18n: screening.hint). -->
         <div class="hint-text">
           {{ $t("screening.hint") }}
         </div>
+        <!-- Кнопка начала опросника: переход к странице вопросов. -->
         <q-btn
           unelevated
           no-caps
@@ -53,6 +69,7 @@
           :label="$t('screening.startBtn')"
           @click="startQuestions"
         />
+        <!-- Кнопка пропуска: завершить скрининг и уйти в меню восстановления. -->
         <q-btn
           flat
           no-caps
@@ -67,19 +84,64 @@
 </template>
 
 <script setup lang="ts">
+/*
+ * ============================================================
+ * IMPORTS
+ * ============================================================
+ */
+
+/* Хранилище скрининга: используется для завершения и пропуска. */
 import { useScreeningStore } from "~/stores/screening";
+
+/* Централизованный роутер (routes.recovery.menu, onboarding.questions). */
 import { routes } from "~/router/routes";
+
+/*
+ * ============================================================
+ * PAGE META
+ * ============================================================
+ */
+
+/*
+ * layout: authenticated — страница в дизайне авторизованного
+ * пользователя; middleware: auth — доступ только после входа.
+ */
 definePageMeta({
   layout: "authenticated",
   middleware: "auth",
 });
+
+/*
+ * ============================================================
+ * DEPENDENCIES
+ * ============================================================
+ */
+
+/* Экземпляр хранилища скрининга для кнопок старта и пропуска. */
 const store = useScreeningStore();
 
+/*
+ * ============================================================
+ * METHODS/FUNCTIONS
+ * ============================================================
+ */
+
+/*
+ * ПРОПУСК СКРИНИНГА
+ * Поток:
+ * 1. Завершить скрининг через хранилище (без введённых ответов).
+ * 2. Перейти в меню восстановления (routes.recovery.menu).
+ */
 const skip = () => {
   store.completeScreening();
   navigateTo(routes.recovery.menu);
 };
 
+/*
+ * НАЧАЛО ОПРОСНИКА
+ * Ведёт пользователя на страницу вопросов
+ * (routes.onboarding.questions).
+ */
 const startQuestions = () => {
   navigateTo(routes.onboarding.questions);
 };

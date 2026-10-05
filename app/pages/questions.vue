@@ -1,7 +1,15 @@
-<template>
+<template>  <!--
+    Страница опросника: показывает блоки вопросов по одному,
+    вопросы с 5-балльной шкалой, прогресс, валидацию ответов
+    и завершение — с расчётом баллов, сохранением результата
+    и редиректом на страницу итогов по доминирующей проблеме.
+  -->
   <div class="questions-page" ref="pageRef">
+    <!-- Шапка: счётчики блока и вопросов, полоса прогресса. -->
     <div class="header">
+      <!-- Верхний ряд шапки: номер блока и число ответов. -->
       <div class="header-top">
+        <!-- Номер активного блока из общего числа (i18n: questions.block). -->
         <div class="block-counter">
           {{
             $t("questions.block", {
@@ -10,11 +18,13 @@
             })
           }}
         </div>
+        <!-- Сколько вопросов текущего блока уже отвечено. -->
         <div class="questions-counter">
           {{ answeredQuestions }} /
           {{ screeningStore.currentBlockData.questions.length }}
         </div>
       </div>
+      <!-- Полоса прогресса по всем блокам (значение из progress). -->
       <q-linear-progress
         :value="screeningStore.progress"
         color="primary"
@@ -24,12 +34,22 @@
       />
     </div>
 
+    <!-- Заголовок активного блока и общий подзаголовок шкалы. -->
     <div class="title-section">
+      <!-- Заголовок через i18n-ключ блока — локаль-зависимый текст. -->
       <div class="title">{{ $t(screeningStore.currentBlockData.title) }}</div>
+      <!-- Инструкция о шкале ответов (i18n: questions.subtitle). -->
       <div class="subtitle">{{ $t("questions.subtitle") }}</div>
     </div>
 
+    <!-- Список карточек вопросов текущего блока. -->
     <div class="questions-list">
+      <!--
+        Карточка одного вопроса: номер, текст и шкала 1..5.
+        Класс invalid подсвечивает неотвеченный вопрос при
+        попытке перейти дальше. ref questionRefs — для скролла
+        к первому незаполненному вопросу.
+      -->
       <q-card
         v-for="(question, index) in screeningStore.currentBlockData.questions"
         :key="question.id"
@@ -41,11 +61,20 @@
             showValidation && screeningStore.answers[question.id] === undefined,
         }"
       >
+        <!-- Верхняя часть карточки: номер и текст вопроса. -->
         <div class="question-top">
+          <!-- Порядковый номер вопроса в блоке (нумерация с 1). -->
           <div class="question-number">{{ index + 1 }}</div>
+          <!-- Текст вопроса по i18n-ключу (screeningBlocks.*.qXXX). -->
           <div class="question-text">{{ $t(question.text) }}</div>
         </div>
+        <!-- Ряд кнопок-оценок по 5-балльной шкале. -->
         <div class="answers">
+          <!--
+            Кнопка оценки от 1 до 5. Класс active — выбранный
+            ответ; клик сохраняет оценку в хранилище через
+            screeningStore.setAnswer.
+          -->
           <button
             v-for="item in 5"
             :key="item"
@@ -56,6 +85,7 @@
             {{ item }}
           </button>
         </div>
+        <!-- Подписи полюсов шкалы: хорошо / плохо (i18n). -->
         <div class="scale-labels">
           <span>{{ $t("questions.scaleGood") }}</span>
           <span>{{ $t("questions.scaleBad") }}</span>
@@ -63,7 +93,9 @@
       </q-card>
     </div>
 
+    <!-- Закреплённая внизу часть: кнопка «Далее» / «Завершить». -->
     <div class="footer">
+      <!-- На последнем блоке кнопка завершает опросник (i18n). -->
       <q-btn
         unelevated
         no-caps
@@ -80,24 +112,91 @@
 </template>
 
 <script setup lang="ts">
+/*
+ * ============================================================
+ * IMPORTS
+ * ============================================================
+ */
+
+/*
+ * Vue: computed — счётчик отвеченных вопросов, ref — ссылки
+ * на DOM, nextTick — ожидание перерисовки перед скроллом.
+ */
 import { computed, ref, nextTick } from "vue";
+
+/* Quasar: useQuasar даёт $q для всплывающих уведомлений. */
 import { useQuasar } from "quasar";
+
+/* Хранилище скрининга: ответы, блоки, баллы и итоговый результат. */
 import { useScreeningStore } from "~/stores/screening";
+
+/* Доминирующая проблема: определяет маршрут страницы результата. */
 import { DominantProblem } from "~/enums/DominantProblem.enum";
+
+/* Централизованный роутер: маршруты результатов physical/food/mind. */
 import { routes } from "~/router/routes";
+
+/*
+ * ============================================================
+ * PAGE META
+ * ============================================================
+ */
+
+/*
+ * layout: authenticated — страница для авторизованного
+ * пользователя; middleware: auth — доступ только после входа.
+ */
 definePageMeta({
   layout: "authenticated",
   middleware: "auth",
 });
+
+/*
+ * ============================================================
+ * DEPENDENCIES
+ * ============================================================
+ */
+
+/* Экземпляр хранилища скрининга (ответы и блоки опросника). */
 const screeningStore = useScreeningStore();
+
+/* Объект Quasar $q: используют для уведомлений об ошибках. */
 const $q = useQuasar();
+
+/* Функция перевода i18n для сообщений валидации. */
 const { t } = useI18n();
 
+/*
+ * ============================================================
+ * REACTIVE STATE
+ * ============================================================
+ */
+
+/* Ссылка на корневой скролл-контейнер страницы (прокрутка вверх). */
 const pageRef = ref<HTMLElement | null>(null);
+
+/*
+ * Ссылки на DOM карточек вопросов текущего блока (по порядку).
+ * Пригодятся для скролла к первому неотвеченному вопросу.
+ */
 const questionRefs = ref<any[]>([]);
 
+/*
+ * Флаг режима валидации: после первого клика «Далее» неотвеченные
+ * карточки подсвечиваются классом invalid.
+ */
 const showValidation = ref(false);
 
+/*
+ * ============================================================
+ * COMPUTED
+ * ============================================================
+ */
+
+/*
+ * Количество отвеченных вопросов текущего блока. Выводится
+ * в счётчике шапки («Х / всего вопросов»).
+ */
 const answeredQuestions = computed(
   () =>
     screeningStore.currentBlockData.questions.filter(
@@ -105,6 +204,19 @@ const answeredQuestions = computed(
     ).length
 );
 
+/*
+ * ============================================================
+ * METHODS/FUNCTIONS
+ * ============================================================
+ */
+
+/*
+ * СКРОЛЛ К ПЕРВОМУ НЕОТВЕЧЕННОМУ ВОПРОСУ
+ * Поток:
+ * 1. Дождаться перерисовки списка (nextTick).
+ * 2. Найти первый вопрос без ответа в текущем блоке.
+ * 3. Плавно прокрутить его карточку в центр экрана.
+ */
 const scrollToFirstEmpty = async () => {
   await nextTick();
   const questions = screeningStore.currentBlockData.questions;
@@ -116,6 +228,11 @@ const scrollToFirstEmpty = async () => {
   el?.$el?.scrollIntoView({ behavior: "smooth", block: "center" });
 };
 
+/*
+ * УВЕДОМЛЕНИЕ О НЕЗАПОЛНЕННЫХ ОТВЕТАХ
+ * Показывает предупреждение, что вопросы блока требуют ответа.
+ * Текст — локаль-зависимый, берётся через t("screening.validationText").
+ */
 const showValidationAlert = () => {
   $q.notify({
     message: t("screening.validationText"),
@@ -124,26 +241,42 @@ const showValidationAlert = () => {
   });
 };
 
+/*
+ * ПЕРЕХОД ВПЕРЁД / ЗАВЕРШЕНИЕ ОПРОСНИКА
+ * Поток:
+ * 1. Включить режим валидации и проверить полноту блока.
+ * 2. При пропусках — показать предупреждение и скролл к ним.
+ * 3. На последнем блоке — рассчитать баллы, сохранить результат
+ *    и перейти на страницу по доминирующей проблеме.
+ * 4. Иначе — зачесть балл блока, перейти к следующему и вверх.
+ */
 const goNext = async () => {
+  /* Шаг 1: подсветить все неотвеченные вопросы блока. */
   showValidation.value = true;
 
   const isValid = screeningStore.validateCurrentBlock();
 
+  /* Шаг 2: блок неполный — предупреждаем и скроллим к пропускам. */
   if (!isValid) {
     showValidationAlert();
     await scrollToFirstEmpty();
     return;
   }
 
+  /* Шаг 3: завершающий блок — выполняем финал скрининга. */
   if (screeningStore.isLastBlock()) {
+    /* Сумма ответов последнего блока попадает в blockScores. */
     screeningStore.calculateCurrentBlockScore();
 
     try {
+      /* Сохраняем полный результат скрининга в Supabase. */
       await screeningStore.completeScreening();
 
       // Только после успешного сохранения определяем результат
+      /* Доминирующая проблема по баллам всех трёх блоков. */
       const result = screeningStore.dominantProblem;
 
+      /* Маршрут результата зависит от доминирующей проблемы. */
       if (result === DominantProblem.Physical) {
         await navigateTo(routes.results.physical);
       } else if (result === DominantProblem.Food) {
@@ -154,6 +287,7 @@ const goNext = async () => {
     } catch (error) {
       console.error("[Questions] Не удалось сохранить скрининг:", error);
 
+      /* При сбое сохранения показываем ошибку и остаёмся на месте. */
       $q.notify({
         message: "Не удалось сохранить результат. Попробуйте ещё раз.",
         type: "negative",
@@ -164,12 +298,15 @@ const goNext = async () => {
     return;
   }
 
+  /* Шаг 4: обычный блок — считаем балл и переходим к следующему. */
   screeningStore.nextBlock();
 
+  /* На новом блоке скрываем подсветку неотвеченных вопросов. */
   showValidation.value = false;
 
   await nextTick();
 
+  /* Прокрутка страницы вверх к началу нового блока. */
   pageRef.value?.scrollTo({
     top: 0,
     behavior: "smooth",

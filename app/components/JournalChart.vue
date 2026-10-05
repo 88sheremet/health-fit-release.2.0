@@ -1,6 +1,14 @@
-<template>
+<template>  <!--
+    Линейный график настроения по ежедневным чек-инам:
+    шапка с возвратом к журналу, заголовок и сам график
+    через компонент Line из vue-chartjs.
+  -->
   <div class="chart-page">
     <div class="chart-card">
+      <!--
+        Шапка: кнопка «назад» (routes.recovery.journal)
+        и заголовок раздела из i18n (journal.chart.header).
+      -->
       <div class="header">
         <button class="back-btn" @click="navigateTo(routes.recovery.journal)">
           <span class="material-icons">arrow_back</span>
@@ -11,6 +19,10 @@
         </div>
       </div>
 
+      <!--
+        Контейнер графика: реактивные данные и опции
+        подготавливаются в script setup ниже.
+      -->
       <div class="chart-wrapper">
         <Line :data="chartData" :options="chartOptions" />
       </div>
@@ -19,12 +31,31 @@
 </template>
 
 <script setup lang="ts">
+/*
+ * ============================================================
+ * IMPORTS
+ * ============================================================
+ */
+
+/* computed — реактивные данные и опции графика. */
 import { computed } from "vue";
+
+/* Компонент Line из vue-chartjs (обёртка над Chart.js). */
 import { Line } from "vue-chartjs";
+
+/* Стор журнала — записи-чек-ины для построения точек. */
 import { useJournalStore } from "~/stores/journal";
+
+/* Централизованные маршруты: кнопка «назад» к журналу. */
 import { routes } from "~/router/routes";
+
+/* Эмодзи настроения — подписи оси Y и содержимое тултипа. */
 import { moodEmojis } from "~/constants/moods";
 
+/*
+ * Импорты Chart.js: регистрацией ниже подключаются только
+ * нужные модули (tree-shaking), плюс типы для data/options.
+ */
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -37,6 +68,17 @@ import {
   type ChartData,
 } from "chart.js";
 
+/*
+ * ============================================================
+ * CHART CONFIG
+ * ============================================================
+ */
+
+/*
+ * Регистрация модулей Chart.js, без которых ломается Line:
+ * категориальная ось X, линейная ось Y, элементы точки
+ * и линии, а также тултип.
+ */
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -45,12 +87,35 @@ ChartJS.register(
   Tooltip
 );
 
+/*
+ * ============================================================
+ * DEPENDENCIES
+ * ============================================================
+ */
+
+/* Стор с записями журнала (фильтруются по type "checkin"). */
 const store = useJournalStore();
 
+/* locale — формат дат в подписях и тултипах; t — переводы
+   подписей графика, зависящие от языка интерфейса. */
 const { locale, t } = useI18n();
 
+/*
+ * ============================================================
+ * REACTIVE STATE
+ * ============================================================
+ */
+
+/* Цвет линии и точек графика: значение CSS-переменной
+   --green с запасным зелёным на случай недоступности. */
 const CHART_GREEN = resolveCssColor("--green", "#4caf50");
 
+/*
+ * Читает значение CSS-переменной у корня документа.
+ * 1. На сервере (SSR) window отсутствует — fallback.
+ * 2. Иначе берёт значение getComputedStyle; если переменная
+ *    не определена или пуста — снова fallback.
+ */
 function resolveCssColor(varName: string, fallback: string): string {
   if (typeof window === "undefined") return fallback;
   return (
@@ -59,12 +124,35 @@ function resolveCssColor(varName: string, fallback: string): string {
   );
 }
 
+/*
+ * ============================================================
+ * COMPUTED
+ * ============================================================
+ */
+
+/*
+ * Записи для графика: на график попадают ТОЛЬКО чек-ины
+ * (type === "checkin"), заметки отфильтрованы. Благодаря
+ * slice() сортировка не мутирует массив стора; порядок —
+ * по дате по возрастанию, точки идут календарно.
+ */
 const checkinEntries = computed(() =>
   store.entries
     .filter((entry) => entry.type === "checkin")
     .slice()
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 );
+
+/*
+ * ДАННЫЕ ГРАФИКА (datasets).
+ * labels — короткие даты DD.MM в текущей локали.
+ * datasets[0]:
+ *   data — значения mood чек-инов (null, если отсутствует);
+ *   borderColor/backgroundColor — цвет из переменной --green;
+ *   tension 0.4 — плавное сглаживание линии;
+ *   pointRadius 10 / hover 12 — невидимые «подложки» точек,
+ *   так как сами эмодзи поверх рисует emojiPlugin.
+ */
 const chartData = computed<ChartData<"line", (number | null)[], string>>(
   () => ({
     labels: checkinEntries.value.map((entry) =>
@@ -95,6 +183,17 @@ const chartData = computed<ChartData<"line", (number | null)[], string>>(
   })
 );
 
+/*
+ * ОПЦИИ ГРАФИКА.
+ * responsive + maintainAspectRatio — адаптивность;
+ * interaction по "index" без пересечения — тултипы целой
+ * колонки; легенда скрыта (узлов всего один датасет).
+ * Тултип: title — полная локализованная дата чек-ина,
+ * label — эмодзи + перевод journal.chart.mood (i18n),
+ * afterLabel — текст заметки, если он есть.
+ * Ось Y — шкала 1..5 с эмодзи-подписями (шаг 1),
+ * ось X — подпись переводом journal.chart.days.
+ */
 const chartOptions = computed<ChartOptions<"line">>(() => ({
   responsive: true,
 
@@ -128,6 +227,7 @@ const chartOptions = computed<ChartOptions<"line">>(() => ({
             return "";
           }
 
+          /* Полная дата чек-ина в формате текущей локали. */
           return new Date(entry.date).toLocaleDateString(locale.value, {
             day: "2-digit",
             month: "2-digit",
@@ -143,6 +243,7 @@ const chartOptions = computed<ChartOptions<"line">>(() => ({
             return "";
           }
 
+          /* Эмодзи настроения + локализованный текст «настроение». */
           const emoji = entry.mood != null ? moodEmojis[entry.mood] : "";
 
           return `${emoji} ${t("journal.chart.mood", {
@@ -158,6 +259,7 @@ const chartOptions = computed<ChartOptions<"line">>(() => ({
             return "";
           }
 
+          /* Заметка чек-ина — дополнительной строкой тултипа. */
           return `\n${entry.note}`;
         },
       },
@@ -183,6 +285,7 @@ const chartOptions = computed<ChartOptions<"line">>(() => ({
           size: 20,
         },
 
+        /* Подписи делений оси Y — эмодзи настроения. */
         callback(value: string | number) {
           return moodEmojis[value as number] || "";
         },
@@ -191,23 +294,41 @@ const chartOptions = computed<ChartOptions<"line">>(() => ({
   },
 }));
 
+/*
+ * ============================================================
+ * EMOJI PLUGIN
+ * ============================================================
+ */
+
+/*
+ * Пользовательский плагин Chart.js: рисует эмодзи настроения
+ * вместо стандартных точек линии. afterDatasetsDraw вызывается
+ * сразу после отрисовки датасета:
+ * 1. Берёт контекст canvas и данные первого датасета.
+ * 2. Для каждой точки сопоставляет значение с эмодзи
+ *    по таблице moodEmojis (шкала 1..5).
+ * 3. Центрирует эмодзи в координатах точки через fillText.
+ */
 const emojiPlugin = {
   id: "moodEmoji",
 
   afterDatasetsDraw(chart: any) {
     const { ctx, data } = chart;
 
+    /* Первый (единственный) датасет может отсутствовать. */
     const dataset = data.datasets[0];
 
     if (!dataset) {
       return;
     }
 
+    /* Метаданные точек: координаты узлов после расчёта layout. */
     const meta = chart.getDatasetMeta(0);
 
     meta.data.forEach((point: any, index: number) => {
       const value = dataset.data[index];
 
+      /* Нет эмодзи (null/неизвестное значение) — пропуск. */
       const emoji = moodEmojis[value];
 
       if (!emoji) {
@@ -216,6 +337,7 @@ const emojiPlugin = {
 
       ctx.save();
 
+      /* Шрифт и выравнивание — эмодзи по центру узла. */
       ctx.font = "22px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -227,6 +349,7 @@ const emojiPlugin = {
   },
 };
 
+/* Регистрация плагина — Chart.js учтёт его при рендере. */
 ChartJS.register(emojiPlugin);
 </script>
 
