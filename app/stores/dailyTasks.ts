@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 
 import { getDayIndex, isRestDayByDate } from "~/utils/taskEngine";
+
 import { getDailyTasks } from "~/services/dailyTask.service";
 
 import type { Task } from "~/interfaces/Task.interface";
@@ -65,15 +66,10 @@ function dbTasksForDay(rows: DbDailyTask[], dayIndex: number): Task[] {
 
     result.push({
       id: row.id,
-
       type,
-
       title: row.title,
-
       reward: row.reward ?? rewardForType(type),
-
       whatDoing: normalizeWhatDoing(row.what_doing),
-
       whyDoing: row.why_doing,
     });
 
@@ -120,6 +116,12 @@ export const useTaskStore = defineStore("tasks", {
   },
 
   actions: {
+    /*
+     * ==========================================
+     * INITIALIZATION
+     * ==========================================
+     */
+
     async init(locale = "ru") {
       this.loading = true;
 
@@ -137,6 +139,12 @@ export const useTaskStore = defineStore("tasks", {
       }
     },
 
+    /*
+     * ==========================================
+     * TASKS
+     * ==========================================
+     */
+
     async loadTasks(locale = "ru") {
       try {
         this.tasksLoaded = false;
@@ -150,6 +158,12 @@ export const useTaskStore = defineStore("tasks", {
         this.tasksLoaded = true;
       }
     },
+
+    /*
+     * ==========================================
+     * USER PROGRESS
+     * ==========================================
+     */
 
     async loadProgress() {
       const supabase = useSupabaseClient();
@@ -166,13 +180,13 @@ export const useTaskStore = defineStore("tasks", {
         .from("user_progress")
         .select(
           `
-            id,
-            user_id,
-            start_date,
-            energy,
-            streak,
-            last_visit_date
-          `
+                id,
+                user_id,
+                start_date,
+                energy,
+                streak,
+                last_visit_date
+              `,
         )
         .eq("user_id", user.id)
         .maybeSingle();
@@ -181,8 +195,14 @@ export const useTaskStore = defineStore("tasks", {
         throw error;
       }
 
+      /*
+       * Create progress for a new user.
+       */
+
       if (!data) {
         const startDate = new Date().toISOString();
+
+        const today = new Date().toISOString().slice(0, 10);
 
         const { data: newProgress, error: insertError } = await supabase
           .from("user_progress")
@@ -191,7 +211,7 @@ export const useTaskStore = defineStore("tasks", {
             start_date: startDate,
             energy: 40,
             streak: 1,
-            last_visit_date: new Date().toISOString().slice(0, 10),
+            last_visit_date: today,
           })
           .select()
           .single();
@@ -201,18 +221,55 @@ export const useTaskStore = defineStore("tasks", {
         }
 
         this.startDate = newProgress.start_date;
-        this.energy = newProgress.energy;
-        this.streak = newProgress.streak;
+
+        this.energy = Number(newProgress.energy);
+
+        this.streak = Number(newProgress.streak);
+
         this.lastVisitDate = newProgress.last_visit_date;
+
+        /*
+         * Create initial energy history.
+         *
+         * This is not earned Energy.
+         * It is the starting point.
+         */
+
+        const { error: historyError } = await supabase
+          .from("energy_history")
+          .insert({
+            user_id: user.id,
+            energy: Number(newProgress.energy),
+            amount: 0,
+            source: "initial",
+          });
+
+        if (historyError) {
+          console.error(
+            "[DailyTasks] Ошибка создания initial energy history:",
+            historyError,
+          );
+
+          throw historyError;
+        }
 
         return;
       }
 
       this.startDate = data.start_date;
+
       this.energy = Number(data.energy);
+
       this.streak = Number(data.streak);
+
       this.lastVisitDate = data.last_visit_date || "";
     },
+
+    /*
+     * ==========================================
+     * COMPLETED TASKS
+     * ==========================================
+     */
 
     async loadCompletedTasks() {
       const supabase = useSupabaseClient();
@@ -229,9 +286,9 @@ export const useTaskStore = defineStore("tasks", {
         .from("daily_task_completions")
         .select(
           `
-            task_id,
-            day_index
-          `
+              task_id,
+              day_index
+            `,
         )
         .eq("user_id", user.id)
         .eq("day_index", this.dayIndex);
@@ -246,6 +303,12 @@ export const useTaskStore = defineStore("tasks", {
         this.completed[row.task_id] = true;
       }
     },
+
+    /*
+     * ==========================================
+     * STREAK
+     * ==========================================
+     */
 
     async updateStreak() {
       const supabase = useSupabaseClient();
@@ -264,10 +327,11 @@ export const useTaskStore = defineStore("tasks", {
         this.streak = 1;
       } else {
         const lastVisit = new Date(this.lastVisitDate);
+
         const currentDate = new Date(today);
 
         const diffDays = Math.floor(
-          (currentDate.getTime() - lastVisit.getTime()) / (1000 * 60 * 60 * 24)
+          (currentDate.getTime() - lastVisit.getTime()) / (1000 * 60 * 60 * 24),
         );
 
         if (diffDays === 1) {
@@ -293,6 +357,12 @@ export const useTaskStore = defineStore("tasks", {
       }
     },
 
+    /*
+     * ==========================================
+     * COMPLETE TASK
+     * ==========================================
+     */
+
     async completeTask(task: Task) {
       if (this.completed[task.id]) {
         return;
@@ -308,7 +378,9 @@ export const useTaskStore = defineStore("tasks", {
         throw new Error("Пользователь не авторизован");
       }
 
-      const newEnergy = this.energy + task.reward;
+      /*
+       * 1. Save task completion
+       */
 
       const { error: completionError } = await supabase
         .from("daily_task_completions")
@@ -320,31 +392,63 @@ export const useTaskStore = defineStore("tasks", {
         });
 
       if (completionError) {
+        /*
+         * Task was already completed.
+         */
+
         if (completionError.code === "23505") {
           this.completed[task.id] = true;
+
           return;
         }
 
         throw completionError;
       }
 
-      this.completed[task.id] = true;
-      this.energy = newEnergy;
+      /*
+       * 2. Add Energy.
+       *
+       * addEnergy() is the single
+       * source of truth for Energy updates.
+       */
 
-      const { error: progressError } = await supabase
-        .from("user_progress")
-        .update({
-          energy: this.energy,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", user.id);
+      try {
+        await this.addEnergy(task.reward, "daily_task");
+      } catch (error) {
+        /*
+         * The completion was already
+         * saved. We throw the error so
+         * the UI knows that Energy update
+         * failed.
+         */
 
-      if (progressError) {
-        throw progressError;
+        console.error("[DailyTasks] Ошибка начисления Energy:", error);
+
+        throw error;
       }
+
+      /*
+       * 3. Update local completion state.
+       */
+
+      this.completed[task.id] = true;
     },
 
-    async addEnergy(amount: number) {
+    /*
+     * ==========================================
+     * ENERGY
+     * ==========================================
+     */
+
+    async addEnergy(amount: number, source = "manual") {
+      if (!Number.isFinite(amount)) {
+        throw new Error("Некорректное значение Energy");
+      }
+
+      if (amount === 0) {
+        return;
+      }
+
       const supabase = useSupabaseClient();
 
       const {
@@ -355,9 +459,34 @@ export const useTaskStore = defineStore("tasks", {
         throw new Error("Пользователь не авторизован");
       }
 
-      const newEnergy = this.energy + amount;
+      /*
+       * Energy cannot exceed 1000.
+       */
 
-      const { error } = await supabase
+      const newEnergy = Math.min(1000, this.energy + amount);
+
+      /*
+       * Actual amount received.
+       *
+       * Example:
+       *
+       * energy = 995
+       * amount = 15
+       *
+       * actualAmount = 5
+       */
+
+      const actualAmount = newEnergy - this.energy;
+
+      if (actualAmount <= 0) {
+        return;
+      }
+
+      /*
+       * 1. Update current Energy.
+       */
+
+      const { error: progressError } = await supabase
         .from("user_progress")
         .update({
           energy: newEnergy,
@@ -365,14 +494,44 @@ export const useTaskStore = defineStore("tasks", {
         })
         .eq("user_id", user.id);
 
-      if (error) {
-        console.error("[DailyTasks] Ошибка обновления энергии:", error);
-
-        throw error;
+      if (progressError) {
+        throw progressError;
       }
+
+      /*
+       * 2. Save Energy history.
+       */
+
+      const { error: historyError } = await supabase
+        .from("energy_history")
+        .insert({
+          user_id: user.id,
+          energy: newEnergy,
+          amount: actualAmount,
+          source,
+        });
+
+      if (historyError) {
+        console.error(
+          "[DailyTasks] Ошибка сохранения energy history:",
+          historyError,
+        );
+
+        throw historyError;
+      }
+
+      /*
+       * 3. Update local state.
+       */
 
       this.energy = newEnergy;
     },
+
+    /*
+     * ==========================================
+     * HELPERS
+     * ==========================================
+     */
 
     isDone(id: string) {
       return !!this.completed[id];
