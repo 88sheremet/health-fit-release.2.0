@@ -124,7 +124,7 @@ test.describe("Progress page", () => {
       timeout: 20000,
     });
     await expect(tasksCard.locator(".big-value")).toContainText("3");
-    await expect(tasksCard.locator(".big-value")).toContainText("21");
+    await expect(tasksCard.locator(".big-value")).toContainText("22");
     await expect(tasksCard.locator(".change")).toContainText("14%");
   });
 
@@ -252,7 +252,7 @@ test.describe("Progress page — empty state", () => {
     await expect(cards.nth(0).locator(".change")).toContainText("+0");
 
     await expect(cards.nth(2).locator(".big-value")).toContainText("0 / 5");
-    await expect(cards.nth(3).locator(".big-value")).toContainText("0 / 21");
+    await expect(cards.nth(3).locator(".big-value")).toContainText("0 / 22");
 
     const categories = page.locator(".category");
     await expect(categories.nth(0).locator(".category-header")).toContainText(
@@ -279,5 +279,76 @@ test.describe("Progress page — empty state", () => {
       "Физическое восстановление",
       { timeout: 20000 },
     );
+  });
+});
+
+/**
+ * Недельное задание входит только в общий счётчик «Задания» (22 = 21 дневное
+ * + 1 недельное) и не трогает категории. Фильтр по периоду выполняется в
+ * Postgres через `completed_at=gte.` — мок воспроизводит его, а не возвращает
+ * посев как есть.
+ */
+test.describe("Progress page — недельные задания", () => {
+  test.beforeEach(async ({ page }) => {
+    await freezeDateToMonday(page);
+    await setLocale(page, "ru");
+  });
+
+  test("adds an in-period weekly completion to the total only", async ({
+    page,
+  }) => {
+    await mockProgressData(page, {
+      ...PROGRESS_DATA,
+      weeklyCompletions: [
+        // внутри текущего периода 2026-07-28 .. 2026-08-03
+        { weekly_task_id: "wt-1", week: 1, completed_at: "2026-08-01T10:00:00" },
+        // до границы периода — должно отсечься фильтром completed_at=gte.
+        { weekly_task_id: "wt-1", week: 1, completed_at: "2026-07-27T10:00:00" },
+      ],
+    });
+
+    await page.goto("/progress");
+
+    const tasksCard = page.locator(".progress-card").nth(3);
+
+    await expect(tasksCard.locator(".big-value")).toBeVisible({
+      timeout: 20000,
+    });
+    await expect(tasksCard.locator(".big-value")).toContainText("4");
+    await expect(tasksCard.locator(".big-value")).toContainText("22");
+    await expect(tasksCard.locator(".change")).toContainText("18%");
+
+    const categories = page.locator(".category");
+
+    await expect(categories.nth(0).locator(".category-header")).toContainText(
+      "0%",
+    );
+    await expect(categories.nth(1).locator(".category-header")).toContainText(
+      "29%",
+    );
+    await expect(categories.nth(2).locator(".category-header")).toContainText(
+      "14%",
+    );
+  });
+
+  test("ignores a weekly completion from before the current period", async ({
+    page,
+  }) => {
+    await mockProgressData(page, {
+      ...PROGRESS_DATA,
+      weeklyCompletions: [
+        { weekly_task_id: "wt-1", week: 1, completed_at: "2026-07-27T10:00:00" },
+      ],
+    });
+
+    await page.goto("/progress");
+
+    const tasksCard = page.locator(".progress-card").nth(3);
+
+    await expect(tasksCard.locator(".big-value")).toContainText("3", {
+      timeout: 20000,
+    });
+    await expect(tasksCard.locator(".big-value")).toContainText("22");
+    await expect(tasksCard.locator(".change")).toContainText("14%");
   });
 });

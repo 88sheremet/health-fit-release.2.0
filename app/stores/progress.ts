@@ -32,6 +32,10 @@ const TASK_TYPES: TaskType[] = ["physical", "food", "mental"];
 
 const DAYS_IN_PERIOD = 7;
 
+const DAILY_TASKS_TOTAL = DAYS_IN_PERIOD * TASK_TYPES.length;
+const WEEKLY_TASKS_TOTAL = 1;
+const TOTAL_TASKS = DAILY_TASKS_TOTAL + WEEKLY_TASKS_TOTAL;
+
 export const useProgressStore = defineStore("progress", {
   state: (): ProgressState => ({
     loading: false,
@@ -45,7 +49,7 @@ export const useProgressStore = defineStore("progress", {
     moodChange: 0,
 
     tasksCompleted: 0,
-    tasksTotal: 0,
+    tasksTotal: TOTAL_TASKS,
 
     categories: {
       physical: {
@@ -53,11 +57,13 @@ export const useProgressStore = defineStore("progress", {
         total: 0,
         percentage: 0,
       },
+
       food: {
         completed: 0,
         total: 0,
         percentage: 0,
       },
+
       mental: {
         completed: 0,
         total: 0,
@@ -127,14 +133,26 @@ export const useProgressStore = defineStore("progress", {
       this.energy = Number(progress.energy ?? 0);
       this.streak = Number(progress.streak ?? 0);
 
+      /*
+       * Current period:
+       * today + previous 6 days = 7 days.
+       */
       const now = new Date();
 
       const currentPeriodStart = new Date(now);
+
       currentPeriodStart.setDate(now.getDate() - (DAYS_IN_PERIOD - 1));
+
       currentPeriodStart.setHours(0, 0, 0, 0);
 
+      /*
+       * Previous period:
+       * 7 days before current period.
+       */
       const previousPeriodStart = new Date(now);
+
       previousPeriodStart.setDate(now.getDate() - DAYS_IN_PERIOD * 2 + 1);
+
       previousPeriodStart.setHours(0, 0, 0, 0);
 
       await this.loadEnergyHistory(
@@ -142,6 +160,12 @@ export const useProgressStore = defineStore("progress", {
         currentPeriodStart,
         previousPeriodStart,
       );
+
+      /*
+       * -------------------------------------------------------
+       * DAILY TASK COMPLETIONS
+       * -------------------------------------------------------
+       */
 
       const { data: completions, error: completionsError } = await supabase
         .from("daily_task_completions")
@@ -167,9 +191,67 @@ export const useProgressStore = defineStore("progress", {
         (completion) => new Date(completion.completed_at) >= currentPeriodStart,
       );
 
-      this.tasksCompleted = currentWeekCompletions.length;
+      /*
+       * -------------------------------------------------------
+       * WEEKLY TASK COMPLETIONS
+       * -------------------------------------------------------
+       *
+       * weekly_task_completions:
+       * - weekly_task_id
+       * - user_id
+       * - week
+       * - completed_at
+       *
+       * A weekly task is counted only once for the current
+       * progress period.
+       */
 
-      this.tasksTotal = DAYS_IN_PERIOD * TASK_TYPES.length;
+      const { data: weeklyCompletions, error: weeklyError } = await supabase
+        .from("weekly_task_completions")
+        .select("weekly_task_id, week, completed_at")
+        .eq("user_id", user.id)
+        .gte("completed_at", currentPeriodStart.toISOString());
+
+      if (weeklyError) {
+        throw weeklyError;
+      }
+
+      /*
+       * There is currently one weekly task per week.
+       *
+       * `length` is enough here because every completion
+       * represents a completed weekly task.
+       */
+      const weeklyTasksCompleted = weeklyCompletions?.length ?? 0;
+
+      /*
+       * -------------------------------------------------------
+       * TOTAL TASKS
+       * -------------------------------------------------------
+       *
+       * Daily:
+       * 7 days × 3 categories = 21
+       *
+       * Weekly:
+       * 1 task
+       *
+       * Total = 22
+       */
+
+      const dailyTasksCompleted = currentWeekCompletions.length;
+
+      this.tasksCompleted = dailyTasksCompleted + weeklyTasksCompleted;
+
+      this.tasksTotal = TOTAL_TASKS;
+
+      /*
+       * -------------------------------------------------------
+       * CATEGORY PROGRESS
+       * -------------------------------------------------------
+       *
+       * Weekly tasks are not included in categories because
+       * they don't belong to physical / food / mental.
+       */
 
       const categoryCompleted: Record<TaskType, number> = {
         physical: 0,
@@ -193,6 +275,7 @@ export const useProgressStore = defineStore("progress", {
 
       for (const category of TASK_TYPES) {
         const completed = categoryCompleted[category];
+
         const total = DAYS_IN_PERIOD;
 
         this.categories[category] = {
@@ -203,18 +286,31 @@ export const useProgressStore = defineStore("progress", {
       }
 
       /*
-       * Sort is stable, so an all-zero week resolves to the first entry of
-       * TASK_TYPES. The array is never empty, but noUncheckedIndexedAccess
-       * cannot see that, hence the explicit fallback.
+       * -------------------------------------------------------
+       * FOCUS
+       * -------------------------------------------------------
+       *
+       * Focus is the category with the lowest progress.
        */
+
       const leastComplete = [...TASK_TYPES].sort(
         (a, b) => this.categories[a].percentage - this.categories[b].percentage,
       );
 
+      /*
+       * `noUncheckedIndexedAccess` does not narrow
+       * array elements after sorting.
+       */
       const focus: TaskType = leastComplete[0] ?? "physical";
 
       this.focusCategory = focus;
       this.focusCompleted = categoryCompleted[focus];
+
+      /*
+       * -------------------------------------------------------
+       * MOOD
+       * -------------------------------------------------------
+       */
 
       await this.loadMood(user.id, currentPeriodStart, previousPeriodStart);
     },
@@ -252,10 +348,6 @@ export const useProgressStore = defineStore("progress", {
         (entry) => new Date(entry.created_at) >= currentPeriodStart,
       );
 
-      /*
-       * `noUncheckedIndexedAccess` does not narrow array elements from a
-       * `.length` check, so the element itself is tested here instead.
-       */
       const firstCurrentEntry = currentPeriodEntries[0];
 
       if (!firstCurrentEntry) {
@@ -322,7 +414,11 @@ export const useProgressStore = defineStore("progress", {
       this.moodChange = Number((currentAverage - previousAverage).toFixed(1));
     },
 
-    calculateMoodAverage(entries: Array<{ mood: number | null }>): number {
+    calculateMoodAverage(
+      entries: Array<{
+        mood: number | null;
+      }>,
+    ): number {
       if (!entries.length) {
         return 0;
       }
@@ -343,7 +439,9 @@ export const useProgressStore = defineStore("progress", {
 
     formatDate(date: Date): string {
       const year = date.getFullYear();
+
       const month = String(date.getMonth() + 1).padStart(2, "0");
+
       const day = String(date.getDate()).padStart(2, "0");
 
       return `${year}-${month}-${day}`;

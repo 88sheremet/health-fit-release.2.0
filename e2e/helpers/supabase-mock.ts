@@ -263,6 +263,16 @@ function buildRouteHandler(opts?: {
 
   /** Seed rows for GET /rest/v1/daily_task_completions (progress page tasks). */
   completions?: any[];
+
+  /**
+   * Seed rows for GET /rest/v1/weekly_task_completions (progress page total).
+   *
+   * Unset means an empty table, which keeps the daily/weekly specs — they
+   * complete no weekly task — on their existing behaviour. The rows are cut by
+   * the `completed_at=gte.` filter the progress store sends, so a seeded row
+   * from an earlier period must not leak into the counter.
+   */
+  weeklyCompletions?: any[];
 }) {
   const state: MockState = {
     completions: opts?.state?.completions ?? opts?.completions ?? [],
@@ -567,10 +577,35 @@ function buildRouteHandler(opts?: {
     }
 
     // rest/v1/weekly_task_completions
+    //
+    // The progress store relies on Postgres for the period filter, so this
+    // branch replays the `completed_at=gte.` bound instead of returning the
+    // seeded rows as-is. Writes keep their historical `[]` body: no spec reads
+    // the response of a weekly completion insert.
     if (url.includes("/rest/v1/weekly_task_completions")) {
+      if (method !== "GET") {
+        return route.fulfill({
+          status: 200,
+          json: [],
+          headers: { "content-type": "application/json" },
+        });
+      }
+
+      const seeded = opts?.weeklyCompletions ?? [];
+
+      const gteMatch = url.match(/completed_at=gte\.([^&]+)/);
+
+      const rows = gteMatch
+        ? seeded.filter(
+            (row) =>
+              new Date(row.completed_at) >=
+              new Date(decodeURIComponent(gteMatch[1])),
+          )
+        : seeded;
+
       return route.fulfill({
         status: 200,
-        json: [],
+        json: rows,
         headers: { "content-type": "application/json" },
       });
     }
@@ -636,7 +671,7 @@ export async function mockScreeningCompleted(page: Page) {
 }
 
 /**
- * Seed data for the progress page, whose store reads five tables instead of
+ * Seed data for the progress page, whose store reads six tables instead of
  * the single `user_progress` row the daily page handles. `mockScreeningCompleted`
  * alone would make `loadProgress()` crash: it calls `.single()` on `user_progress`
  * (which that mock answers with `null`) and immediately dereferences `.energy`.
@@ -648,6 +683,7 @@ export async function mockProgressData(
     energyHistory?: any[];
     journalEntries?: any[];
     completions?: any[];
+    weeklyCompletions?: any[];
   },
 ) {
   await seedSupabaseSession(page);
@@ -659,6 +695,7 @@ export async function mockProgressData(
     energyHistory: data.energyHistory,
     journalEntries: data.journalEntries,
     completions: data.completions,
+    weeklyCompletions: data.weeklyCompletions,
   });
   await page.route(SUPABASE_ROUTE, handler);
 }

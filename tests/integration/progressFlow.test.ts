@@ -8,7 +8,7 @@ import { useSupabaseClient } from "../setup";
 /**
  * Integration-тесты страницы прогресса.
  *
- * `loadProgress()` читает пять таблиц за один проход, поэтому здесь мокается
+ * `loadProgress()` читает шесть таблиц за один проход, поэтому здесь мокается
  * весь Supabase-клиент: `from(table)` возвращает «липкую» цепочку, которая
  * по завершении отдаёт настроенный `{ data, error }` для этой таблицы.
  * Дата заморожена на 2026-08-03, чтобы границы 7-дневных окон были детерминированы:
@@ -69,7 +69,7 @@ function setupSupabaseClient(user: any, tables: Record<string, TableResult>) {
  * energy: 420 (текущее), отсчётная точка 300 (последняя запись предыдущего окна)
  *   → ожидаемый прирост +120.
  * Задания: 2 × food + 1 × mental в текущем окне (+1 × physical в прошлом, не считается)
- *   → completed 3 из 21, physical 0%, mental 14%, food 29%, фокус — physical.
+ *   → completed 3 из 22 (21 дневное + 1 недельное), physical 0%, mental 14%, food 29%, фокус — physical.
  * Настроение: прошлое (3, 4) → 3.5; текущее (5, 4) → 4.5 → прирост +1.0.
  */
 function baseTables(): Record<string, TableResult> {
@@ -109,6 +109,15 @@ function baseTables(): Record<string, TableResult> {
       error: null,
     },
 
+    /*
+     * Недельных заданий в базовом наборе нет: они добавляются точечно в
+     * тестах про недельный счётчик, чтобы не сдвигать ожидания остальных.
+     */
+    weekly_task_completions: {
+      data: [],
+      error: null,
+    },
+
     journal_entries: {
       data: [
         { date: "2026-07-25", mood: 3, entry_type: "checkin" },
@@ -145,7 +154,7 @@ describe("loadProgress — happy path", () => {
     expect(store.streak).toBe(5);
 
     expect(store.tasksCompleted).toBe(3);
-    expect(store.tasksTotal).toBe(21);
+    expect(store.tasksTotal).toBe(22);
     expect(store.tasksPercentage).toBe(14);
   });
 
@@ -207,7 +216,7 @@ describe("loadProgress — happy path", () => {
     expect(store.moodChange).toBe(1);
   });
 
-  it("обходит все пять таблиц нужными методами", async () => {
+  it("обходит все шесть таблиц нужными методами", async () => {
     const client = setupSupabaseClient({ id: "u1" }, baseTables());
 
     const store = useProgressStore();
@@ -221,6 +230,7 @@ describe("loadProgress — happy path", () => {
       "energy_history",
       "daily_task_completions",
       "daily_tasks",
+      "weekly_task_completions",
       "journal_entries",
     ]);
   });
@@ -273,7 +283,7 @@ describe("loadProgress — границы 7-дневных окон", () => {
 
     const gteCalls = (client.from as any).mock.calls.length;
 
-    expect(gteCalls).toBe(5);
+    expect(gteCalls).toBe(6);
 
     const completions = tables.daily_task_completions.data;
 
@@ -282,6 +292,70 @@ describe("loadProgress — границы 7-дневных окон", () => {
         (entry: any) => new Date(entry.completed_at) >= new Date(2026, 6, 28),
       ),
     ).toHaveLength(3);
+  });
+});
+
+describe("loadProgress — недельные задания", () => {
+  /**
+   * Недельное задание считается отдельно от дневных: оно добавляется в
+   * `tasksCompleted`, но не участвует ни в одной из трёх категорий.
+   *
+   * Фильтр по периоду выполняется на стороне Postgres
+   * (`.gte("completed_at", currentPeriodStart)`), поэтому в интеграционном
+   * моке проверяется только состав итогового счётчика — сам фильтр покрыт
+   * в `e2e/progress.spec.ts`.
+   */
+  it("завершение недельного задания добавляется в tasksCompleted", async () => {
+    const tables = baseTables();
+
+    tables.weekly_task_completions.data = [
+      { weekly_task_id: "wt-1", week: 1, completed_at: "2026-08-01T10:00:00" },
+    ];
+
+    setupSupabaseClient({ id: "u1" }, tables);
+
+    const store = useProgressStore();
+
+    await store.loadProgress();
+
+    expect(store.tasksCompleted).toBe(4);
+    expect(store.tasksTotal).toBe(22);
+    expect(store.tasksPercentage).toBe(18);
+  });
+
+  it("недельное задание не влияет на категории и на выбор фокуса", async () => {
+    const tables = baseTables();
+
+    tables.weekly_task_completions.data = [
+      { weekly_task_id: "wt-1", week: 1, completed_at: "2026-08-01T10:00:00" },
+    ];
+
+    setupSupabaseClient({ id: "u1" }, tables);
+
+    const store = useProgressStore();
+
+    await store.loadProgress();
+
+    expect(store.categories.physical).toEqual({
+      completed: 0,
+      total: 7,
+      percentage: 0,
+    });
+
+    expect(store.categories.food).toEqual({
+      completed: 2,
+      total: 7,
+      percentage: 29,
+    });
+
+    expect(store.categories.mental).toEqual({
+      completed: 1,
+      total: 7,
+      percentage: 14,
+    });
+
+    expect(store.focusCategory).toBe("physical");
+    expect(store.focusCompleted).toBe(0);
   });
 });
 
@@ -459,7 +533,7 @@ describe("loadProgress — пустые данные", () => {
     expect(store.moodChange).toBe(0);
   });
 
-  it("нет заданий и завершений → 0 из 21", async () => {
+  it("нет заданий и завершений → 0 из 22", async () => {
     const tables = baseTables();
 
     tables.daily_tasks.data = [];
@@ -472,7 +546,7 @@ describe("loadProgress — пустые данные", () => {
     await store.loadProgress();
 
     expect(store.tasksCompleted).toBe(0);
-    expect(store.tasksTotal).toBe(21);
+    expect(store.tasksTotal).toBe(22);
     expect(store.tasksPercentage).toBe(0);
   });
 });
@@ -537,6 +611,18 @@ describe("loadProgress — ошибки и отсутствие данных", (
   it("бросает ошибку из daily_task_completions", async () => {
     const tables = baseTables();
     tables.daily_task_completions = { data: null, error: { message: "boom" } };
+
+    setupSupabaseClient({ id: "u1" }, tables);
+
+    const store = useProgressStore();
+
+    await expect(store.loadProgress()).rejects.toMatchObject({ message: "boom" });
+  });
+
+  it("бросает ошибку из weekly_task_completions", async () => {
+    const tables = baseTables();
+
+    tables.weekly_task_completions = { data: null, error: { message: "boom" } };
 
     setupSupabaseClient({ id: "u1" }, tables);
 

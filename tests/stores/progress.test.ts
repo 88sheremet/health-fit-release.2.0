@@ -17,7 +17,7 @@ beforeEach(() => {
 });
 
 describe("progress store — начальное состояние", () => {
-  it("все счётчики обнулены, категории присутствуют", () => {
+  it("энергия и настроение обнулены, задания — 0 из 22, категории присутствуют", () => {
     const store = useProgressStore();
 
     expect(store.loading).toBe(false);
@@ -27,7 +27,14 @@ describe("progress store — начальное состояние", () => {
     expect(store.moodAverage).toBe(0);
     expect(store.moodChange).toBe(0);
     expect(store.tasksCompleted).toBe(0);
-    expect(store.tasksTotal).toBe(0);
+
+    /*
+     * `tasksTotal` — константа TOTAL_TASKS = 7 дней × 3 категории + 1 недельное
+     * задание = 22. Она известна до первой загрузки, поэтому карточка «Задания»
+     * показывает знаменатель сразу, а не после `loadProgress()`.
+     */
+    expect(store.tasksTotal).toBe(22);
+    expect(store.tasksPercentage).toBe(0);
 
     expect(Object.keys(store.categories).sort()).toEqual([
       "food",
@@ -62,11 +69,16 @@ describe("progress store — геттер tasksPercentage", () => {
   it("возвращает 0 при нулевом знаменателе (деление на ноль не происходит)", () => {
     const store = useProgressStore();
 
-    expect(store.tasksTotal).toBe(0);
+    /*
+     * В проде знаменатель — константа TOTAL_TASKS (22), поэтому ноль здесь
+     * задаётся явно: геттер обязан пережить и такое значение.
+     */
+    store.tasksTotal = 0;
+
     expect(store.tasksPercentage).toBe(0);
   });
 
-  it("округляет вверх до целого процента", () => {
+  it("округляет 1/3 до 33%", () => {
     const store = useProgressStore();
 
     store.tasksCompleted = 1;
@@ -78,17 +90,18 @@ describe("progress store — геттер tasksPercentage", () => {
   it("возвращает точные 100% при выполненных заданиях", () => {
     const store = useProgressStore();
 
-    store.tasksCompleted = 21;
-    store.tasksTotal = 21;
+    store.tasksCompleted = 22;
+    store.tasksTotal = 22;
 
     expect(store.tasksPercentage).toBe(100);
   });
 
-  it("округляет 14.28% до 14%", () => {
+  it("округляет 13.64% до 14% (3 из 22)", () => {
     const store = useProgressStore();
 
+    expect(store.tasksTotal).toBe(22);
+
     store.tasksCompleted = 3;
-    store.tasksTotal = 21;
 
     expect(store.tasksPercentage).toBe(14);
   });
