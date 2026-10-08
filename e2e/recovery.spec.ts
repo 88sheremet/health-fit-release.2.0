@@ -121,12 +121,12 @@ test.describe("Weekly page", () => {
 });
 
 test.describe("Journal page", () => {
-  test("renders journal hero and 3 action cards", async ({ page }) => {
+  test("renders journal hero and 4 action cards", async ({ page }) => {
     await mockScreeningCompleted(page);
     await page.goto("/journal");
 
     await expect(page.locator(".hero-title")).toBeVisible();
-    await expect(page.locator(".action-card")).toHaveCount(3);
+    await expect(page.locator(".action-card")).toHaveCount(4);
   });
 
   test("chart action navigates to /journal-chart", async ({ page }) => {
@@ -137,11 +137,19 @@ test.describe("Journal page", () => {
     await expect(page).toHaveURL(/\/journal-chart/, { timeout: 10000 });
   });
 
+  test("progress action navigates to /progress", async ({ page }) => {
+    await mockScreeningCompleted(page);
+    await page.goto("/journal");
+
+    await page.locator(".action-card").nth(1).click();
+    await expect(page).toHaveURL(/\/progress/, { timeout: 10000 });
+  });
+
   test("archive action navigates to /journal-archive", async ({ page }) => {
     await mockScreeningCompleted(page);
     await page.goto("/journal");
 
-    await page.locator(".action-card").nth(2).click();
+    await page.locator(".action-card").nth(3).click();
     await expect(page).toHaveURL(/\/journal-archive/, { timeout: 10000 });
   });
 

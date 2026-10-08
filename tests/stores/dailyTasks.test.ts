@@ -71,6 +71,16 @@ function setupSupabaseClient(user: any) {
         };
       }
 
+      /*
+       * addEnergy() and init() both persist a row after every Energy change.
+       * The read path is never asserted here, so a resolving insert is enough.
+       */
+      if (table === "energy_history") {
+        return {
+          insert: vi.fn().mockResolvedValue({ error: null }),
+        };
+      }
+
       return {};
     }),
   };

@@ -239,9 +239,43 @@ function buildRouteHandler(opts?: {
   screeningResult?: any;
   failOAuthExchange?: boolean;
   state?: Partial<MockState>;
+
+  /**
+   * Seed rows for GET /rest/v1/user_progress.
+   *
+   * The daily page reads this table with `.maybeSingle()` and *creates* a row
+   * when it comes back empty, so leaving it undefined keeps the historical
+   * behaviour (`json: null`) intact for the daily specs. The progress page
+   * instead uses `.single()` and crashes on a null body, so it opts in here.
+   */
+  userProgress?: any;
+
+  /**
+   * Seed rows for GET /rest/v1/energy_history (progress page 7-day delta).
+   *
+   * Unset means an empty table (`[]`), which is what Supabase returns for a
+   * user without history — the progress page then falls back to "no data".
+   */
+  energyHistory?: any[];
+
+  /** Seed rows for GET /rest/v1/journal_entries (progress page mood stats). */
+  journalEntries?: any[];
+
+  /** Seed rows for GET /rest/v1/daily_task_completions (progress page tasks). */
+  completions?: any[];
+
+  /**
+   * Seed rows for GET /rest/v1/weekly_task_completions (progress page total).
+   *
+   * Unset means an empty table, which keeps the daily/weekly specs — they
+   * complete no weekly task — on their existing behaviour. The rows are cut by
+   * the `completed_at=gte.` filter the progress store sends, so a seeded row
+   * from an earlier period must not leak into the counter.
+   */
+  weeklyCompletions?: any[];
 }) {
   const state: MockState = {
-    completions: opts?.state?.completions ?? [],
+    completions: opts?.state?.completions ?? opts?.completions ?? [],
   };
 
   return function handleSupabaseRoute(route: Route, request: any): void {
@@ -396,6 +430,13 @@ function buildRouteHandler(opts?: {
 
     // rest/v1/user_progress
     if (url.includes("/rest/v1/user_progress") && method === "GET") {
+      if (opts?.userProgress !== undefined) {
+        return route.fulfill({
+          status: 200,
+          json: opts.userProgress,
+          headers: { "content-type": "application/json" },
+        });
+      }
       return route.fulfill({
         status: 200,
         json: null,
@@ -403,13 +444,57 @@ function buildRouteHandler(opts?: {
       });
     }
 
+    // rest/v1/energy_history
+    //
+    // GET answers with the seeded rows, or an empty list the way Supabase does
+    // for an empty table — never with an unsettled fallback, because the daily
+    // page reads nothing here and the progress page must not hit the network.
+    //
+    // POST stores the insert (`loadProgress()` seeds the initial energy row for
+    // a new user and `addEnergy()` appends one per completed task). Serving it
+    // is what keeps those writes inside the mock instead of letting them escape
+    // to *.supabase.co, which rejects and aborts the whole daily initialization.
+    if (url.includes("/rest/v1/energy_history")) {
+      if (method === "GET") {
+        return route.fulfill({
+          status: 200,
+          json: opts?.energyHistory ?? [],
+          headers: { "content-type": "application/json" },
+        });
+      }
+
+      return route.fulfill({
+        status: 201,
+        json: request.postDataJSON() ?? {},
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    // rest/v1/user_progress writes
+    //
+    // Supabase echoes the stored row whenever the caller asks for
+    // `return=representation` (`.select().single()`), so the response has to
+    // carry the real columns. Answering with `{}` made `loadProgress()` read
+    // `undefined` into `energy`/`streak`, which rendered as `NaN` in the header
+    // and left the daily store without a `start_date`.
     if (
       url.includes("/rest/v1/user_progress") &&
       (method === "POST" || method === "PATCH" || method === "PUT")
     ) {
+      const posted = (request.postDataJSON() ?? {}) as Record<string, unknown>;
+
       return route.fulfill({
         status: 200,
-        json: {},
+        json: {
+          id: "progress-1",
+          start_date: new Date(2026, 0, 1).toISOString(),
+          energy: 40,
+          streak: 1,
+          last_visit_date: new Date().toISOString().slice(0, 10),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          ...posted,
+        },
         headers: { "content-type": "application/json" },
       });
     }
@@ -492,10 +577,35 @@ function buildRouteHandler(opts?: {
     }
 
     // rest/v1/weekly_task_completions
+    //
+    // The progress store relies on Postgres for the period filter, so this
+    // branch replays the `completed_at=gte.` bound instead of returning the
+    // seeded rows as-is. Writes keep their historical `[]` body: no spec reads
+    // the response of a weekly completion insert.
     if (url.includes("/rest/v1/weekly_task_completions")) {
+      if (method !== "GET") {
+        return route.fulfill({
+          status: 200,
+          json: [],
+          headers: { "content-type": "application/json" },
+        });
+      }
+
+      const seeded = opts?.weeklyCompletions ?? [];
+
+      const gteMatch = url.match(/completed_at=gte\.([^&]+)/);
+
+      const rows = gteMatch
+        ? seeded.filter(
+            (row) =>
+              new Date(row.completed_at) >=
+              new Date(decodeURIComponent(gteMatch[1])),
+          )
+        : seeded;
+
       return route.fulfill({
         status: 200,
-        json: [],
+        json: rows,
         headers: { "content-type": "application/json" },
       });
     }
@@ -515,6 +625,13 @@ function buildRouteHandler(opts?: {
             user_id: user.id,
             created_at: "2026-08-03T12:00:00Z",
           },
+          headers: { "content-type": "application/json" },
+        });
+      }
+      if (opts?.journalEntries !== undefined) {
+        return route.fulfill({
+          status: 200,
+          json: opts.journalEntries,
           headers: { "content-type": "application/json" },
         });
       }
@@ -549,6 +666,36 @@ export async function mockScreeningCompleted(page: Page) {
     user: MOCK_USER,
     session: MOCK_SESSION,
     screeningResult: { id: "sr-1", user_id: MOCK_USER.id },
+  });
+  await page.route(SUPABASE_ROUTE, handler);
+}
+
+/**
+ * Seed data for the progress page, whose store reads six tables instead of
+ * the single `user_progress` row the daily page handles. `mockScreeningCompleted`
+ * alone would make `loadProgress()` crash: it calls `.single()` on `user_progress`
+ * (which that mock answers with `null`) and immediately dereferences `.energy`.
+ */
+export async function mockProgressData(
+  page: Page,
+  data: {
+    userProgress?: any;
+    energyHistory?: any[];
+    journalEntries?: any[];
+    completions?: any[];
+    weeklyCompletions?: any[];
+  },
+) {
+  await seedSupabaseSession(page);
+  const handler = buildRouteHandler({
+    user: MOCK_USER,
+    session: MOCK_SESSION,
+    screeningResult: { id: "sr-1", user_id: MOCK_USER.id },
+    userProgress: data.userProgress,
+    energyHistory: data.energyHistory,
+    journalEntries: data.journalEntries,
+    completions: data.completions,
+    weeklyCompletions: data.weeklyCompletions,
   });
   await page.route(SUPABASE_ROUTE, handler);
 }
