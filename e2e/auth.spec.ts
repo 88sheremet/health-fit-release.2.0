@@ -165,7 +165,7 @@ test.describe("Register page", () => {
       .getByRole("textbox", { name: /email/i })
       .fill("user@example.com");
     await page.getByRole("textbox", { name: /^Пароль$/ }).fill("123");
-    await page.getByRole("textbox", { name: /повторите пароль/i }).fill("123");
+    await page.getByRole("textbox", { name: /повтори пароль/i }).fill("123");
     await page.locator(".register-card button.bg-primary").click();
 
     await expect(page.locator(".register-error")).toHaveText(
@@ -182,7 +182,7 @@ test.describe("Register page", () => {
       .fill("user@example.com");
     await page.getByRole("textbox", { name: /^Пароль$/ }).fill("123456");
     await page
-      .getByRole("textbox", { name: /повторите пароль/i })
+      .getByRole("textbox", { name: /повтори пароль/i })
       .fill("654321");
     await page.locator(".register-card button.bg-primary").click();
 

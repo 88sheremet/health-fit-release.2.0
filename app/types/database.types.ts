@@ -14,22 +14,31 @@ export interface Database {
           id: string;
           user_id: string;
           date: string;
+          entry_type: "checkin" | "note";
           mood: number | null;
           note: string | null;
+          created_at: string;
+          updated_at: string;
         };
         Insert: {
           id?: string;
           user_id: string;
           date: string;
+          entry_type: "checkin" | "note";
           mood?: number | null;
           note?: string | null;
+          created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: string;
           user_id?: string;
           date?: string;
+          entry_type?: "checkin" | "note";
           mood?: number | null;
           note?: string | null;
+          created_at?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };
@@ -216,6 +225,33 @@ export interface Database {
           streak?: number;
           last_visit_date?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      energy_history: {
+        Row: {
+          id: string;
+          user_id: string;
+          energy: number;
+          amount: number;
+          source: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          energy: number;
+          amount: number;
+          source: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          energy?: number;
+          amount?: number;
+          source?: string;
+          created_at?: string;
         };
         Relationships: [];
       };

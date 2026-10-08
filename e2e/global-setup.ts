@@ -9,6 +9,7 @@ const ROUTES = [
   "/journal",
   "/journal-chart",
   "/journal-archive",
+  "/progress",
   "/menu",
   "/welcome",
   "/screening",

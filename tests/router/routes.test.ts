@@ -28,6 +28,7 @@ describe("routes", () => {
     expect(routes.recovery.journal).toBe("/journal");
     expect(routes.recovery.journalArchive).toBe("/journal-archive");
     expect(routes.recovery.journalChart).toBe("/journal-chart");
+    expect(routes.recovery.progress).toBe("/progress");
   });
 
   it("has settings route", () => {

@@ -202,9 +202,16 @@ export const useProgressStore = defineStore("progress", {
         };
       }
 
-      const focus = [...TASK_TYPES].sort(
+      /*
+       * Sort is stable, so an all-zero week resolves to the first entry of
+       * TASK_TYPES. The array is never empty, but noUncheckedIndexedAccess
+       * cannot see that, hence the explicit fallback.
+       */
+      const leastComplete = [...TASK_TYPES].sort(
         (a, b) => this.categories[a].percentage - this.categories[b].percentage,
-      )[0];
+      );
+
+      const focus: TaskType = leastComplete[0] ?? "physical";
 
       this.focusCategory = focus;
       this.focusCompleted = categoryCompleted[focus];
@@ -245,19 +252,24 @@ export const useProgressStore = defineStore("progress", {
         (entry) => new Date(entry.created_at) >= currentPeriodStart,
       );
 
-      if (!currentPeriodEntries.length) {
+      /*
+       * `noUncheckedIndexedAccess` does not narrow array elements from a
+       * `.length` check, so the element itself is tested here instead.
+       */
+      const firstCurrentEntry = currentPeriodEntries[0];
+
+      if (!firstCurrentEntry) {
         this.energyChange = 0;
         return;
       }
 
-      const firstCurrentEnergy = Number(currentPeriodEntries[0].energy);
+      let startEnergy = Number(firstCurrentEntry.energy);
 
-      let startEnergy = firstCurrentEnergy;
+      const lastPreviousEntry =
+        previousPeriodEntries[previousPeriodEntries.length - 1];
 
-      if (previousPeriodEntries.length) {
-        startEnergy = Number(
-          previousPeriodEntries[previousPeriodEntries.length - 1].energy,
-        );
+      if (lastPreviousEntry) {
+        startEnergy = Number(lastPreviousEntry.energy);
       }
 
       this.energyChange = this.energy - startEnergy;
