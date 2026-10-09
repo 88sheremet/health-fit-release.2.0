@@ -288,6 +288,33 @@ export interface Database {
         };
         Relationships: [];
       };
+      profiles: {
+        Row: {
+          user_id: string;
+          name: string | null;
+          gender: "male" | "female" | null;
+          avatar: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          name: string | null;
+          gender: "male" | "female" | null;
+          avatar?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          name?: string | null;
+          gender?: "male" | "female" | null;
+          avatar?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

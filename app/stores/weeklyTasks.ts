@@ -133,7 +133,7 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
 
         const dailyStore = useTaskStore();
 
-        await dailyStore.addEnergy(100);
+        await dailyStore.addEnergy(90);
       } catch (error) {
         console.error("[WeeklyTasks] Ошибка выполнения задания:", error);
 
@@ -148,7 +148,7 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
     rewardEnergy() {
       const dailyStore = useTaskStore();
 
-      dailyStore.energy += 100;
+      dailyStore.energy += 90;
     },
   },
 

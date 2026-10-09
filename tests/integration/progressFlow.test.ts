@@ -8,7 +8,7 @@ import { useSupabaseClient } from "../setup";
 /**
  * Integration-тесты страницы прогресса.
  *
- * `loadProgress()` читает шесть таблиц за один проход, поэтому здесь мокается
+ * `loadProgress()` читает семь таблиц за один проход, поэтому здесь мокается
  * весь Supabase-клиент: `from(table)` возвращает «липкую» цепочку, которая
  * по завершении отдаёт настроенный `{ data, error }` для этой таблицы.
  * Дата заморожена на 2026-08-03, чтобы границы 7-дневных окон были детерминированы:
@@ -41,6 +41,7 @@ function buildChain(table: string) {
   });
 
   chain.single = vi.fn(() => Promise.resolve(result()));
+  chain.maybeSingle = vi.fn(() => Promise.resolve(result()));
 
   chain.then = (onFulfilled: any, onRejected: any) =>
     Promise.resolve(result()).then(onFulfilled, onRejected);
@@ -74,6 +75,15 @@ function setupSupabaseClient(user: any, tables: Record<string, TableResult>) {
  */
 function baseTables(): Record<string, TableResult> {
   return {
+    /*
+     * Категория фокуса берётся из скрининга (`dominant_problem`), а не из
+     * наименее завершённой категории, поэтому в базовом наборе она задана явно.
+     */
+    screening_results: {
+      data: { dominant_problem: "physical" },
+      error: null,
+    },
+
     user_progress: {
       data: { energy: 420, streak: 5, start_date: "2026-07-01" },
       error: null,
@@ -184,15 +194,20 @@ describe("loadProgress — happy path", () => {
     });
   });
 
-  it("выбирает фокусом категорию с наименьшим процентом", async () => {
-    setupSupabaseClient({ id: "u1" }, baseTables());
+  it("берёт фокус из dominant_problem скрининга, а не из наименее завершённой категории", async () => {
+    const tables = baseTables();
+
+    // food завершена лучше всех, но скрининг указывает именно на неё.
+    tables.screening_results.data = { dominant_problem: "food" };
+
+    setupSupabaseClient({ id: "u1" }, tables);
 
     const store = useProgressStore();
 
     await store.loadProgress();
 
-    expect(store.focusCategory).toBe("physical");
-    expect(store.focusCompleted).toBe(0);
+    expect(store.focusCategory).toBe("food");
+    expect(store.focusCompleted).toBe(2);
   });
 
   it("считает прирост энергии от последней записи предыдущего окна", async () => {
@@ -216,7 +231,7 @@ describe("loadProgress — happy path", () => {
     expect(store.moodChange).toBe(1);
   });
 
-  it("обходит все шесть таблиц нужными методами", async () => {
+  it("обходит все семь таблиц нужными методами", async () => {
     const client = setupSupabaseClient({ id: "u1" }, baseTables());
 
     const store = useProgressStore();
@@ -226,6 +241,7 @@ describe("loadProgress — happy path", () => {
     const tables = (client.from as any).mock.calls.map((call: any) => call[0]);
 
     expect(tables).toEqual([
+      "screening_results",
       "user_progress",
       "energy_history",
       "daily_task_completions",
@@ -283,7 +299,7 @@ describe("loadProgress — границы 7-дневных окон", () => {
 
     const gteCalls = (client.from as any).mock.calls.length;
 
-    expect(gteCalls).toBe(6);
+    expect(gteCalls).toBe(7);
 
     const completions = tables.daily_task_completions.data;
 
@@ -408,13 +424,13 @@ describe("loadProgress — фокус и неизвестные задания",
   });
 
   /**
-   * При нулевом прогрессе все три процента равны, и `Array#sort` стабилен,
-   * поэтому фокусом становится первая категория из TASK_TYPES — "physical",
-   * а не дефолтное значение state "mental".
+   * Фокус теперь не зависит от прогресса: он приходит из скрининга. Даже при
+   * нулевых завершениях категория фокуса берётся из `dominant_problem`.
    */
-  it("при нулевом прогрессе фокусом становится physical", async () => {
+  it("при нулевом прогрессе фокус всё равно берётся из скрининга", async () => {
     const tables = baseTables();
 
+    tables.screening_results.data = { dominant_problem: "food" };
     tables.daily_task_completions.data = [];
     tables.energy_history.data = [];
     tables.journal_entries.data = [];
@@ -425,13 +441,14 @@ describe("loadProgress — фокус и неизвестные задания",
 
     await store.loadProgress();
 
-    expect(store.focusCategory).toBe("physical");
+    expect(store.focusCategory).toBe("food");
     expect(store.focusCompleted).toBe(0);
   });
 
-  it("фокусом становится категория с минимальным, но ненулевым числом", async () => {
+  it("focusCompleted считается по выбранной скрининговой категории", async () => {
     const tables = baseTables();
 
+    tables.screening_results.data = { dominant_problem: "mental" };
     tables.daily_task_completions.data = [
       { task_id: "task-1", day_index: 0, completed_at: "2026-07-29T10:00:00" },
       { task_id: "task-2", day_index: 1, completed_at: "2026-07-30T10:00:00" },
@@ -448,7 +465,7 @@ describe("loadProgress — фокус и неизвестные задания",
     expect(store.categories.mental.percentage).toBe(14);
     expect(store.categories.physical.percentage).toBe(14);
 
-    expect(store.focusCategory).toBe("physical");
+    expect(store.focusCategory).toBe("mental");
     expect(store.focusCompleted).toBe(1);
   });
 });
@@ -571,6 +588,48 @@ describe("loadProgress — ошибки и отсутствие данных", (
     const store = useProgressStore();
 
     await expect(store.loadProgress()).rejects.toMatchObject({ message: "boom" });
+  });
+
+  it("бросает ошибку из screening_results", async () => {
+    const tables = baseTables();
+    tables.screening_results = { data: null, error: { message: "screening boom" } };
+
+    setupSupabaseClient({ id: "u1" }, tables);
+
+    const store = useProgressStore();
+
+    await expect(store.loadProgress()).rejects.toMatchObject({
+      message: "screening boom",
+    });
+  });
+
+  it("нет результата скрининга → бросает понятную ошибку", async () => {
+    const tables = baseTables();
+    tables.screening_results = { data: null, error: null };
+
+    setupSupabaseClient({ id: "u1" }, tables);
+
+    const store = useProgressStore();
+
+    await expect(store.loadProgress()).rejects.toThrow(
+      "Результат скрининга не найден",
+    );
+  });
+
+  it("некорректный dominant_problem → бросает понятную ошибку", async () => {
+    const tables = baseTables();
+    tables.screening_results = {
+      data: { dominant_problem: "weird" },
+      error: null,
+    };
+
+    setupSupabaseClient({ id: "u1" }, tables);
+
+    const store = useProgressStore();
+
+    await expect(store.loadProgress()).rejects.toThrow(
+      "Некорректный dominant_problem",
+    );
   });
 
   /**

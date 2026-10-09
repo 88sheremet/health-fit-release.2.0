@@ -247,9 +247,6 @@ export const useProgressStore = defineStore("progress", {
 
       this.focusCompleted = categoryCompleted[this.focusCategory];
 
-      console.log("[Progress] Final focus:", this.focusCategory);
-      console.log("[Progress] Focus completed:", this.focusCompleted);
-
       await this.loadMood(user.id, currentPeriodStart, previousPeriodStart);
     },
 
