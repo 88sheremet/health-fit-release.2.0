@@ -9,13 +9,18 @@
     </div>
 
     <template v-else>
+      <!-- Energy -->
       <q-card class="progress-card">
-        <div class="card-title">⚡ {{ $t("progress.energy") }}</div>
+        <div class="card-title">
+          ⚡ {{ $t("progress.energy") }}
+        </div>
 
-        <div class="energy-value">{{ store.energy }} / 1000</div>
+        <div class="energy-value">
+          {{ store.energy }} / 1000
+        </div>
 
         <q-linear-progress
-          :value="store.energy / 1000"
+          :value="Math.min(store.energy / 1000, 1)"
           rounded
           size="10px"
           color="primary"
@@ -32,8 +37,11 @@
         </div>
       </q-card>
 
+      <!-- Streak -->
       <q-card class="progress-card small-card">
-        <div class="card-title">🔥 {{ $t("progress.streak") }}</div>
+        <div class="card-title">
+          🔥 {{ $t("progress.streak") }}
+        </div>
 
         <div class="big-value">
           {{ store.streak }}
@@ -41,10 +49,15 @@
         </div>
       </q-card>
 
+      <!-- Mood -->
       <q-card class="progress-card small-card">
-        <div class="card-title">😊 {{ $t("progress.mood") }}</div>
+        <div class="card-title">
+          😊 {{ $t("progress.mood") }}
+        </div>
 
-        <div class="big-value">{{ store.moodAverage }} / 5</div>
+        <div class="big-value">
+          {{ store.moodAverage }} / 5
+        </div>
 
         <div v-if="store.moodChange !== 0" class="change">
           {{ store.moodChange > 0 ? "↑" : "↓" }}
@@ -52,17 +65,23 @@
         </div>
       </q-card>
 
+      <!-- Tasks -->
       <q-card class="progress-card small-card">
-        <div class="card-title">✅ {{ $t("progress.tasks") }}</div>
+        <div class="card-title">
+          ✅ {{ $t("progress.tasks") }}
+        </div>
 
         <div class="big-value">
           {{ store.tasksCompleted }} /
           {{ store.tasksTotal }}
         </div>
 
-        <div class="change">{{ store.tasksPercentage }}%</div>
+        <div class="change">
+          {{ store.tasksPercentage }}%
+        </div>
       </q-card>
 
+      <!-- Weekly category progress -->
       <div class="section">
         <div class="section-title">
           {{ $t("progress.thisWeek") }}
@@ -78,7 +97,9 @@
               {{ $t(`progress.categories.${category}`) }}
             </span>
 
-            <span> {{ store.categories[category].percentage }}% </span>
+            <span>
+              {{ store.categories[category].percentage }}%
+            </span>
           </div>
 
           <q-linear-progress
@@ -91,8 +112,11 @@
         </div>
       </div>
 
+      <!-- Focus from screening -->
       <div class="focus">
-        <div class="focus-title">🎯 {{ $t("progress.focus") }}</div>
+        <div class="focus-title">
+          🎯 {{ $t("progress.focus") }}
+        </div>
 
         <div class="focus-category">
           {{ $t(`progress.focuses.${store.focusCategory}`) }}

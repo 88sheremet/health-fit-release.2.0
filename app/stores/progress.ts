@@ -36,6 +36,10 @@ const DAILY_TASKS_TOTAL = DAYS_IN_PERIOD * TASK_TYPES.length;
 const WEEKLY_TASKS_TOTAL = 1;
 const TOTAL_TASKS = DAILY_TASKS_TOTAL + WEEKLY_TASKS_TOTAL;
 
+function isTaskType(value: unknown): value is TaskType {
+  return value === "physical" || value === "food" || value === "mental";
+}
+
 export const useProgressStore = defineStore("progress", {
   state: (): ProgressState => ({
     loading: false,
@@ -57,13 +61,11 @@ export const useProgressStore = defineStore("progress", {
         total: 0,
         percentage: 0,
       },
-
       food: {
         completed: 0,
         total: 0,
         percentage: 0,
       },
-
       mental: {
         completed: 0,
         total: 0,
@@ -120,6 +122,30 @@ export const useProgressStore = defineStore("progress", {
         throw new Error("Пользователь не авторизован");
       }
 
+      const { data: screening, error: screeningError } = await supabase
+        .from("screening_results")
+        .select("dominant_problem")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (screeningError) {
+        throw screeningError;
+      }
+
+      if (!screening) {
+        throw new Error("Результат скрининга не найден");
+      }
+
+      const dominantProblem = screening.dominant_problem;
+
+      if (!isTaskType(dominantProblem)) {
+        throw new Error(
+          `Некорректный dominant_problem: ${String(dominantProblem)}`,
+        );
+      }
+
+      this.focusCategory = dominantProblem;
+
       const { data: progress, error: progressError } = await supabase
         .from("user_progress")
         .select("energy, streak, start_date")
@@ -133,26 +159,16 @@ export const useProgressStore = defineStore("progress", {
       this.energy = Number(progress.energy ?? 0);
       this.streak = Number(progress.streak ?? 0);
 
-      /*
-       * Current period:
-       * today + previous 6 days = 7 days.
-       */
       const now = new Date();
 
       const currentPeriodStart = new Date(now);
 
       currentPeriodStart.setDate(now.getDate() - (DAYS_IN_PERIOD - 1));
-
       currentPeriodStart.setHours(0, 0, 0, 0);
 
-      /*
-       * Previous period:
-       * 7 days before current period.
-       */
       const previousPeriodStart = new Date(now);
 
       previousPeriodStart.setDate(now.getDate() - DAYS_IN_PERIOD * 2 + 1);
-
       previousPeriodStart.setHours(0, 0, 0, 0);
 
       await this.loadEnergyHistory(
@@ -160,12 +176,6 @@ export const useProgressStore = defineStore("progress", {
         currentPeriodStart,
         previousPeriodStart,
       );
-
-      /*
-       * -------------------------------------------------------
-       * DAILY TASK COMPLETIONS
-       * -------------------------------------------------------
-       */
 
       const { data: completions, error: completionsError } = await supabase
         .from("daily_task_completions")
@@ -191,21 +201,6 @@ export const useProgressStore = defineStore("progress", {
         (completion) => new Date(completion.completed_at) >= currentPeriodStart,
       );
 
-      /*
-       * -------------------------------------------------------
-       * WEEKLY TASK COMPLETIONS
-       * -------------------------------------------------------
-       *
-       * weekly_task_completions:
-       * - weekly_task_id
-       * - user_id
-       * - week
-       * - completed_at
-       *
-       * A weekly task is counted only once for the current
-       * progress period.
-       */
-
       const { data: weeklyCompletions, error: weeklyError } = await supabase
         .from("weekly_task_completions")
         .select("weekly_task_id, week, completed_at")
@@ -216,42 +211,12 @@ export const useProgressStore = defineStore("progress", {
         throw weeklyError;
       }
 
-      /*
-       * There is currently one weekly task per week.
-       *
-       * `length` is enough here because every completion
-       * represents a completed weekly task.
-       */
       const weeklyTasksCompleted = weeklyCompletions?.length ?? 0;
-
-      /*
-       * -------------------------------------------------------
-       * TOTAL TASKS
-       * -------------------------------------------------------
-       *
-       * Daily:
-       * 7 days × 3 categories = 21
-       *
-       * Weekly:
-       * 1 task
-       *
-       * Total = 22
-       */
 
       const dailyTasksCompleted = currentWeekCompletions.length;
 
       this.tasksCompleted = dailyTasksCompleted + weeklyTasksCompleted;
-
       this.tasksTotal = TOTAL_TASKS;
-
-      /*
-       * -------------------------------------------------------
-       * CATEGORY PROGRESS
-       * -------------------------------------------------------
-       *
-       * Weekly tasks are not included in categories because
-       * they don't belong to physical / food / mental.
-       */
 
       const categoryCompleted: Record<TaskType, number> = {
         physical: 0,
@@ -262,11 +227,7 @@ export const useProgressStore = defineStore("progress", {
       for (const completion of currentWeekCompletions) {
         const task = taskMap.get(completion.task_id);
 
-        if (!task) {
-          continue;
-        }
-
-        if (!TASK_TYPES.includes(task.type)) {
+        if (!task || !isTaskType(task.type)) {
           continue;
         }
 
@@ -275,7 +236,6 @@ export const useProgressStore = defineStore("progress", {
 
       for (const category of TASK_TYPES) {
         const completed = categoryCompleted[category];
-
         const total = DAYS_IN_PERIOD;
 
         this.categories[category] = {
@@ -285,32 +245,10 @@ export const useProgressStore = defineStore("progress", {
         };
       }
 
-      /*
-       * -------------------------------------------------------
-       * FOCUS
-       * -------------------------------------------------------
-       *
-       * Focus is the category with the lowest progress.
-       */
+      this.focusCompleted = categoryCompleted[this.focusCategory];
 
-      const leastComplete = [...TASK_TYPES].sort(
-        (a, b) => this.categories[a].percentage - this.categories[b].percentage,
-      );
-
-      /*
-       * `noUncheckedIndexedAccess` does not narrow
-       * array elements after sorting.
-       */
-      const focus: TaskType = leastComplete[0] ?? "physical";
-
-      this.focusCategory = focus;
-      this.focusCompleted = categoryCompleted[focus];
-
-      /*
-       * -------------------------------------------------------
-       * MOOD
-       * -------------------------------------------------------
-       */
+      console.log("[Progress] Final focus:", this.focusCategory);
+      console.log("[Progress] Focus completed:", this.focusCompleted);
 
       await this.loadMood(user.id, currentPeriodStart, previousPeriodStart);
     },
@@ -375,7 +313,6 @@ export const useProgressStore = defineStore("progress", {
       const supabase = useSupabaseClient();
 
       const currentPeriodDate = this.formatDate(currentPeriodStart);
-
       const previousPeriodDate = this.formatDate(previousPeriodStart);
 
       const { data, error } = await supabase
@@ -401,7 +338,6 @@ export const useProgressStore = defineStore("progress", {
       );
 
       const currentAverage = this.calculateMoodAverage(current);
-
       const previousAverage = this.calculateMoodAverage(previous);
 
       this.moodAverage = currentAverage;
@@ -439,9 +375,7 @@ export const useProgressStore = defineStore("progress", {
 
     formatDate(date: Date): string {
       const year = date.getFullYear();
-
       const month = String(date.getMonth() + 1).padStart(2, "0");
-
       const day = String(date.getDate()).padStart(2, "0");
 
       return `${year}-${month}-${day}`;
