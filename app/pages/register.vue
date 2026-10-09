@@ -3,6 +3,32 @@
     <div class="register-card">
       <h1>{{ $t("auth.registerTitle") }}</h1>
 
+      <!-- Name -->
+      <q-input
+        v-model="name"
+        :label="$t('auth.name')"
+        type="text"
+        outlined
+        autocomplete="given-name"
+        maxlength="100"
+        class="q-mb-md"
+        :disable="loading || googleLoading"
+      />
+
+      <!-- Gender -->
+      <div class="gender-heading">
+        {{ $t("auth.gender") }}
+      </div>
+
+      <q-option-group
+        v-model="gender"
+        :options="genderOptions"
+        type="radio"
+        color="primary"
+        class="gender-options q-mb-md"
+        :disable="loading || googleLoading"
+      />
+
       <!-- Email -->
       <q-input
         v-model="email"
@@ -72,8 +98,7 @@
         @click="registerWithGoogle"
       >
         <template #default>
-          <span v-if="!googleLoading" class="google-icon"> G </span>
-
+          <span v-if="!googleLoading" class="google-icon">G</span>
           <span class="google-text">
             {{ $t("auth.googleRegister") }}
           </span>
@@ -83,7 +108,6 @@
       <!-- Login -->
       <div class="register-links">
         <span>{{ $t("auth.haveAccount") }}</span>
-
         <NuxtLink :to="routes.auth.login">
           {{ $t("auth.loginBtn") }}
         </NuxtLink>
@@ -93,6 +117,8 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
+
 import { routes } from "~/router/routes";
 import { signInWithGoogle } from "~/services/googleAuth.service";
 
@@ -100,19 +126,33 @@ definePageMeta({
   middleware: "guest",
 });
 
+type Gender = "male" | "female";
+
 const supabase = useSupabaseClient();
 const router = useRouter();
 const { t } = useI18n();
 
+const name = ref("");
+const gender = ref<Gender | null>(null);
 const email = ref("");
 const password = ref("");
 const confirmPassword = ref("");
 
 const loading = ref(false);
 const googleLoading = ref(false);
-
 const errorMessage = ref("");
 const successMessage = ref("");
+
+const genderOptions = [
+  {
+    label: t("auth.genderMale"),
+    value: "male",
+  },
+  {
+    label: t("auth.genderFemale"),
+    value: "female",
+  },
+];
 
 const validateEmail = createValidator([
   {
@@ -141,12 +181,20 @@ const register = async () => {
   successMessage.value = "";
 
   const validationError = validateForm(
-    validateEmail(email.value),
+    !isRequired(name.value.trim())
+      ? t("auth.nameRequired")
+      : null,
+    !gender.value
+      ? t("auth.genderRequired")
+      : null,
+    validateEmail(email.value.trim()),
     validatePassword(password.value),
-    !isRequired(confirmPassword.value) ? t("auth.fillAllFields") : null,
+    !isRequired(confirmPassword.value)
+      ? t("auth.fillAllFields")
+      : null,
     !matchesField(password.value)(confirmPassword.value)
       ? t("auth.passwordMismatch")
-      : null
+      : null,
   );
 
   if (validationError) {
@@ -156,30 +204,66 @@ const register = async () => {
 
   loading.value = true;
 
+  const normalizedName = name.value.trim();
+  const normalizedEmail = email.value.trim();
+
   try {
     const { data, error } = await supabase.auth.signUp({
-      email: email.value.trim(),
+      email: normalizedEmail,
       password: password.value,
+      options: {
+        data: {
+          name: normalizedName,
+          full_name: normalizedName,
+          gender: gender.value,
+        },
+      },
     });
 
     if (error) {
       console.error("[Auth] Registration error:", error);
-
       errorMessage.value = error.message;
       return;
     }
 
-    if (data.session) {
-      console.log("[Auth] Registration successful → Welcome");
+    if (data.session && data.user) {
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .upsert(
+          {
+            user_id: data.user.id,
+            name: normalizedName,
+            gender: gender.value,
+            avatar:
+              data.user.user_metadata?.avatar_url ||
+              data.user.user_metadata?.picture ||
+              null,
+            updated_at: new Date().toISOString(),
+          },
+          {
+            onConflict: "user_id",
+          },
+        );
 
+      if (profileError) {
+        console.error(
+          "[Auth] Profile save error after registration:",
+          profileError,
+        );
+
+        // Name and gender are already stored in Auth metadata.
+        // Continue registration; profile saving can be retried later.
+      }
+
+      console.log("[Auth] Registration successful → Welcome");
       await router.replace(routes.onboarding.welcome);
       return;
     }
 
+    // Email confirmation is required before a session is created.
     successMessage.value = t("auth.registerSuccess");
   } catch (error) {
     console.error("[Auth] Registration unexpected error:", error);
-
     errorMessage.value = t("auth.registerError");
   } finally {
     loading.value = false;
@@ -189,7 +273,6 @@ const register = async () => {
 const registerWithGoogle = async () => {
   errorMessage.value = "";
   successMessage.value = "";
-
   googleLoading.value = true;
 
   try {
@@ -198,7 +281,10 @@ const registerWithGoogle = async () => {
     console.error("[Auth] Google registration error:", error);
 
     errorMessage.value =
-      error instanceof Error ? error.message : t("auth.registerError");
+      error instanceof Error
+        ? error.message
+        : t("auth.registerError");
+
     googleLoading.value = false;
   }
 };
@@ -212,20 +298,37 @@ const registerWithGoogle = async () => {
   justify-content: center;
   padding: 24px;
 }
+
 .register-card {
   width: 100%;
   max-width: 400px;
 }
+
+.gender-heading {
+  margin-bottom: 8px;
+  color: var(--black1);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.gender-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .register-error {
   margin-bottom: 16px;
   color: var(--red);
   font-size: 14px;
 }
+
 .register-success {
   margin-bottom: 16px;
   color: var(--green);
   font-size: 14px;
 }
+
 .oauth-divider {
   display: flex;
   align-items: center;
@@ -234,6 +337,7 @@ const registerWithGoogle = async () => {
   color: var(--grey);
   font-size: 14px;
 }
+
 .oauth-divider::before,
 .oauth-divider::after {
   content: "";
@@ -241,6 +345,7 @@ const registerWithGoogle = async () => {
   height: 1px;
   background: var(--border-default);
 }
+
 .google-btn {
   height: 48px;
   border-radius: 12px;
@@ -249,15 +354,21 @@ const registerWithGoogle = async () => {
   border: 1px solid var(--border-default);
   font-size: 15px;
   font-weight: 600;
-  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.2s;
 }
+
 .google-btn:hover {
   background: var(--grey-hover);
   border-color: var(--green);
 }
+
 .google-btn:active {
   transform: scale(0.98);
 }
+
 .google-icon {
   width: 22px;
   height: 22px;
@@ -270,9 +381,11 @@ const registerWithGoogle = async () => {
   font-weight: 700;
   color: var(--google-blue);
 }
+
 .google-text {
   line-height: 1;
 }
+
 .register-links {
   display: flex;
   justify-content: center;
@@ -280,6 +393,7 @@ const registerWithGoogle = async () => {
   gap: 6px;
   margin-top: 20px;
 }
+
 .register-links a {
   color: var(--green);
   text-decoration: none;
