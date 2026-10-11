@@ -180,7 +180,7 @@ describe("weekly tasks flow integration", () => {
 
     expect(completeWeeklyTask).toHaveBeenCalledWith("wk1", 1);
     expect(store.completed[1]).toBe(true);
-    expect(daily.energy).toBe(140); // 40 + 100
+    expect(daily.energy).toBe(130); // 40 + 90
 
     vi.useRealTimers();
   });

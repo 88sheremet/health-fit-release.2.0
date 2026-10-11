@@ -237,6 +237,7 @@ function buildRouteHandler(opts?: {
   user?: typeof MOCK_USER | null;
   session?: typeof MOCK_SESSION | null;
   screeningResult?: any;
+  profile?: any;
   failOAuthExchange?: boolean;
   state?: Partial<MockState>;
 
@@ -424,6 +425,27 @@ function buildRouteHandler(opts?: {
       return route.fulfill({
         status: 201,
         json: {},
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    // rest/v1/profiles
+    //
+    // The guest middleware and the daily greeting read `profiles.gender` /
+    // `profiles.name`. Unset means "no profile yet", which is what a brand-new
+    // user sees — the app then routes them to /profile-setup.
+    if (url.includes("/rest/v1/profiles") && method === "GET") {
+      return route.fulfill({
+        status: 200,
+        json: opts?.profile ?? null,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (url.includes("/rest/v1/profiles") && method !== "GET") {
+      return route.fulfill({
+        status: 201,
+        json: request.postDataJSON() ?? {},
         headers: { "content-type": "application/json" },
       });
     }
@@ -655,7 +677,11 @@ export async function mockSupabaseNoSession(page: Page) {
 /** Mock Supabase for logged-in user (sets localStorage + route mocks) */
 export async function mockSupabaseAuth(page: Page) {
   await seedSupabaseSession(page);
-  const handler = buildRouteHandler({ user: MOCK_USER, session: MOCK_SESSION });
+  const handler = buildRouteHandler({
+    user: MOCK_USER,
+    session: MOCK_SESSION,
+    profile: { user_id: MOCK_USER.id, name: "Тест", gender: "male" },
+  });
   await page.route(SUPABASE_ROUTE, handler);
 }
 
@@ -665,7 +691,12 @@ export async function mockScreeningCompleted(page: Page) {
   const handler = buildRouteHandler({
     user: MOCK_USER,
     session: MOCK_SESSION,
-    screeningResult: { id: "sr-1", user_id: MOCK_USER.id },
+    screeningResult: {
+      id: "sr-1",
+      user_id: MOCK_USER.id,
+      dominant_problem: "physical",
+    },
+    profile: { user_id: MOCK_USER.id, name: "Тест", gender: "male" },
   });
   await page.route(SUPABASE_ROUTE, handler);
 }
@@ -690,7 +721,12 @@ export async function mockProgressData(
   const handler = buildRouteHandler({
     user: MOCK_USER,
     session: MOCK_SESSION,
-    screeningResult: { id: "sr-1", user_id: MOCK_USER.id },
+    screeningResult: {
+      id: "sr-1",
+      user_id: MOCK_USER.id,
+      dominant_problem: "physical",
+    },
+    profile: { user_id: MOCK_USER.id, name: "Тест", gender: "male" },
     userProgress: data.userProgress,
     energyHistory: data.energyHistory,
     journalEntries: data.journalEntries,
@@ -703,13 +739,19 @@ export async function mockProgressData(
 /**
  * Mock Supabase for the Google OAuth flow. The user starts without a session
  * (so guest pages like /login render), but the OAuth code exchange produces a
- * fresh MOCK_SESSION. Pass `screeningResult` to simulate an existing user.
+ * fresh MOCK_SESSION. Pass `screeningResult` to simulate an existing user and
+ * `profile` to simulate a filled-in profile (gender set).
  */
-export async function mockSupabaseOAuth(page: Page, screeningResult?: any) {
+export async function mockSupabaseOAuth(
+  page: Page,
+  screeningResult?: any,
+  profile?: any,
+) {
   const handler = buildRouteHandler({
     user: null,
     session: null,
     screeningResult,
+    profile: profile ?? null,
   });
   await page.route(SUPABASE_ROUTE, handler);
 }

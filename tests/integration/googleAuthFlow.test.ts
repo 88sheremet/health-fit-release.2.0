@@ -19,16 +19,20 @@ const GOOGLE_SESSION: OAuthSession = {
   refresh_token: "google-refresh",
 };
 
+const PROFILE_PRESENT = { user_id: "google-1", gender: "male" };
+
 const SCREENING_PRESENT = { user_id: "google-1", id: "sr-1" };
 
 /**
  * Integration test of the Google OAuth flow: sign in → callback →
- * code exchange → session → screening check → destination.
+ * code exchange → user → profile check → screening check → destination.
  */
 function buildFlowMocks(opts: {
   exchangeError?: Error | null;
   session?: OAuthSession | null;
-  getSessionError?: Error | null;
+  userError?: Error | null;
+  profile?: unknown;
+  profileError?: Error | null;
   screening?: unknown;
   screeningError?: Error | null;
 }) {
@@ -54,17 +58,28 @@ function buildFlowMocks(opts: {
         data: { session: null },
         error: opts.exchangeError ?? null,
       }),
-      getSession: vi.fn().mockResolvedValue({
-        data: { session: opts.session ?? null },
-        error: opts.getSessionError ?? null,
+      getUser: vi.fn().mockResolvedValue({
+        data: { user: opts.session?.user ?? null },
+        error: opts.userError ?? null,
       }),
     },
-    from: vi.fn(() =>
-      chainFor({
-        data: opts.screening ?? null,
-        error: opts.screeningError ?? null,
-      })
-    ),
+    from: vi.fn((table: string) => {
+      if (table === "profiles") {
+        return chainFor({
+          data: opts.profile ?? null,
+          error: opts.profileError ?? null,
+        });
+      }
+
+      if (table === "screening_results") {
+        return chainFor({
+          data: opts.screening ?? null,
+          error: opts.screeningError ?? null,
+        });
+      }
+
+      return chainFor({ data: null, error: null });
+    }),
   };
 
   vi.mocked(useSupabaseClient).mockReturnValue(client as any);
@@ -86,9 +101,10 @@ afterEach(() => {
 });
 
 describe("google auth integration flow", () => {
-  it("existing user with screening is redirected to /daily", async () => {
+  it("existing user with a profile and screening is redirected to /daily", async () => {
     const client = buildFlowMocks({
       session: GOOGLE_SESSION,
+      profile: PROFILE_PRESENT,
       screening: SCREENING_PRESENT,
     });
 
@@ -100,16 +116,48 @@ describe("google auth integration flow", () => {
     expect(destination).toBe(routes.recovery.daily);
   });
 
-  it("new user without screening is sent to /welcome", async () => {
-    buildFlowMocks({ session: GOOGLE_SESSION, screening: null });
+  it("user with a profile but no screening is sent to /welcome", async () => {
+    buildFlowMocks({
+      session: GOOGLE_SESSION,
+      profile: PROFILE_PRESENT,
+      screening: null,
+    });
 
     const destination = await getGoogleAuthDestination("oauth-code");
 
     expect(destination).toBe(routes.onboarding.welcome);
   });
 
-  it("callback without a code still resolves via the existing session", async () => {
-    const client = buildFlowMocks({ session: GOOGLE_SESSION, screening: null });
+  it("user without a profile is sent to /profile-setup and skips screening", async () => {
+    const client = buildFlowMocks({
+      session: GOOGLE_SESSION,
+      profile: null,
+    });
+
+    const destination = await getGoogleAuthDestination("oauth-code");
+
+    expect(destination).toBe("/profile-setup");
+    expect(client.from).toHaveBeenCalledWith("profiles");
+    expect(client.from).not.toHaveBeenCalledWith("screening_results");
+  });
+
+  it("profile error falls back to /login", async () => {
+    buildFlowMocks({
+      session: GOOGLE_SESSION,
+      profileError: new Error("profiles down"),
+    });
+
+    const destination = await getGoogleAuthDestination("oauth-code");
+
+    expect(destination).toBe(routes.auth.login);
+  });
+
+  it("callback without a code still resolves via the existing user", async () => {
+    const client = buildFlowMocks({
+      session: GOOGLE_SESSION,
+      profile: PROFILE_PRESENT,
+      screening: null,
+    });
 
     const destination = await getGoogleAuthDestination();
 
@@ -117,7 +165,7 @@ describe("google auth integration flow", () => {
     expect(destination).toBe(routes.onboarding.welcome);
   });
 
-  it("failed code exchange lands on /login and does not query screening", async () => {
+  it("failed code exchange lands on /login and does not query the database", async () => {
     const client = buildFlowMocks({
       session: null,
       exchangeError: new Error("invalid code"),
@@ -129,7 +177,7 @@ describe("google auth integration flow", () => {
     expect(client.from).not.toHaveBeenCalled();
   });
 
-  it("missing session after callback lands on /login", async () => {
+  it("missing user after callback lands on /login", async () => {
     buildFlowMocks({ session: null });
 
     const destination = await getGoogleAuthDestination("code");
@@ -140,6 +188,7 @@ describe("google auth integration flow", () => {
   it("screening query failure falls back to /login", async () => {
     buildFlowMocks({
       session: GOOGLE_SESSION,
+      profile: PROFILE_PRESENT,
       screeningError: new Error("db down"),
     });
 

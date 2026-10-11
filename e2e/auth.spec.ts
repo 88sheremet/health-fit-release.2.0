@@ -152,15 +152,15 @@ test.describe("Register page", () => {
     await page.goto("/register");
     await page.locator(".register-card button.bg-primary").click();
 
-    await expect(page.locator(".register-error")).toHaveText(
-      "Заполните все поля"
-    );
+    await expect(page.locator(".register-error")).toHaveText("Укажите имя");
   });
 
   test("shows error on short password", async ({ page }) => {
     await mockSupabaseNoSession(page);
     await page.goto("/register");
 
+    await page.getByRole("textbox", { name: /имя/i }).fill("Алекс");
+    await page.locator(".gender-options").getByText("Мужской").click();
     await page
       .getByRole("textbox", { name: /email/i })
       .fill("user@example.com");
@@ -177,6 +177,8 @@ test.describe("Register page", () => {
     await mockSupabaseNoSession(page);
     await page.goto("/register");
 
+    await page.getByRole("textbox", { name: /имя/i }).fill("Алекс");
+    await page.locator(".gender-options").getByText("Мужской").click();
     await page
       .getByRole("textbox", { name: /email/i })
       .fill("user@example.com");
@@ -219,7 +221,11 @@ test.describe("Google OAuth", () => {
   test("login via Google completes the callback and lands on /daily when screening exists", async ({
     page,
   }) => {
-    await mockSupabaseOAuth(page, { id: "sr-1", user_id: "test-user-id" });
+    await mockSupabaseOAuth(
+      page,
+      { id: "sr-1", user_id: "test-user-id", dominant_problem: "physical" },
+      { user_id: "test-user-id", gender: "male" }
+    );
     await page.goto("/login");
 
     await page.locator(".login-card .google-btn").click();
@@ -229,7 +235,23 @@ test.describe("Google OAuth", () => {
     await expect(page).toHaveURL(/\/daily/, { timeout: 15000 });
   });
 
-  test("OAuth callback for a new user (no screening) lands on /welcome", async ({
+  test("OAuth callback for a user with a profile but no screening lands on /welcome", async ({
+    page,
+  }) => {
+    await mockSupabaseOAuth(page, undefined, {
+      user_id: "test-user-id",
+      gender: "male",
+    });
+    await page.goto("/login");
+
+    await page.locator(".login-card .google-btn").click();
+
+    await expect(page).toHaveURL(/\/auth\/callback/, { timeout: 15000 });
+
+    await expect(page).toHaveURL(/\/welcome/, { timeout: 15000 });
+  });
+
+  test("OAuth callback without a profile sends the user to /profile-setup", async ({
     page,
   }) => {
     await mockSupabaseOAuth(page);
@@ -239,7 +261,7 @@ test.describe("Google OAuth", () => {
 
     await expect(page).toHaveURL(/\/auth\/callback/, { timeout: 15000 });
 
-    await expect(page).toHaveURL(/\/welcome/, { timeout: 15000 });
+    await expect(page).toHaveURL(/\/profile-setup/, { timeout: 15000 });
   });
 
   test("OAuth callback with a failed code exchange lands on /login", async ({

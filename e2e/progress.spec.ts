@@ -163,9 +163,7 @@ test.describe("Progress page", () => {
     );
   });
 
-  test("highlights the least-completed category as the focus", async ({
-    page,
-  }) => {
+  test("highlights the screening category as the focus", async ({ page }) => {
     await page.goto("/progress");
 
     await expect(page.locator(".focus-title")).toContainText("Твой фокус", {
@@ -271,7 +269,9 @@ test.describe("Progress page — empty state", () => {
     expect(text).not.toContain("NaN");
   });
 
-  test("defaults the focus card to the physical category", async ({ page }) => {
+  test("picks the screening category as the focus even with no data", async ({
+    page,
+  }) => {
     await mockProgressData(page, EMPTY_PROGRESS_DATA);
     await page.goto("/progress");
 

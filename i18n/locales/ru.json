@@ -163,7 +163,7 @@
   },
 
   "daily": {
-    "greeting": "Привет 👋",
+    "greeting": "Привет, {name}",
     "day": "День {n}",
     "energy": "Энергия",
     "restTitle": "Сегодня полный отдых",
@@ -264,7 +264,13 @@
     "or": "или",
     "googleLogin": "Войти через Google",
     "googleLoading": "Выполняется вход через Google...",
-    "googleRegister": "Зарегистрироваться через Google"
+    "googleRegister": "Зарегистрироваться через Google",
+    "name": "Имя",
+    "gender": "Пол",
+    "genderMale": "Мужской",
+    "genderFemale": "Женский",
+    "nameRequired": "Укажите имя",
+    "genderRequired": "Выберите пол"
   },
 
   "menu": {

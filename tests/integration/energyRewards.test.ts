@@ -115,7 +115,7 @@ describe("energy rewards cross-store integration", () => {
     vi.useRealTimers();
   });
 
-  it("weekly task completion rewards 100 energy to daily store", async () => {
+  it("weekly task completion rewards 90 energy to daily store", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-15T12:00:00"));
 
@@ -128,7 +128,7 @@ describe("energy rewards cross-store integration", () => {
 
     expect(daily.energy).toBe(0);
     await weekly.completeCurrentTask();
-    expect(daily.energy).toBe(100);
+    expect(daily.energy).toBe(90);
 
     vi.useRealTimers();
   });
