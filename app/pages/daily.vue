@@ -153,7 +153,7 @@ const supabase = useSupabaseClient();
 const store = useTaskStore();
 const journalStore = useJournalStore();
 
-const { locale, t, tm } = useI18n();
+const { locale, t, tm, rt } = useI18n();
 const $q = useQuasar();
 
 const tasks = computed(() => store.todayTasks);
@@ -181,12 +181,21 @@ function getRandomRewardPhrase(): string {
   const translatedPhrases = tm("taskDetails.rewardPhrases");
 
   const phrases: string[] = Array.isArray(translatedPhrases)
-    ? translatedPhrases.filter(
-        (phrase): phrase is string => typeof phrase === "string",
-      )
+    ? [
+        ...new Set(
+          translatedPhrases
+            .map((phrase) => rt(phrase).trim())
+            .filter((phrase) => phrase.length > 0),
+        ),
+      ]
     : [];
 
   if (phrases.length === 0) {
+    console.error(
+      "[Reward] Массив rewardPhrases пуст или не является массивом",
+      translatedPhrases,
+    );
+
     return t("taskDetails.rewardTitle");
   }
 
@@ -194,23 +203,22 @@ function getRandomRewardPhrase(): string {
     return phrases[Math.floor(Math.random() * phrases.length)]!;
   }
 
-  const previousPhrase = window.localStorage.getItem(
-    "health-fit:last-reward-phrase",
-  );
-  const previousLocale = window.localStorage.getItem(
-    "health-fit:last-reward-locale",
-  );
+  const storageKey = "health-fit:last-reward-phrase";
+  const localeKey = "health-fit:last-reward-locale";
+
+  const previousPhrase = window.localStorage.getItem(storageKey);
+  const previousLocale = window.localStorage.getItem(localeKey);
 
   const availablePhrases =
     previousLocale === locale.value && phrases.length > 1
       ? phrases.filter((phrase) => phrase !== previousPhrase)
       : phrases;
 
-  const randomIndex = Math.floor(Math.random() * availablePhrases.length);
-  const phrase = availablePhrases[randomIndex] ?? phrases[0]!;
+  const phrase =
+    availablePhrases[Math.floor(Math.random() * availablePhrases.length)]!;
 
-  window.localStorage.setItem("health-fit:last-reward-phrase", phrase);
-  window.localStorage.setItem("health-fit:last-reward-locale", locale.value);
+  window.localStorage.setItem(storageKey, phrase);
+  window.localStorage.setItem(localeKey, locale.value);
 
   return phrase;
 }
@@ -276,8 +284,8 @@ function showReward(task: Task, amount: number) {
     rewardTimeout = setTimeout(() => {
       showRewardDialog.value = false;
       rewardTimeout = undefined;
-    }, 2500);
-  }, 350);
+    }, 5000);
+  }, 0);
 }
 
 async function completeTask(payload?: CompletionPayload) {
