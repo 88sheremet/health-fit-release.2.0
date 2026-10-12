@@ -106,6 +106,7 @@ export interface Database {
           task_id: string;
           day_index: number;
           completed_at: string;
+          feedback: string | null;
         };
         Insert: {
           id?: string;
@@ -113,6 +114,7 @@ export interface Database {
           task_id: string;
           day_index: number;
           completed_at?: string;
+          feedback?: string | null;
         };
         Update: {
           id?: string;
@@ -120,6 +122,7 @@ export interface Database {
           task_id?: string;
           day_index?: number;
           completed_at?: string;
+          feedback?: string | null;
         };
         Relationships: [];
       };

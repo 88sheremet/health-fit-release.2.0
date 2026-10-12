@@ -178,13 +178,13 @@ let dialogTransitionTimeout: ReturnType<typeof setTimeout> | undefined;
 let undoDeadline = 0;
 
 function getRandomRewardPhrase(): string {
-  const translatedPhrases = tm("taskDetails.rewardPhrases");
+  const translatedPhrases = tm("taskDetails.rewardPhrases") as unknown;
 
   const phrases: string[] = Array.isArray(translatedPhrases)
     ? [
         ...new Set(
-          translatedPhrases
-            .map((phrase) => rt(phrase).trim())
+          (translatedPhrases as string[])
+            .map((phrase) => String(rt(phrase)).trim())
             .filter((phrase) => phrase.length > 0),
         ),
       ]

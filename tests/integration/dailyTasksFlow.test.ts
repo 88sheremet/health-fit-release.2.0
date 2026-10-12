@@ -205,4 +205,28 @@ describe("daily tasks flow integration", () => {
 
     vi.useRealTimers();
   });
+
+  it("completeTask records feedback for mental tasks and null otherwise", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-15T12:00:00"));
+
+    const store = useTaskStore();
+    store.startDate = "2026-06-15";
+    await store.loadTasks("uk");
+
+    const mental = store.todayTasks.find((t) => t.type === "mental")!;
+    const food = store.todayTasks.find((t) => t.type === "food")!;
+
+    await store.completeTask(mental, "focus");
+    await store.completeTask(food);
+
+    expect(mockCompleteInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ task_id: mental.id, feedback: "focus" })
+    );
+    expect(mockCompleteInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ task_id: food.id, feedback: null })
+    );
+
+    vi.useRealTimers();
+  });
 });
