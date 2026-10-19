@@ -12,6 +12,7 @@
       </div>
     </div>
 
+    <!-- Описание задания всегда остаётся видимым -->
     <q-card class="task-card">
       <div class="badge">
         {{ $t("weekly.badge") }}
@@ -63,7 +64,7 @@
           <div
             class="progress-fill"
             :style="{ width: `${store.zoneProgressPercent}%` }"
-          />
+          ></div>
         </div>
 
         <div class="progress-caption">
@@ -94,8 +95,9 @@
         </div>
       </div>
 
+      <!-- Кнопка завершения для обычных заданий -->
       <q-btn
-        v-if="!store.isCompleted()"
+        v-if="!isFoodDiaryTask && !store.isCompleted()"
         color="primary"
         unelevated
         no-caps
@@ -110,12 +112,16 @@
         @click="completeWeeklyTask"
       />
 
-      <div v-if="!store.canComplete && !store.isCompleted()" class="week-info">
+      <div
+        v-if="!isFoodDiaryTask && !store.canComplete && !store.isCompleted()"
+        class="week-info"
+      >
         {{ $t("weekly.info") }}
       </div>
 
       <div
         v-else-if="
+          !isFoodDiaryTask &&
           store.isSpaceCleanupTask &&
           !store.allZonesCompleted &&
           !store.isCompleted()
@@ -129,21 +135,32 @@
         {{ taskError }}
       </div>
 
-      <div v-if="store.isCompleted()" class="success-banner">
+      <div
+        v-if="!isFoodDiaryTask && store.isCompleted()"
+        class="success-banner"
+      >
         {{ $t("weekly.successBanner") }}
       </div>
     </q-card>
+
+    <!-- Форма дневника идёт после описания задания -->
+    <FoodDiaryFlow
+      v-if="isFoodDiaryTask"
+      :task-id="FOOD_DIARY_TASK_ID"
+      :program-week="store.currentWeek"
+    />
 
     <BottomNavigation />
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useWeeklyTaskStore } from "~/stores/weeklyTasks";
 import type { WeeklyZoneKey } from "~/interfaces/WeeklyState.interface";
+import FoodDiaryFlow from "~/components/weekly/FoodDiaryFlow.vue";
 
 definePageMeta({
   middleware: "auth",
@@ -152,6 +169,12 @@ definePageMeta({
 
 const { locale } = useI18n();
 const store = useWeeklyTaskStore();
+
+const FOOD_DIARY_TASK_ID = "5382c1d1-f307-4076-a7e7-97e1c03fc5a7";
+
+const isFoodDiaryTask = computed(
+  () => store.currentTask.id === FOOD_DIARY_TASK_ID,
+);
 
 const completing = ref(false);
 const zoneError = ref("");
@@ -207,7 +230,6 @@ async function toggleZone(
     await store.toggleZone(zoneKey);
   } catch (error) {
     console.error("[WeeklyPage] Не удалось сохранить зону:", error);
-
     zoneError.value = "Не удалось сохранить прогресс. Попробуйте ещё раз.";
   } finally {
     savingZones[zoneKey] = false;
@@ -231,7 +253,6 @@ async function completeWeeklyTask() {
     await store.completeCurrentTask();
   } catch (error) {
     console.error("[WeeklyPage] Не удалось завершить задание:", error);
-
     taskError.value = "Не удалось завершить задание. Попробуйте ещё раз.";
   } finally {
     completing.value = false;
