@@ -223,7 +223,7 @@ test.describe("Daily tasks localization", () => {
 
     const reward = page.locator(".reward-dialog");
     await expect(reward).toBeVisible({ timeout: 10000 });
-    await expect(reward.locator(".reward-energy")).toHaveText("+10 Energy");
+    await expect(reward.locator(".reward-energy")).toHaveText("+10 энергии");
 
     await expect
       .poll(() => completions.length, { message: "waiting for feedback POST" })

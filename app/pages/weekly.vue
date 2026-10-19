@@ -167,7 +167,7 @@ definePageMeta({
   layout: "authenticated",
 });
 
-const { locale } = useI18n();
+const { t, locale } = useI18n();
 const store = useWeeklyTaskStore();
 
 const FOOD_DIARY_TASK_ID = "5382c1d1-f307-4076-a7e7-97e1c03fc5a7";
@@ -230,7 +230,7 @@ async function toggleZone(
     await store.toggleZone(zoneKey);
   } catch (error) {
     console.error("[WeeklyPage] Не удалось сохранить зону:", error);
-    zoneError.value = "Не удалось сохранить прогресс. Попробуйте ещё раз.";
+    zoneError.value = t("weekly.errors.saveProgress");
   } finally {
     savingZones[zoneKey] = false;
   }
@@ -253,7 +253,7 @@ async function completeWeeklyTask() {
     await store.completeCurrentTask();
   } catch (error) {
     console.error("[WeeklyPage] Не удалось завершить задание:", error);
-    taskError.value = "Не удалось завершить задание. Попробуйте ещё раз.";
+    taskError.value = t("weekly.errors.completeTask");
   } finally {
     completing.value = false;
   }

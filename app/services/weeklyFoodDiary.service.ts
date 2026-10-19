@@ -42,11 +42,35 @@ export interface FoodDiarySession {
   analysis: FoodDiaryAnalysis | null;
 }
 
+export type FoodDiaryErrorCode =
+  | "invalidTask"
+  | "unauthorized"
+  | "invalidDates"
+  | "orphanedDates"
+  | "datesNotChosen"
+  | "dateMismatch"
+  | "descriptionRequired"
+  | "missingEntryBothDays";
+
+// Ошибки с кодом, чтобы UI мог показать локализованный текст через i18n.
+export class FoodDiaryError extends Error {
+  readonly code: FoodDiaryErrorCode;
+
+  constructor(code: FoodDiaryErrorCode, message: string) {
+    super(message);
+    this.name = "FoodDiaryError";
+    this.code = code;
+  }
+}
+
 const FOOD_DIARY_TASK_ID = "5382c1d1-f307-4076-a7e7-97e1c03fc5a7";
 
 function validateTaskId(taskId: string) {
   if (taskId !== FOOD_DIARY_TASK_ID) {
-    throw new Error("Некорректная задача дневника питания.");
+    throw new FoodDiaryError(
+      "invalidTask",
+      "Некорректная задача дневника питания.",
+    );
   }
 }
 
@@ -60,7 +84,8 @@ async function getUserId(): Promise<string> {
   } = await supabase.auth.getUser();
 
   if (error) throw error;
-  if (!user) throw new Error("Пользователь не авторизован");
+  if (!user)
+    throw new FoodDiaryError("unauthorized", "Пользователь не авторизован");
 
   return user.id;
 }
@@ -113,7 +138,7 @@ export async function saveFoodDiaryDates(
   validateTaskId(taskId);
 
   if (!firstDate || !secondDate || firstDate === secondDate) {
-    throw new Error("Выбери две разные даты.");
+    throw new FoodDiaryError("invalidDates", "Выбери две разные даты.");
   }
 
   const supabase = getDatabase();
@@ -146,7 +171,8 @@ export async function saveFoodDiaryDates(
     );
 
     if (orphaned) {
-      throw new Error(
+      throw new FoodDiaryError(
+        "orphanedDates",
         "Новые даты не совпадают с датами существующих записей. Сначала удали или перенеси такие записи.",
       );
     }
@@ -201,14 +227,20 @@ export async function saveFoodDiaryEntry(
 
   if (sessionError) throw sessionError;
   if (!session?.first_date || !session?.second_date) {
-    throw new Error("Сначала выбери две даты дневника.");
+    throw new FoodDiaryError(
+      "datesNotChosen",
+      "Сначала выбери две даты дневника.",
+    );
   }
 
   if (
     entry.entry_date !== session.first_date &&
     entry.entry_date !== session.second_date
   ) {
-    throw new Error("Дата записи должна совпадать с одним из выбранных дней.");
+    throw new FoodDiaryError(
+      "dateMismatch",
+      "Дата записи должна совпадать с одним из выбранных дней.",
+    );
   }
 
   const payload = {
@@ -224,7 +256,10 @@ export async function saveFoodDiaryEntry(
   };
 
   if (!payload.description) {
-    throw new Error("Добавь описание еды или напитка.");
+    throw new FoodDiaryError(
+      "descriptionRequired",
+      "Добавь описание еды или напитка.",
+    );
   }
 
   const query = entry.id
@@ -310,7 +345,10 @@ export async function setFoodDiaryStage(
 
   if (readError) throw readError;
   if (!session?.first_date || !session?.second_date) {
-    throw new Error("Сначала выбери две даты дневника.");
+    throw new FoodDiaryError(
+      "datesNotChosen",
+      "Сначала выбери две даты дневника.",
+    );
   }
 
   if (stage === "review" || stage === "ready") {
@@ -332,7 +370,8 @@ export async function setFoodDiaryStage(
       !datesWithEntries.has(session.first_date) ||
       !datesWithEntries.has(session.second_date)
     ) {
-      throw new Error(
+      throw new FoodDiaryError(
+        "missingEntryBothDays",
         "Добавь хотя бы одну запись за каждый из двух выбранных дней.",
       );
     }

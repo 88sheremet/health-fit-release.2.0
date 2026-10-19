@@ -8,7 +8,7 @@
         <button
           class="close-btn"
           type="button"
-          aria-label="Close"
+          :aria-label="$t('common.close')"
           @click="$emit('update:modelValue', false)"
         >
           <span class="material-icons">close</span>

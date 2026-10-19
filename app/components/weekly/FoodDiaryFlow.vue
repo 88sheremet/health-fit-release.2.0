@@ -1,12 +1,9 @@
 <template>
   <div class="food-diary">
     <div class="intro">
-      <div class="eyebrow">ТВОИ ПИЩЕВЫЕ ПРИВЫЧКИ</div>
-      <h2>Дневник питания: 2 дня под микроскопом</h2>
-      <p>
-        Записывай еду и напитки без подсчёта калорий и взвешивания продуктов. В
-        конце ты сможешь проверить обе записи перед анализом.
-      </p>
+      <div class="eyebrow">{{ $t("foodDiary.eyebrow") }}</div>
+      <h2>{{ $t("foodDiary.title") }}</h2>
+      <p>{{ $t("foodDiary.intro") }}</p>
     </div>
 
     <div class="steps">
@@ -30,22 +27,22 @@
 
     <div v-if="loading" class="loading-state">
       <q-spinner size="32px" />
-      <p>Загружаем дневник...</p>
+      <p>{{ $t("foodDiary.loading") }}</p>
     </div>
 
     <template v-else>
       <q-card v-if="stage === 'collecting'" class="diary-card">
         <div class="card-heading">
           <div>
-            <h3>Выбери два дня</h3>
-            <p>Можно выбрать любые две разные даты.</p>
+            <h3>{{ $t("foodDiary.selectDaysTitle") }}</h3>
+            <p>{{ $t("foodDiary.selectDaysHint") }}</p>
           </div>
         </div>
 
         <div class="date-grid">
           <q-input
             v-model="firstDate"
-            label="Первый день"
+            :label="$t('foodDiary.firstDay')"
             type="date"
             outlined
             stack-label
@@ -53,7 +50,7 @@
           />
           <q-input
             v-model="secondDate"
-            label="Второй день"
+            :label="$t('foodDiary.secondDay')"
             type="date"
             outlined
             stack-label
@@ -62,7 +59,7 @@
         </div>
 
         <q-btn
-          label="Сохранить даты"
+          :label="$t('foodDiary.saveDatesBtn')"
           color="primary"
           no-caps
           unelevated
@@ -76,9 +73,13 @@
           <q-separator class="separator" />
           <div class="section-heading">
             <h3>
-              {{ editingId ? "Редактировать запись" : "Добавить запись" }}
+              {{
+                editingId
+                  ? $t("foodDiary.editEntryTitle")
+                  : $t("foodDiary.addEntryTitle")
+              }}
             </h3>
-            <p>Записывай всё, что ел и пил в выбранные дни.</p>
+            <p>{{ $t("foodDiary.entrySectionHint") }}</p>
           </div>
 
           <q-form class="entry-form" @submit.prevent="saveEntry">
@@ -89,10 +90,12 @@
               option-label="label"
               emit-value
               map-options
-              label="Дата"
+              :label="$t('foodDiary.dateLabel')"
               outlined
               :disable="saving"
-              :rules="[(value) => !!value || 'Выбери дату']"
+              :rules="[
+                (value) => !!value || $t('foodDiary.dateRequired'),
+              ]"
             />
             <q-select
               v-model="form.meal_type"
@@ -101,48 +104,57 @@
               option-label="label"
               emit-value
               map-options
-              label="Приём пищи"
+              :label="$t('foodDiary.mealTypeLabel')"
               outlined
               :disable="saving"
-              :rules="[(value) => !!value || 'Выбери тип записи']"
+              :rules="[
+                (value) => !!value || $t('foodDiary.mealTypeRequired'),
+              ]"
             />
             <q-input
               v-model="form.meal_time"
-              label="Время"
+              :label="$t('foodDiary.timeLabel')"
               type="time"
               outlined
               :disable="saving"
             />
             <q-input
               v-model="form.description"
-              label="Что ты ел или пил? (Чем подробнее тем лучше)"
+              :label="$t('foodDiary.descriptionLabel')"
               type="textarea"
               autogrow
               outlined
               :disable="saving"
-              :rules="[(value) => !!value?.trim() || 'Добавь описание']"
+              :rules="[
+                (value) =>
+                  !!value?.trim() || $t('foodDiary.descriptionRequired'),
+              ]"
             />
             <q-input
               v-model="form.feeling"
-              label="Как ты себя чувствовал? (необязательно)"
+              :label="$t('foodDiary.feelingLabel')"
               type="textarea"
               autogrow
               outlined
-              hint="Например: был голоден, устал, ел за компьютером"
+              :hint="$t('foodDiary.feelingHint')"
               :disable="saving"
             />
 
             <div class="form-actions">
               <q-btn
                 v-if="editingId"
-                label="Отменить редактирование"
+                :label="$t('foodDiary.cancelEditing')"
                 flat
                 no-caps
                 :disable="saving"
                 @click="resetForm"
               />
               <q-btn
-                :label="editingId ? 'Сохранить изменения' : 'Сохранить запись'"
+                :label="
+                  editingId
+                    ? $t('foodDiary.saveChanges')
+                    : $t('foodDiary.saveEntryBtn')
+                "
                 type="submit"
                 color="primary"
                 unelevated
@@ -155,12 +167,12 @@
 
           <q-separator class="separator" />
           <div class="entries-heading">
-            <h3>Твои записи</h3>
+            <h3>{{ $t("foodDiary.yourEntries") }}</h3>
             <span>{{ entries.length }}</span>
           </div>
 
           <div v-if="entries.length === 0" class="empty-state">
-            Записей пока нет. Добавь первый приём пищи или напиток.
+            {{ $t("foodDiary.emptyEntries") }}
           </div>
           <div v-else class="entry-list">
             <q-card
@@ -183,7 +195,7 @@
               </div>
               <div class="entry-actions">
                 <q-btn
-                  label="Изменить"
+                  :label="$t('foodDiary.editBtn')"
                   flat
                   dense
                   no-caps
@@ -192,7 +204,7 @@
                   @click="editEntry(entry)"
                 />
                 <q-btn
-                  label="Удалить"
+                  :label="$t('foodDiary.deleteBtn')"
                   flat
                   dense
                   no-caps
@@ -205,7 +217,7 @@
           </div>
 
           <q-btn
-            label="Проверить оба дня"
+            :label="$t('foodDiary.reviewBothDaysBtn')"
             color="primary"
             unelevated
             no-caps
@@ -218,8 +230,7 @@
             v-if="entries.length && !hasEntriesForBothDays"
             class="validation-hint"
           >
-            Добавь хотя бы одну запись за каждый выбранный день, чтобы
-            продолжить.
+            {{ $t("foodDiary.needBothDaysHint") }}
           </p>
         </template>
       </q-card>
@@ -230,27 +241,29 @@
             <h3>
               {{
                 stage === "review"
-                  ? "Проверь свой дневник"
-                  : "Анализ дневника питания"
+                  ? $t("foodDiary.reviewTitle")
+                  : $t("foodDiary.analysisTitle")
               }}
             </h3>
             <p>
               {{
                 stage === "review"
-                  ? "Убедись, что всё записано правильно. Ты можешь вернуться и отредактировать записи."
-                  : "Записи проанализированы. Ниже сохранён результат для этой недели."
+                  ? $t("foodDiary.reviewHint")
+                  : $t("foodDiary.analysisHint")
               }}
             </p>
           </div>
         </div>
 
         <div class="review-day">
-          <h3>День 1 · {{ dateLabel(firstDate) }}</h3>
+          <h3>
+            {{ $t("foodDiary.dayHeading", { n: 1, date: dateLabel(firstDate) }) }}
+          </h3>
           <div
             v-if="entriesForDate(firstDate).length === 0"
             class="empty-state"
           >
-            За этот день записей нет.
+            {{ $t("foodDiary.noEntriesForDay") }}
           </div>
           <div
             v-for="entry in entriesForDate(firstDate)"
@@ -261,7 +274,7 @@
               {{
                 entry.meal_time
                   ? entry.meal_time.slice(0, 5)
-                  : "Время не указано"
+                  : $t("foodDiary.timeNotSet")
               }}
               · {{ mealLabel(entry.meal_type) }}
             </div>
@@ -275,12 +288,16 @@
         <q-separator class="separator" />
 
         <div class="review-day">
-          <h3>День 2 · {{ dateLabel(secondDate) }}</h3>
+          <h3>
+            {{
+              $t("foodDiary.dayHeading", { n: 2, date: dateLabel(secondDate) })
+            }}
+          </h3>
           <div
             v-if="entriesForDate(secondDate).length === 0"
             class="empty-state"
           >
-            За этот день записей нет.
+            {{ $t("foodDiary.noEntriesForDay") }}
           </div>
           <div
             v-for="entry in entriesForDate(secondDate)"
@@ -291,7 +308,7 @@
               {{
                 entry.meal_time
                   ? entry.meal_time.slice(0, 5)
-                  : "Время не указано"
+                  : $t("foodDiary.timeNotSet")
               }}
               · {{ mealLabel(entry.meal_type) }}
             </div>
@@ -305,10 +322,10 @@
         <template v-if="stage === 'ready' && analysis">
           <q-separator class="separator" />
           <section class="analysis-result">
-            <h3>Что удалось заметить</h3>
+            <h3>{{ $t("foodDiary.noticedTitle") }}</h3>
             <p>{{ analysis.summary }}</p>
 
-            <h3>Закономерности</h3>
+            <h3>{{ $t("foodDiary.patternsTitle") }}</h3>
             <article
               v-for="(item, index) in analysis.patterns"
               :key="`pattern-${index}`"
@@ -316,10 +333,12 @@
             >
               <strong>{{ item.title }}</strong>
               <p>{{ item.explanation }}</p>
-              <p class="entry-feeling">Основание: {{ item.evidence }}</p>
+              <p class="entry-feeling">
+                {{ $t("foodDiary.evidenceLabel", { text: item.evidence }) }}
+              </p>
             </article>
 
-            <h3>Рекомендации</h3>
+            <h3>{{ $t("foodDiary.recommendationsTitle") }}</h3>
             <article
               v-for="(item, index) in analysis.recommendations"
               :key="`recommendation-${index}`"
@@ -329,7 +348,7 @@
               <p>{{ item.explanation }}</p>
             </article>
 
-            <h3>Три следующих шага</h3>
+            <h3>{{ $t("foodDiary.nextStepsTitle") }}</h3>
             <article
               v-for="(item, index) in analysis.actions"
               :key="`action-${index}`"
@@ -345,7 +364,7 @@
         <div class="review-actions">
           <q-btn
             v-if="stage === 'review' || !analysis"
-            label="Вернуться к редактированию"
+            :label="$t('foodDiary.backToEditingBtn')"
             outline
             no-caps
             color="primary"
@@ -354,7 +373,7 @@
           />
           <q-btn
             v-if="stage === 'review'"
-            label="Всё верно, провести анализ"
+            :label="$t('foodDiary.confirmAnalysisBtn')"
             color="primary"
             unelevated
             no-caps
@@ -364,7 +383,7 @@
           />
           <q-btn
             v-else
-            label="Вернуться к дневнику"
+            :label="$t('foodDiary.backToDiaryBtn')"
             color="primary"
             unelevated
             no-caps
@@ -379,6 +398,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
 import {
   deleteFoodDiaryEntry,
@@ -396,6 +416,7 @@ import type {
 
 const props = defineProps<{ taskId: string; programWeek: number }>();
 const $q = useQuasar();
+const { t, te, locale } = useI18n();
 const loading = ref(true);
 const saving = ref(false);
 const savingDates = ref(false);
@@ -419,11 +440,11 @@ const form = reactive({
   feeling: "",
 });
 
-const steps = [
-  { id: 0, label: "Записи" },
-  { id: 1, label: "Проверка" },
-  { id: 2, label: "Анализ" },
-];
+const steps = computed(() => [
+  { id: 0, label: t("foodDiary.steps.entries") },
+  { id: 1, label: t("foodDiary.steps.review") },
+  { id: 2, label: t("foodDiary.steps.analysis") },
+]);
 
 const stageIndex = computed(() =>
   stage.value === "review" ? 1 : stage.value === "ready" ? 2 : 0,
@@ -438,23 +459,31 @@ const dateOptions = computed(() => {
   const options: Array<{ label: string; value: string }> = [];
   if (firstDate.value)
     options.push({
-      label: `День 1 · ${dateLabel(firstDate.value)}`,
+      label: t("foodDiary.dayHeading", {
+        n: 1,
+        date: dateLabel(firstDate.value),
+      }),
       value: firstDate.value,
     });
   if (secondDate.value)
     options.push({
-      label: `День 2 · ${dateLabel(secondDate.value)}`,
+      label: t("foodDiary.dayHeading", {
+        n: 2,
+        date: dateLabel(secondDate.value),
+      }),
       value: secondDate.value,
     });
   return options;
 });
-const mealTypeOptions: { label: string; value: FoodDiaryMealType }[] = [
-  { label: "Сніданок", value: "breakfast" },
-  { label: "Обід", value: "lunch" },
-  { label: "Вечеря", value: "dinner" },
-  { label: "Перекус", value: "snack" },
-  { label: "Напій", value: "drink" },
-];
+const mealTypeOptions = computed<
+  { label: string; value: FoodDiaryMealType }[]
+>(() => [
+  { label: t("foodDiary.mealTypes.breakfast"), value: "breakfast" },
+  { label: t("foodDiary.mealTypes.lunch"), value: "lunch" },
+  { label: t("foodDiary.mealTypes.dinner"), value: "dinner" },
+  { label: t("foodDiary.mealTypes.snack"), value: "snack" },
+  { label: t("foodDiary.mealTypes.drink"), value: "drink" },
+]);
 const sortedEntries = computed(() =>
   [...entries.value].sort((a, b) => {
     const dateCompare = a.entry_date.localeCompare(b.entry_date);
@@ -472,17 +501,32 @@ const hasEntriesForBothDays = computed(
 );
 
 function dateLabel(value: string | null): string {
-  if (!value) return "Дата не выбрана";
+  if (!value) return t("foodDiary.dateNotChosen");
   const date = new Date(`${value}T12:00:00`);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("uk-UA", {
+  return new Intl.DateTimeFormat(locale.value, {
     day: "numeric",
     month: "long",
     year: "numeric",
   }).format(date);
 }
 function mealLabel(type: FoodDiaryMealType): string {
-  return mealTypeOptions.find((option) => option.value === type)?.label ?? type;
+  return (
+    mealTypeOptions.value.find((option) => option.value === type)?.label ?? type
+  );
+}
+// Ошибки сервиса дневника приходят с кодом — переводим их через i18n,
+// остальные (сетевые и т.п.) отдаём как есть, иначе показываем запасной текст.
+function resolveErrorMessage(error: unknown, fallbackKey: string): string {
+  if (error && typeof error === "object" && "code" in error) {
+    const code = (error as { code?: unknown }).code;
+    if (typeof code === "string") {
+      const key = `foodDiary.errors.${code}`;
+      if (te(key)) return t(key);
+    }
+  }
+  if (error instanceof Error && error.message) return error.message;
+  return t(fallbackKey);
 }
 function entriesForDate(date: string): FoodDiaryEntry[] {
   return sortedEntries.value.filter((entry) => entry.entry_date === date);
@@ -529,7 +573,7 @@ async function loadData() {
     resetForm();
   } catch (error) {
     console.error("[FoodDiaryFlow] Не удалось загрузить дневник:", error);
-    errorMessage.value = "Не удалось загрузить дневник. Попробуй ещё раз.";
+    errorMessage.value = resolveErrorMessage(error, "foodDiary.errors.load");
   } finally {
     loading.value = false;
   }
@@ -537,7 +581,7 @@ async function loadData() {
 
 async function saveDates() {
   if (!datesAreValid.value) {
-    errorMessage.value = "Выбери две разные даты.";
+    errorMessage.value = t("foodDiary.errors.invalidDates");
     return;
   }
   savingDates.value = true;
@@ -558,10 +602,7 @@ async function saveDates() {
     resetForm();
   } catch (error) {
     console.error("[FoodDiaryFlow] Не удалось сохранить даты:", error);
-    errorMessage.value =
-      error instanceof Error
-        ? error.message
-        : "Не удалось сохранить даты. Попробуй ещё раз.";
+    errorMessage.value = resolveErrorMessage(error, "foodDiary.errors.saveDates");
   } finally {
     savingDates.value = false;
   }
@@ -569,7 +610,7 @@ async function saveDates() {
 
 async function saveEntry() {
   if (!form.entry_date || !form.description.trim()) {
-    errorMessage.value = "Укажи дату и описание еды или напитка.";
+    errorMessage.value = t("foodDiary.errors.entryRequired");
     return;
   }
   savingEntry.value = true;
@@ -593,15 +634,12 @@ async function saveEntry() {
     resetForm();
     $q.notify({
       type: "positive",
-      message: "Запись сохранена",
+      message: t("foodDiary.notifySaved"),
       position: "top",
     });
   } catch (error) {
     console.error("[FoodDiaryFlow] Не удалось сохранить запись:", error);
-    errorMessage.value =
-      error instanceof Error
-        ? error.message
-        : "Не удалось сохранить запись. Попробуй ещё раз.";
+    errorMessage.value = resolveErrorMessage(error, "foodDiary.errors.saveEntry");
   } finally {
     savingEntry.value = false;
   }
@@ -609,10 +647,10 @@ async function saveEntry() {
 
 function confirmDelete(entry: FoodDiaryEntry) {
   $q.dialog({
-    title: "Удалить запись?",
-    message: "Эту запись нельзя будет восстановить.",
-    cancel: { label: "Отмена", flat: true, noCaps: true },
-    ok: { label: "Удалить", color: "negative", noCaps: true },
+    title: t("foodDiary.deleteTitle"),
+    message: t("foodDiary.deleteMessage"),
+    cancel: { label: t("common.cancel"), flat: true, noCaps: true },
+    ok: { label: t("foodDiary.deleteBtn"), color: "negative", noCaps: true },
     persistent: true,
   }).onOk(async () => {
     saving.value = true;
@@ -625,15 +663,15 @@ function confirmDelete(entry: FoodDiaryEntry) {
       if (editingId.value === entry.id) resetForm();
       $q.notify({
         type: "positive",
-        message: "Запись удалена",
+        message: t("foodDiary.notifyDeleted"),
         position: "top",
       });
     } catch (error) {
       console.error("[FoodDiaryFlow] Не удалось удалить запись:", error);
-      errorMessage.value =
-        error instanceof Error
-          ? error.message
-          : "Не удалось удалить запись. Попробуй ещё раз.";
+      errorMessage.value = resolveErrorMessage(
+        error,
+        "foodDiary.errors.deleteEntry",
+      );
     } finally {
       saving.value = false;
     }
@@ -649,10 +687,7 @@ async function goToReview() {
     resetForm();
   } catch (error) {
     console.error("[FoodDiaryFlow] Не удалось открыть проверку:", error);
-    errorMessage.value =
-      error instanceof Error
-        ? error.message
-        : "Не удалось открыть проверку дневника.";
+    errorMessage.value = resolveErrorMessage(error, "foodDiary.errors.openReview");
   } finally {
     openingReview.value = false;
   }
@@ -671,10 +706,10 @@ async function returnToEditing() {
       "[FoodDiaryFlow] Не удалось вернуться к редактированию:",
       error,
     );
-    errorMessage.value =
-      error instanceof Error
-        ? error.message
-        : "Не удалось открыть редактирование.";
+    errorMessage.value = resolveErrorMessage(
+      error,
+      "foodDiary.errors.openEditing",
+    );
   } finally {
     saving.value = false;
   }
@@ -694,7 +729,8 @@ async function confirmDiary() {
     if (authError) throw authError;
 
     if (!session?.access_token) {
-      throw new Error("Сессия завершилась. Войди в приложение заново.");
+      errorMessage.value = t("foodDiary.errors.sessionExpired");
+      return;
     }
 
     const result = await $fetch<{ analysis?: FoodDiaryAnalysis }>(
@@ -717,9 +753,8 @@ async function confirmDiary() {
       typeof result.analysis.summary !== "string"
     ) {
       console.error("[FoodDiaryFlow] API вернул пустой анализ:", result);
-      throw new Error(
-        "Анализ выполнен, но его результат не получен. Проверь ответ API.",
-      );
+      errorMessage.value = t("foodDiary.errors.emptyAnalysis");
+      return;
     }
 
     analysis.value = result.analysis;
@@ -727,7 +762,7 @@ async function confirmDiary() {
 
     $q.notify({
       type: "positive",
-      message: "Анализ дневника готов!",
+      message: t("foodDiary.notifyAnalysisReady"),
       position: "top",
     });
   } catch (error: any) {
@@ -737,7 +772,7 @@ async function confirmDiary() {
       error?.data?.statusMessage ||
       error?.data?.message ||
       error?.message ||
-      "Не удалось получить результат анализа.";
+      t("foodDiary.errors.analyze");
   } finally {
     analyzing.value = false;
   }

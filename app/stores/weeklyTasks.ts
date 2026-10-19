@@ -70,12 +70,14 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
 
         const task = currentWeekTask ?? fallbackTask;
 
-        return {
-          id: task.id,
-          nameProgram: task.title,
-          whatDoing: task.what_doing,
-          whyDoing: task.why_doing,
-        };
+        if (task) {
+          return {
+            id: task.id,
+            nameProgram: task.title,
+            whatDoing: task.what_doing,
+            whyDoing: task.why_doing,
+          };
+        }
       }
 
       return {
@@ -158,7 +160,9 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
       }
     },
 
-    async loadZoneProgress(week = this.currentWeek) {
+    async loadZoneProgress(week?: number) {
+      const targetWeek = week ?? this.currentWeek;
+
       // Загружаем чек-лист только для специального задания.
       if (!this.isSpaceCleanupTask) {
         this.zoneProgress = {};
@@ -166,7 +170,7 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
       }
 
       try {
-        this.zoneProgress = await getWeeklyZoneProgress(week);
+        this.zoneProgress = await getWeeklyZoneProgress(targetWeek);
       } catch (error) {
         console.error(
           "[WeeklyTaskStore] Не удалось загрузить прогресс зон:",

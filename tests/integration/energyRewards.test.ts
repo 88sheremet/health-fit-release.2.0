@@ -117,7 +117,8 @@ describe("energy rewards cross-store integration", () => {
 
   it("weekly task completion rewards 90 energy to daily store", async () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-06-15T12:00:00"));
+    // День 7 недели (старт 15 июня, завершение доступно на 6–7 день).
+    vi.setSystemTime(new Date("2026-06-21T12:00:00"));
 
     const daily = useTaskStore();
     daily.startDate = "2026-06-15";

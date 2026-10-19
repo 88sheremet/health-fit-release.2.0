@@ -155,7 +155,7 @@ const goNext = async () => {
       console.error("[Questions] Не удалось сохранить скрининг:", error);
 
       $q.notify({
-        message: "Не удалось сохранить результат. Попробуйте ещё раз.",
+        message: t("questions.saveError"),
         type: "negative",
         timeout: 3000,
       });

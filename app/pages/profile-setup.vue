@@ -1,26 +1,28 @@
 <template>
   <div class="profile-setup-page">
     <q-card class="profile-card">
-      <div class="profile-heading">Как к вам обращаться?</div>
+      <div class="profile-heading">{{ $t("profileSetup.heading") }}</div>
 
       <q-form class="profile-form" @submit.prevent="saveProfile">
         <q-input
           v-model="name"
-          label="Ваше имя"
-          placeholder="Введите ваше имя"
+          :label="$t('profileSetup.nameLabel')"
+          :placeholder="$t('profileSetup.namePlaceholder')"
           outlined
           rounded
           maxlength="100"
           autocomplete="given-name"
           class="name-input"
-          :rules="[(value) => !!value?.trim() || 'Укажите имя']"
+          :rules="[
+            (value) => !!value?.trim() || $t('profileSetup.nameRequired'),
+          ]"
         >
           <template #prepend>
             <q-icon name="person" class="name-icon" />
           </template>
         </q-input>
 
-        <div class="gender-heading">Пол</div>
+        <div class="gender-heading">{{ $t("profileSetup.genderHeading") }}</div>
 
         <q-option-group
           v-model="gender"
@@ -36,7 +38,7 @@
 
         <q-btn
           type="submit"
-          label="Продолжить"
+          :label="$t('profileSetup.submit')"
           color="primary"
           unelevated
           rounded
@@ -50,7 +52,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { routes } from "~/router/routes";
 
 definePageMeta({
@@ -62,16 +65,17 @@ type Gender = "male" | "female";
 
 const supabase = useSupabaseClient();
 const router = useRouter();
+const { t } = useI18n();
 
 const name = ref("");
 const gender = ref<Gender | null>(null);
 const loading = ref(false);
 const errorMessage = ref("");
 
-const genderOptions = [
-  { label: "Мужской", value: "male" },
-  { label: "Женский", value: "female" },
-];
+const genderOptions = computed(() => [
+  { label: t("profileSetup.genderMale"), value: "male" },
+  { label: t("profileSetup.genderFemale"), value: "female" },
+]);
 
 onMounted(async () => {
   try {
@@ -93,7 +97,7 @@ onMounted(async () => {
 
     if (error) {
       console.error("[Profile Setup] Ошибка загрузки:", error);
-      errorMessage.value = "Не удалось загрузить профиль. Попробуйте ещё раз.";
+      errorMessage.value = t("profileSetup.loadError");
       return;
     }
 
@@ -106,7 +110,7 @@ onMounted(async () => {
     }
   } catch (error) {
     console.error("[Profile Setup] Ошибка загрузки:", error);
-    errorMessage.value = "Не удалось загрузить профиль. Попробуйте ещё раз.";
+    errorMessage.value = t("profileSetup.loadError");
   }
 });
 
@@ -165,8 +169,7 @@ async function saveProfile() {
   } catch (error) {
     console.error("[Profile Setup] Ошибка сохранения:", error);
 
-    errorMessage.value =
-      "Не удалось сохранить профиль. Проверьте соединение и попробуйте ещё раз.";
+    errorMessage.value = t("profileSetup.saveError");
   } finally {
     loading.value = false;
   }

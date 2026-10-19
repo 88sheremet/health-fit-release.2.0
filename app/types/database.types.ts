@@ -201,6 +201,36 @@ export interface Database {
         };
         Relationships: [];
       };
+      weekly_task_zone_progress: {
+        Row: {
+          id: string;
+          user_id: string;
+          week: number;
+          zone_key: string;
+          is_completed: boolean;
+          completed_at: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          week: number;
+          zone_key: string;
+          is_completed: boolean;
+          completed_at?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          week?: number;
+          zone_key?: string;
+          is_completed?: boolean;
+          completed_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       user_progress: {
         Row: {
           id: string;

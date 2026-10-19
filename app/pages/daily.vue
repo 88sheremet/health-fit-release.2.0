@@ -86,7 +86,7 @@
           v-if="rewardTaskType !== 'food' || undoSeconds === 0"
           class="reward-close"
           type="button"
-          aria-label="Close"
+          :aria-label="$t('common.close')"
           @click="showRewardDialog = false"
         >
           <span class="material-icons">close</span>
@@ -97,7 +97,9 @@
           <span class="material-icons">emoji_events</span>
         </div>
         <div class="reward-title">{{ currentRewardPhrase }}</div>
-        <div class="reward-energy">+{{ rewardAmount }} Energy</div>
+        <div class="reward-energy">
+          {{ $t("taskDetails.reward", { n: rewardAmount }) }}
+        </div>
         <div class="reward-message">
           {{ $t("taskDetails.rewardMessage") }}
         </div>
