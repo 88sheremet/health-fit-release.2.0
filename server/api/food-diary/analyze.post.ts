@@ -1,8 +1,14 @@
+
 import { createClient } from "@supabase/supabase-js";
-import { createError, defineEventHandler, getHeader, readBody } from "h3";
+import {
+  createError,
+  defineEventHandler,
+  getHeader,
+  readBody,
+} from "h3";
 
 /* -------------------------------------------------------------------------- */
-/*  Типы                                                                      */
+/* Типы                                                                        */
 /* -------------------------------------------------------------------------- */
 
 interface FoodDiaryEntry {
@@ -31,816 +37,144 @@ interface FoodDiaryAnalysis {
   limitations: string;
 }
 
-interface Hint {
-  observation: string;
-  idea: string;
+interface ParseContext {
+  diaryWords: Set<string>;
 }
 
-interface ParseContext {
-  diaryStems: Set<string>;
-  isLastAttempt: boolean;
+interface GeminiResponse {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{
+        text?: string;
+      }>;
+    };
+    finishReason?: string;
+  }>;
+  error?: {
+    message?: string;
+    status?: string;
+  };
 }
 
 const FOOD_DIARY_TASK_ID = "5382c1d1-f307-4076-a7e7-97e1c03fc5a7";
-const MAX_ATTEMPTS = 2;
+const MAX_ATTEMPTS = 3;
 
 /* -------------------------------------------------------------------------- */
-/*  Словарь групп продуктов                                                   */
-/*  Программа заранее определяет, что реально есть в дневнике, а модель       */
-/*  только формулирует выводы. Словарь работает по русским и украинским       */
-/*  словам и не претендует на полноту: непонятные слова модель видит в        */
-/*  исходных записях.                                                         */
+/* Словарь продуктов                                                           */
 /* -------------------------------------------------------------------------- */
 
-const L = "a-zа-яіїєґ";
-const END = `(?![${L}])`;
-
-const GROUP_PATTERNS = {
-  grains: [
-    "греч(?!еск)",
-    "овсян",
-    `каш(?:а|у|и|ей|ой|е|ка|ку|ки)${END}`,
-    "макарон",
-    `паст(?:а|у|ы|ой)${END}`,
-    "спагетт",
-    "лапш",
-    "вермишел",
-    "хлеб",
-    "хліб",
-    "хлопь",
-    "булк",
-    "булоч",
-    "батон",
-    "лаваш",
-    `тост(?:ы|а|ов)?${END}`,
-    "лепешк",
-    "пшен",
-    "перлов",
-    "булгур",
-    "киноа",
-    "кускус",
-    `рис(?:а|у|ом|е|овая|овую|овой|овое|овые|овых)?${END}`,
-    `круп(?:а|у|ы|ой|е)${END}`,
-    "картоф",
-    "картош",
-    "картопл",
-    "пюре",
-    "драник",
-    "пельмен",
-    "вареник",
-    "галушк",
-    "ржан",
-    "цельнозерн",
-  ],
-  wholeGrains: [
-    "греч(?!еск)",
-    "овсян",
-    "овес",
-    "пшен",
-    "перлов",
-    "булгур",
-    "киноа",
-    "цельнозерн",
-    "ржан",
-    "отруб",
-  ],
-  eggs: ["яйц", "яиц", "яєц", "яєчн", "яичн", "яешн", "омлет", "глазунь"],
-  meat: [
-    "куриц",
-    "курин",
-    "курк(?!ум)",
-    "куряч",
-    "м'?яс",
-    "мясн",
-    "говяд",
-    "яловичин",
-    "свинин",
-    "свиной",
-    "свиная",
-    "свиные",
-    "баранин",
-    "телятин",
-    "индейк",
-    "індик",
-    "кролик",
-    "котлет",
-    "тефтел",
-    "фарш",
-    "отбивн",
-    "шашлык",
-    "шашлик",
-    "стейк",
-    "печенк",
-    "печінк",
-    `печень${END}`,
-    "колбас",
-    "сосис",
-    "сарделк",
-    "ветчин",
-    "бекон",
-    "окорок",
-    "шницел",
-    "гуляш",
-    "бифштекс",
-    `утк(?:а|у|и|ой)${END}`,
-    "гусятин",
-  ],
-  fish: [
-    "рыб",
-    "риб(?!ай)",
-    "лосос",
-    "семг",
-    "сельд",
-    "селед",
-    "оселед",
-    "скумбр",
-    "сардин",
-    "тунц",
-    "тунец",
-    "форел",
-    "минтай",
-    `хек${END}`,
-    "треск",
-    "килек",
-    "килька",
-    "шпрот",
-    "кальмар",
-    "креветк",
-    "морепродукт",
-    "мидии",
-    "мидий",
-    "судак",
-    "камбал",
-    "сайра",
-    "горбуш",
-    "анчоус",
-    "устриц",
-  ],
-  dairy: [
-    "молок",
-    "молоч",
-    "кефир",
-    "кефір",
-    "йогурт",
-    "творог",
-    "творож",
-    "сырник",
-    "сирник",
-    "сметан",
-    "ряженк",
-    "ряжанк",
-    "простокваш",
-    "сливк",
-    "морожен",
-    "морозив",
-    "кисломолоч",
-    "пармезан",
-    "моцарел",
-    "брынз",
-    "бринз",
-    "рикот",
-    "маскарпоне",
-    "айран",
-    "сыр(?!ой|ая|ое|ые|ого|ую|ым)",
-    `сир(?:а|у|ом|и|ів)?${END}`,
-  ],
-  legumes: [
-    "фасол",
-    "квасол",
-    "горох",
-    "горош",
-    "чечевиц",
-    "сочевиц",
-    `нут(?:а|у|ом)?${END}`,
-    "бобов",
-    `боб(?:ы|ов|ами)?${END}`,
-    "хумус",
-    "тофу",
-    `соя${END}`,
-    "эдамаме",
-  ],
-  vegetables: [
-    "овощ",
-    "овоч",
-    "салат",
-    "винегрет",
-    "огурц",
-    "огурч",
-    "огірк",
-    "помидор",
-    "помідор",
-    "томат",
-    "перец",
-    "перц",
-    "перчик",
-    "паприк",
-    "капуст",
-    "морков",
-    "морква",
-    "моркв",
-    "свекл",
-    "буряк",
-    "буряч",
-    `лук(?:а|у|ом|е)?${END}`,
-    "цибул",
-    "кабачк",
-    "цукін",
-    "баклажан",
-    "броккол",
-    "броколі",
-    "шпинат",
-    `зелен(?:ь|ью|и)${END}`,
-    "укроп",
-    "петрушк",
-    "редис",
-    "редьк",
-    "тыкв",
-    "гарбуз",
-    "сельдерей",
-    "селер",
-    "руккол",
-    "борщ",
-    "гриб",
-    "шампиньон",
-    "кукуруз",
-  ],
-  fruits: [
-    "фрукт",
-    "ягод",
-    "яблок",
-    "яблук",
-    "банан",
-    "апельсин",
-    "мандарин",
-    "грейпфрут",
-    "груш",
-    "виноград",
-    "клубник",
-    "полуниц",
-    "суниц",
-    "малин",
-    "черник",
-    "смородин",
-    "вишн",
-    "черешн",
-    "персик",
-    "абрикос",
-    "нектарин",
-    "арбуз",
-    "кавун",
-    `дын(?:я|ю|и|е)${END}`,
-    "киви",
-    "ананас",
-    "манго",
-    "гранат",
-    "хурм",
-    "инжир",
-    `слив(?:а|ы|у|ой|и)${END}`,
-    "лимон",
-    "клюкв",
-    "ежевик",
-    "крыжовн",
-    "айв",
-    "изюм",
-    "кураг",
-    "чернослив",
-    "финик",
-    "сухофрукт",
-  ],
-  nuts: [
-    "орех",
-    "орешк",
-    "горіх",
-    "горішк",
-    "миндал",
-    "мигдал",
-    "фундук",
-    "арахис",
-    "арахіс",
-    "кешью",
-    "фисташк",
-    "фісташк",
-    "семечк",
-    "насіння",
-    "семена",
-    "чиа",
-  ],
-  fried: [
-    "жарен",
-    "жарк(?:ое|ого|ой)",
-    "жарит",
-    "смажен",
-    "смажит",
-    "пржен",
-    "фритюр",
-    `фри${END}`,
-    "шкварк",
-    "поджарен",
-    "підсмаж",
-    "обжарен",
-  ],
-  fats: [
-    `сал(?:о|а|у|ом|е)${END}`,
-    `масл(?:о|а|у|ом|е)${END}`,
-    "майонез",
-    "шпик",
-    "бекон",
-    "шкварк",
-  ],
-  sweets: [
-    `печень(?:е|я|ю|ем|ев)${END}`,
-    "печеньк",
-    "печенек",
-    "печиво",
-    "конфет",
-    "цукерк",
-    "шоколад",
-    "торт",
-    "пирожн",
-    "выпечк",
-    "випічк",
-    "булочк",
-    "варень",
-    "джем",
-    "мармелад",
-    "сахар",
-    "цукор",
-    `мед(?:ом|у)?${END}`,
-    "вафл",
-    "пряник",
-    "зефир",
-    "десерт",
-    "сладк",
-    "солодк",
-    "солодощ",
-    "кекс",
-    "круассан",
-    "пончик",
-    "пампушк",
-    "сгущенк",
-    "згущенк",
-    "халв",
-  ],
-  salty: [
-    "квашен",
-    "солен",
-    "засолен",
-    "маринов",
-    "консерв",
-    "копчен",
-    "вялен",
-    "колбас",
-    "сосис",
-    "сарделк",
-    "ветчин",
-    "бекон",
-    "чипс",
-    "сухарик",
-    `сал(?:о|а|у|ом|е)${END}`,
-    "селед",
-    "оселед",
-    "сельд",
-    "шпрот",
-    "килек",
-    "килька",
-    "кимчи",
-    "рассол",
-  ],
-  ferment: [
-    "квашен",
-    "кефир",
-    "кефір",
-    "йогурт",
-    "ряженк",
-    "ряжанк",
-    "простокваш",
-    "кимчи",
-    "комбуч",
-    "мисо",
-    "айран",
-    "кисломолоч",
-    "заквас",
-  ],
-  drinks: [
-    `вод(?:а|у|ы|ой)${END}`,
-    `ча(?:й|я|ю|ем)${END}`,
-    "кофе",
-    "кава",
-    "каву",
-    "кави",
-    `сок${END}`,
-    "сока",
-    "соку",
-    "соком",
-    "сік",
-    "компот",
-    "какао",
-    "лимонад",
-    "газировк",
-    "газован",
-    "напит",
-    "кисель",
-    "морс",
-    "узвар",
-    "смузи",
-  ],
-} satisfies Record<string, string[]>;
-
-type GroupKey = keyof typeof GROUP_PATTERNS;
-
-const GROUP_KEYS = Object.keys(GROUP_PATTERNS) as GroupKey[];
-
-const GROUP_REGEX = Object.fromEntries(
-  GROUP_KEYS.map((key) => [
-    key,
-    new RegExp(`(?<![${L}])(?:${GROUP_PATTERNS[key].join("|")})[${L}]*`, "giu"),
-  ]),
-) as Record<GroupKey, RegExp>;
-
-const GROUP_LABELS: Record<GroupKey, string> = {
-  grains: "Крупы, хлеб, картофель",
-  wholeGrains: "Цельные крупы",
-  eggs: "Яйца",
-  meat: "Мясо и птица",
-  fish: "Рыба и морепродукты",
-  dairy: "Молочные и кисломолочные продукты",
-  legumes: "Бобовые",
-  vegetables: "Овощи и зелень",
-  fruits: "Фрукты и ягоды",
-  nuts: "Орехи и семена",
-  fried: "Жареное",
-  fats: "Сало и масло",
-  sweets: "Сладкое и выпечка",
-  salty: "Солёное, квашеное, копчёное",
-  ferment: "Квашеные и кисломолочные продукты",
-  drinks: "Напитки",
+const FOOD_GROUPS = {
+  grains: {
+    label: "крупы, хлеб и гарниры",
+    patterns:
+      /греч|овсян|каша|кашу|макарон|паста|спагетти|лапша|вермишел|хлеб|хліб|булгур|киноа|кускус|рис|картоф|картош|картопл|пюре|перлов|пшен|пельмен|вареник|галушк/i,
+  },
+  protein: {
+    label: "источники белка",
+    patterns:
+      /яйц|яиц|яєц|омлет|куриц|курин|куряч|мяс|м'яс|говяд|ялович|свинин|индейк|індик|котлет|фарш|туш[её]нк|рыб|риб(?!ай)|лосос|тунц|творог|творож|сыр|сир|молок|кефир|йогурт|сметан|фасол|квасол|горох|чечевиц|сочевиц|нут|тофу/i,
+  },
+  vegetables: {
+    label: "овощи и зелень",
+    patterns:
+      /овощ|овоч|салат|винегрет|огурц|огурч|огірк|помидор|помідор|томат|перец|перець|капуст|морков|моркв|свекл|буряк|лук|цибул|кабач|цукін|баклажан|броккол|шпинат|укроп|петрушк|редис|тыкв|гарбуз|сельдер|селер|руккол|гриб|шампиньон/i,
+  },
+  fruits: {
+    label: "фрукты и ягоды",
+    patterns:
+      /фрукт|ягод|яблок|яблук|банан|апельсин|мандарин|грейпфрут|груш|виноград|клубник|полуниц|малин|черник|смородин|вишн|черешн|персик|абрикос|арбуз|кавун|дын|киви|ананас|манго|гранат|хурм|слив|лимон|изюм|кураг|финик/i,
+  },
+  dairy: {
+    label: "молочные продукты",
+    patterns:
+      /молок|кефир|кефір|йогурт|творог|творож|сыр|сир|сметан|ряженк|сливк|брынз|бринз|моцарел|пармезан/i,
+  },
+  fish: {
+    label: "рыба и морепродукты",
+    patterns:
+      /рыб|риб(?!ай)|лосос|семг|сельд|селед|скумбр|сардин|тунц|форел|минтай|хек|треск|креветк|кальмар|мидии|сайра|горбуш/i,
+  },
+  legumes: {
+    label: "бобовые",
+    patterns:
+      /фасол|квасол|горох|горош|чечевиц|сочевиц|нут|бобов|хумус|тофу|соя/i,
+  },
+  sweets: {
+    label: "сладости и выпечка",
+    patterns:
+      /печень|печиво|конфет|цукерк|шоколад|торт|пирожн|выпечк|випічк|варень|джем|мед|вафл|пряник|зефир|десерт|сладк|солодк|кекс|круассан|пончик|сгущенк|згущенк|халв|пирог|пахлав|морожен|морозив/i,
+  },
+  fried: {
+    label: "жареные продукты",
+    patterns:
+      /жарен|жарит|смажен|смажит|фритюр|картоф[её]ль? фри|підсмаж|обжарен/i,
+  },
+  drinks: {
+    label: "напитки",
+    patterns:
+      /вода|воды|водой|чай|кофе|кава|сок|сік|компот|какао|лимонад|газировк|напит|напій|узвар|смузи/i,
+  },
 };
 
-const PROTEIN_GROUPS: GroupKey[] = ["eggs", "meat", "fish", "dairy", "legumes"];
-
-const REPEAT_GROUPS: GroupKey[] = [
-  "grains",
-  "eggs",
-  "meat",
-  "fish",
-  "dairy",
-  "legumes",
-  "vegetables",
-  "fruits",
-  "nuts",
-  "sweets",
-  "fried",
-  "salty",
-  "drinks",
-];
-
-const MISSING_GROUPS: GroupKey[] = [
-  "fish",
-  "dairy",
-  "legumes",
-  "fruits",
-  "nuts",
-];
+type FoodGroup = keyof typeof FOOD_GROUPS;
 
 /* -------------------------------------------------------------------------- */
-/*  Вспомогательные функции для анализа дневника                              */
+/* Вспомогательные функции                                                     */
 /* -------------------------------------------------------------------------- */
 
-interface DayFacts {
-  date: string;
-  entries: FoodDiaryEntry[];
-  mealCount: number;
-  times: number[];
-  words: Record<GroupKey, string[]>;
-  entryHits: Record<GroupKey, number>;
+function normalize(value: string): string {
+  return value.toLocaleLowerCase().replace(/ё/g, "е").trim();
 }
 
-function normalize(text: string): string {
-  return text.toLowerCase().replace(/ё/g, "е");
-}
+function formatDay(value: string): string {
+  const match = String(value).slice(0, 10).match(/^(\d{4})-(\d{2})-(\d{2})$/);
 
-function uniqueWords(list: string[]): string[] {
-  const seen = new Set<string>();
-  const result: string[] = [];
-
-  for (const word of list) {
-    const key = word.slice(0, 5);
-
-    if (!word || seen.has(key)) continue;
-
-    seen.add(key);
-    result.push(word);
-  }
-
-  return result;
-}
-
-function findWords(text: string, regex: RegExp): string[] {
-  const found: string[] = [];
-
-  for (const match of normalize(text).matchAll(regex)) {
-    found.push(match[0].trim());
-  }
-
-  return uniqueWords(found);
-}
-
-function formatList(words: string[], limit = 5): string {
-  return words.slice(0, limit).join(", ");
-}
-
-function formatDay(date: string): string {
-  const [, month, day] = String(date).slice(0, 10).split("-");
-
-  return day && month ? `${day}.${month}` : String(date);
-}
-
-function parseTime(value: string | null): number | null {
-  const match = value?.match(/^(\d{1,2}):(\d{2})/);
-
-  if (!match) return null;
-
-  return Number(match[1]) * 60 + Number(match[2]);
+  return match ? `${match[3]}.${match[2]}` : value;
 }
 
 function formatTime(value: string | null): string {
-  const match = value?.match(/^(\d{1,2}):(\d{2})/);
+  if (!value) return "время не указано";
+
+  const match = value.match(/^(\d{1,2}):(\d{2})/);
 
   return match
     ? `${match[1].padStart(2, "0")}:${match[2]}`
     : "время не указано";
 }
 
-function buildDayFacts(date: string, entries: FoodDiaryEntry[]): DayFacts {
-  const words = {} as Record<GroupKey, string[]>;
-  const entryHits = {} as Record<GroupKey, number>;
+function detectLanguage(
+  locale: unknown,
+  acceptLanguage: string | undefined,
+  entries: FoodDiaryEntry[],
+): string {
+  const explicitLocale = String(locale ?? "").toLowerCase();
 
-  for (const key of GROUP_KEYS) {
-    const union: string[] = [];
-    let hits = 0;
-
-    for (const entry of entries) {
-      const found = findWords(entry.description, GROUP_REGEX[key]);
-
-      if (found.length > 0) hits += 1;
-
-      union.push(...found);
-    }
-
-    words[key] = uniqueWords(union);
-    entryHits[key] = hits;
+  if (explicitLocale === "uk" || explicitLocale.startsWith("uk-")) {
+    return "украинском";
   }
 
-  const times = entries
-    .map((entry) => parseTime(entry.meal_time))
-    .filter((minutes): minutes is number => minutes !== null)
-    .sort((a, b) => a - b);
-
-  return {
-    date,
-    entries,
-    mealCount: entries.length,
-    times,
-    words,
-    entryHits,
-  };
-}
-
-function longestGapMinutes(day: DayFacts): number {
-  let longest = 0;
-
-  for (let index = 1; index < day.times.length; index += 1) {
-    longest = Math.max(longest, day.times[index] - day.times[index - 1]);
+  if (explicitLocale === "ru" || explicitLocale.startsWith("ru-")) {
+    return "русском";
   }
 
-  return longest;
-}
+  const headerLocale = (acceptLanguage ?? "")
+    .split(",")[0]
+    ?.split(";")[0]
+    ?.trim()
+    .toLowerCase();
 
-function detectLanguage(entries: FoodDiaryEntry[]): string {
-  const text = entries.map((entry) => entry.description).join(" ");
-  const ukrainianLetters = text.match(/[іїєґІЇЄҐ]/g)?.length ?? 0;
-
-  return ukrainianLetters >= 2 ? "украинский" : "русский";
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Подсказки для рекомендаций (взгляд нутрициолога)                          */
-/* -------------------------------------------------------------------------- */
-
-function buildHints(days: DayFacts[], feelingRecorded: boolean): Hint[] {
-  const allWords = (key: GroupKey) =>
-    uniqueWords(days.flatMap((day) => day.words[key]));
-  const isPresent = (key: GroupKey) => allWords(key).length > 0;
-
-  const hints: Hint[] = [];
-
-  // 1. Разнообразие белка: один источник, нет рыбы, нет молочных, нет бобовых.
-  const presentProtein = PROTEIN_GROUPS.filter(isPresent);
-  const singleProtein = presentProtein.length === 1;
-  const noFish = !isPresent("fish");
-  const noDairy = !isPresent("dairy");
-  const noLegumes = !isPresent("legumes");
-  const proteinHint = singleProtein || noFish || noDairy;
-
-  if (proteinHint) {
-    const observations: string[] = [];
-    const ideas: string[] = [];
-
-    if (singleProtein) {
-      const key = presentProtein[0];
-
-      observations.push(
-        `источник белка в записях один: ${GROUP_LABELS[
-          key
-        ].toLowerCase()} (${formatList(allWords(key))})`,
-      );
-      ideas.push("чередовать источники белка, а не опираться на один");
-    }
-
-    if (noFish) {
-      observations.push("рыбы и морепродуктов в записях нет");
-      ideas.push(
-        "добавить рыбу (запечённую, варёную или консервированную сардину или скумбрию) один-два раза в неделю",
-      );
-    }
-
-    if (noDairy) {
-      observations.push("молочных и кисломолочных продуктов в записях нет");
-      ideas.push("добавить стакан кефира, йогурт без сахара или творог");
-    }
-
-    if (noLegumes) {
-      observations.push("бобовых в записях нет");
-      ideas.push("положить фасоль или чечевицу в суп или гарнир");
-    }
-
-    const text = observations.join("; ");
-
-    hints.push({
-      observation: text.charAt(0).toUpperCase() + text.slice(1) + ".",
-      idea: ideas.join("; "),
-    });
+  if (headerLocale === "uk" || headerLocale?.startsWith("uk-")) {
+    return "украинском";
   }
 
-  // 2. Жареное, сало, масло.
-  const fried = allWords("fried");
-  const fats = allWords("fats");
-
-  if (fried.length > 0 || fats.length >= 2) {
-    const parts: string[] = [];
-
-    if (fried.length > 0) parts.push(`жареное (${formatList(fried)})`);
-    if (fats.length > 0) parts.push(`сало или масло (${formatList(fats)})`);
-
-    hints.push({
-      observation: `В записях встречаются: ${parts.join(", ")}.`,
-      idea: "иногда варить, запекать или готовить на пару (например, варёные яйца вместо жареных); для разнообразия жиров добавить рыбу, орехи или растительное масло без жарки",
-    });
+  if (headerLocale === "ru" || headerLocale?.startsWith("ru-")) {
+    return "русском";
   }
 
-  // 3. Фрукты и ягоды.
-  if (!isPresent("fruits")) {
-    hints.push({
-      observation: "Фруктов и ягод в записях нет.",
-      idea: "добавить к завтраку одно яблоко, банан или горсть ягод",
-    });
-  }
+  const diaryText = entries.map((entry) => entry.description).join(" ");
+  const ukrainianLetters = diaryText.match(/[іїєґІЇЄҐ]/g)?.length ?? 0;
 
-  // 4. Соль.
-  const salty = allWords("salty");
-
-  if (salty.length >= 2) {
-    hints.push({
-      observation: `В записях несколько солёных, квашеных или копчёных продуктов: ${formatList(
-        salty,
-      )}. Соли в таком рационе может быть много.`,
-      idea: "не досаливать блюда и хотя бы в одном приёме пищи брать свежие овощи вместо солёных",
-    });
-  }
-
-  // 5. Режим приёмов пищи.
-  const fewMeals = days.every((day) => day.mealCount <= 2);
-  const maxGap = Math.max(...days.map(longestGapMinutes));
-  const longGap = maxGap >= 360;
-
-  if (fewMeals || longGap) {
-    const parts: string[] = [];
-
-    if (fewMeals) {
-      parts.push(
-        "в каждый из дней записано не больше двух приёмов пищи (возможно, записаны не все)",
-      );
-    }
-
-    if (longGap) {
-      parts.push(
-        `между приёмами пищи бывает перерыв около ${Math.round(maxGap / 60)} ч`,
-      );
-    }
-
-    const text = parts.join("; ");
-
-    hints.push({
-      observation: text.charAt(0).toUpperCase() + text.slice(1) + ".",
-      idea: "если к вечеру появляется сильный голод, можно добавить небольшой перекус: фрукт, кефир или горсть орехов; это необязательно",
-    });
-  }
-
-  // 6. Бобовые отдельно, если блок про белок не сработал.
-  if (!proteinHint && noLegumes) {
-    hints.push({
-      observation: "Бобовых (фасоль, чечевица, нут, горох) в записях нет.",
-      idea: "добавить фасоль или чечевицу в суп или гарнир",
-    });
-  }
-
-  const result = hints.slice(0, 5);
-
-  // Запасные подсказки, чтобы всегда было минимум три.
-  const fallbacks: Hint[] = [];
-
-  if (!feelingRecorded) {
-    fallbacks.push({
-      observation: "Самочувствие после еды в записях не указано.",
-      idea: "рядом с каждым приёмом пищи записывать самочувствие в двух-трёх словах (бодрость, сытость, лёгкость)",
-    });
-  }
-
-  if (!isPresent("drinks")) {
-    fallbacks.push({
-      observation: "Напитки в записях не отмечены.",
-      idea: "отмечать в дневнике напитки (вода, чай, кофе, соки), чтобы анализ мог их учитывать",
-    });
-  }
-
-  fallbacks.push({
-    observation: "Двух дней мало, чтобы увидеть устойчивые привычки.",
-    idea: "вести дневник ещё несколько дней и записывать время приёмов пищи",
-  });
-
-  for (const fallback of fallbacks) {
-    if (result.length >= 3) break;
-
-    result.push(fallback);
-  }
-
-  return result;
-}
-
-function buildStrengths(days: DayFacts[]): string[] {
-  const allWords = (key: GroupKey) =>
-    uniqueWords(days.flatMap((day) => day.words[key]));
-  const strengths: string[] = [];
-
-  const vegetables = allWords("vegetables");
-
-  if (vegetables.length > 0) {
-    const inBothDays = days.every((day) => day.words.vegetables.length > 0);
-
-    strengths.push(
-      `овощи есть ${inBothDays ? "в оба дня" : "в записях"} (${formatList(
-        vegetables,
-      )})`,
-    );
-  }
-
-  const ferment = allWords("ferment");
-
-  if (ferment.length > 0) {
-    strengths.push(
-      `есть квашеные или кисломолочные продукты (${formatList(ferment)})`,
-    );
-  }
-
-  const wholeGrains = allWords("wholeGrains");
-
-  if (wholeGrains.length > 0) {
-    strengths.push(`есть цельные крупы (${formatList(wholeGrains)})`);
-  }
-
-  const proteinEachDay = days.every((day) =>
-    PROTEIN_GROUPS.some((key) => day.words[key].length > 0),
-  );
-
-  if (proteinEachDay) {
-    strengths.push("белок есть в записях каждого дня");
-  }
-
-  const totalEntries = days.reduce((sum, day) => sum + day.mealCount, 0);
-  const sweetsEntries = days.reduce(
-    (sum, day) => sum + day.entryHits.sweets,
-    0,
-  );
-
-  if (sweetsEntries > 0 && sweetsEntries / totalEntries <= 0.25) {
-    strengths.push("сладкое составляет небольшую часть записей");
-  }
-
-  if (strengths.length === 0) {
-    strengths.push("пользователь ведёт дневник питания, это хорошая привычка");
-  }
-
-  return strengths;
+  return ukrainianLetters >= 2 ? "украинском" : "русском";
 }
 
 function buildDiaryContext(
@@ -848,307 +182,357 @@ function buildDiaryContext(
   firstDate: string,
   secondDate: string,
 ) {
-  const days = [firstDate, secondDate].map((date) =>
-    buildDayFacts(
-      date,
-      entries.filter((entry) => entry.entry_date === date),
-    ),
-  );
+  const dates = [firstDate, secondDate];
+
+  const entriesText = dates
+    .map((date) => {
+      const dayEntries = entries.filter((entry) => entry.entry_date === date);
+
+      const lines = dayEntries.map((entry) => {
+        return [
+          `Время: ${formatTime(entry.meal_time)}`,
+          `Тип приёма пищи: ${entry.meal_type || "не указан"}`,
+          `Запись: ${entry.description.trim()}`,
+          `Самочувствие: ${entry.feeling?.trim() || "не указано"}`,
+        ].join(" | ");
+      });
+
+      return `ДЕНЬ ${formatDay(date)}:\n${lines.join("\n")}`;
+    })
+    .join("\n\n");
+
+  const dayFacts = dates.map((date) => {
+    const dayEntries = entries.filter((entry) => entry.entry_date === date);
+    const descriptions = dayEntries.map((entry) => entry.description).join(" ");
+
+    const groups = (Object.keys(FOOD_GROUPS) as FoodGroup[])
+      .filter((key) => FOOD_GROUPS[key].patterns.test(descriptions))
+      .map((key) => FOOD_GROUPS[key].label);
+
+    const times = dayEntries
+      .map((entry) => entry.meal_time)
+      .filter((time): time is string => Boolean(time))
+      .map(formatTime);
+
+    return {
+      date: formatDay(date),
+      entryCount: dayEntries.length,
+      groups,
+      times,
+      descriptions,
+    };
+  });
+
+  const repeatedGroups = (Object.keys(FOOD_GROUPS) as FoodGroup[])
+    .filter((key) =>
+      dayFacts.every((day) => FOOD_GROUPS[key].patterns.test(day.descriptions)),
+    )
+    .map((key) => FOOD_GROUPS[key].label);
+
+  const missingGroups = (Object.keys(FOOD_GROUPS) as FoodGroup[])
+    .filter((key) =>
+      dayFacts.every(
+        (day) => !FOOD_GROUPS[key].patterns.test(day.descriptions),
+      ),
+    )
+    .map((key) => FOOD_GROUPS[key].label);
 
   const feelingCount = entries.filter((entry) => entry.feeling?.trim()).length;
-  const feelingRecorded = feelingCount > 0;
-
-  const entriesText = entries
-    .map(
-      (entry) =>
-        `${formatDay(entry.entry_date)} · ${formatTime(entry.meal_time)} · ${
-          entry.meal_type
-        }: ${entry.description.trim()} · самочувствие: ${
-          entry.feeling?.trim() || "не указано"
-        }`,
-    )
-    .join("\n");
-
-  const mealsText = days
-    .map(
-      (day) =>
-        `${formatDay(day.date)} — ${day.mealCount} (${day.entries
-          .map((entry) => formatTime(entry.meal_time))
-          .join(", ")})`,
-    )
-    .join("; ");
-
-  const repeated = REPEAT_GROUPS.filter((key) =>
-    days.every((day) => day.words[key].length > 0),
-  ).map(
-    (key) =>
-      `- ${GROUP_LABELS[key]} — ${days
-        .map(
-          (day) => `${formatDay(day.date)}: ${formatList(day.words[key], 4)}`,
-        )
-        .join("; ")}`,
-  );
-
-  const missing = MISSING_GROUPS.filter((key) =>
-    days.every((day) => day.words[key].length === 0),
-  ).map((key) => GROUP_LABELS[key].toLowerCase());
-
-  const strengths = buildStrengths(days);
-  const hints = buildHints(days, feelingRecorded);
 
   const factsText = [
-    `Даты: ${formatDay(firstDate)} и ${formatDay(secondDate)}.`,
-    `Приёмов пищи по дням: ${mealsText}.`,
-    feelingRecorded
-      ? `Самочувствие указано в ${feelingCount} из ${entries.length} записей.`
-      : "Самочувствие не указано ни в одной записи.",
+    `Выбранные даты: ${formatDay(firstDate)} и ${formatDay(secondDate)}.`,
+    `Количество записей по дням: ${dayFacts
+      .map((day) => `${day.date}: ${day.entryCount}`)
+      .join("; ")}.`,
+    `Повторяющиеся группы продуктов по обоим дням: ${
+      repeatedGroups.length ? repeatedGroups.join(", ") : "не определены"
+    }.`,
+    `Группы, не найденные в записях обоих дней: ${
+      missingGroups.length ? missingGroups.join(", ") : "не определены"
+    }.`,
+    `Самочувствие указано в ${feelingCount} из ${entries.length} записей.`,
     "",
-    "ПОВТОРЯЕТСЯ В ОБА ДНЯ:",
-    repeated.length > 0 ? repeated.join("\n") : "- ничего не повторяется",
-    "",
-    "НЕ ВСТРЕЧАЕТСЯ НИ В ОДИН ИЗ ДВУХ ДНЕЙ:",
-    missing.length > 0 ? missing.join("; ") : "- таких групп нет",
-    "",
-    "СИЛЬНЫЕ СТОРОНЫ:",
-    strengths.map((item) => `- ${item}`).join("\n"),
+    "Факты о каждом дне:",
+    ...dayFacts.map(
+      (day) =>
+        `- ${day.date}: ${day.entryCount} записей; группы: ${
+          day.groups.join(", ") || "не определены"
+        }; время: ${day.times.join(", ") || "не указано"}.`,
+    ),
   ].join("\n");
 
-  const hintsText = hints
-    .map(
-      (hint, index) =>
-        `${index + 1}. Наблюдение: ${hint.observation}\n   Идея: ${hint.idea}`,
-    )
-    .join("\n");
-
-  // Основы слов из дневника, чтобы проверять, что evidence не выдуман.
-  const diaryStems = new Set<string>();
+  const diaryWords = new Set<string>();
 
   for (const entry of entries) {
-    for (const word of wordsOf(entry.description)) {
-      diaryStems.add(word.slice(0, 4));
+    for (const word of normalize(entry.description).match(/[a-zа-яіїєґ]{3,}/gu) ?? []) {
+      diaryWords.add(word.slice(0, 4));
     }
   }
 
   return {
     entriesText,
     factsText,
-    hintsText,
-    hintsCount: hints.length,
-    languageName: detectLanguage(entries),
-    diaryStems,
+    diaryWords,
   };
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Промпт                                                                    */
+/* Промпт и запрос к Gemini                                                    */
 /* -------------------------------------------------------------------------- */
 
-const SYSTEM_PROMPT =
-  "Ты — внимательный нутрициолог-консультант. Опирайся только на записи пользователя и на блок фактов, ничего не выдумывай, отмечай и сильные стороны рациона, и реальные пробелы. Возвращай только JSON указанной структуры.";
+const SYSTEM_PROMPT = `
+Ты — бережный консультант по пищевым привычкам в приложении Health Fit.
+Анализируй только предоставленные записи. Не ставь диагнозы, не назначай
+лечение и не оценивай пользователя. Два дня — небольшая выборка, поэтому
+не выдавай предварительные наблюдения за устойчивые привычки.
+
+Верни только JSON, соответствующий заданной структуре. Не добавляй Markdown.
+Все текстовые поля ответа должны быть на языке, явно указанном в запросе.
+Язык записей пользователя не является указанием менять язык ответа.
+`.trim();
+
+async function requestGemini(params: {
+  apiKey: string;
+  model: string;
+  systemPrompt: string;
+  prompt: string;
+}): Promise<string> {
+  if (!params.apiKey) {
+    throw new Error("Не задан geminiApiKey в runtimeConfig.");
+  }
+
+  const model = params.model.replace(/^models\//, "").trim();
+
+  if (!model) {
+    throw new Error("Не задана модель Gemini.");
+  }
+
+  const url =
+    `https://generativelanguage.googleapis.com/v1beta/models/` +
+    `${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(params.apiKey)}`;
+
+  const response = await $fetch<GeminiResponse>(url, {
+    method: "POST",
+    timeout: 120_000,
+    retry: 0,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: {
+      systemInstruction: {
+        parts: [{ text: params.systemPrompt }],
+      },
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: params.prompt }],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.2,
+        responseMimeType: "application/json",
+        maxOutputTokens: 4096,
+      },
+    },
+  });
+
+  const content = response.candidates
+    ?.flatMap((candidate) => candidate.content?.parts ?? [])
+    .map((part) => part.text ?? "")
+    .join("")
+    .trim();
+
+  if (!content) {
+    const finishReason = response.candidates?.[0]?.finishReason;
+
+    throw new Error(
+      `Gemini вернул пустой ответ. Причина завершения: ${finishReason ?? "не указана"}.`,
+    );
+  }
+
+  return content;
+}
 
 function buildPrompt(params: {
   entriesText: string;
   factsText: string;
-  hintsText: string;
-  hintsCount: number;
   languageName: string;
   retryNote?: string;
 }): string {
-  const {
-    entriesText,
-    factsText,
-    hintsText,
-    hintsCount,
-    languageName,
-    retryNote,
-  } = params;
-
   return `
-Ты — бережный нутрициолог-консультант в приложении Health Fit. Ты опираешься только на записи пользователя и на блок «ФАКТЫ», который программа подготовила заранее.
+ЯЗЫК ОТВЕТА: ${params.languageName}.
+
+Весь ответ, включая summary, patterns, recommendations, actions и limitations,
+должен быть написан на ${params.languageName}. Не переключайся на другой язык
+из-за языка исходных записей. Названия продуктов можно цитировать из дневника.
 
 ЗАДАЧА
-Дай короткий дружелюбный разбор питания за два выбранных дня и предложи ровно три небольших действия.
+Проанализируй питание за два выбранных дня. Подготовь краткое резюме,
+обоснованные наблюдения, практичные рекомендации и ровно три небольших действия.
 
-ЯЗЫК ОТВЕТА: ${languageName}. Пиши простыми словами, без сложных терминов.
+ЗАПИСИ ДНЕВНИКА
+${params.entriesText}
 
-=== ЗАПИСИ ПОЛЬЗОВАТЕЛЯ ===
-${entriesText}
+ФАКТЫ, ПОДГОТОВЛЕННЫЕ ПРОГРАММОЙ
+${params.factsText}
 
-=== ФАКТЫ (подготовлены программой) ===
-${factsText}
+ПРАВИЛА АНАЛИЗА
+1. Используй только факты из записей. Не выдумывай продукты, количество,
+   симптомы, эмоции, причины поведения или время приёмов пищи.
+2. Не делай медицинских выводов, не назначай лечение или добавки.
+3. Не подсчитывай калории, БЖУ и не оценивай вес, граммы или размеры порций.
+4. Не называй еду вредной, запрещённой или плохой.
+5. Не используй слова «часто», «всегда», «обычно», «постоянно»:
+   двух дней недостаточно для таких утверждений.
+6. Не считай отсутствие продукта в записях доказательством, что человек
+   никогда его не ест.
+7. Повторяющаяся закономерность должна подтверждаться обоими днями.
+   Если надёжных закономерностей нет, верни пустой массив patterns.
+8. В evidence указывай даты и конкретные продукты, действительно упомянутые
+   в записях. Не придумывай подтверждения.
+9. Учитывай сильные стороны рациона, если они действительно видны.
+10. Рекомендации должны быть мягкими, реалистичными и не дублировать друг друга.
+11. Actions должны быть конкретными и небольшими, выполнимыми в течение недели.
+12. В limitations кратко укажи, что по двум дням нельзя достоверно установить
+    устойчивые привычки, а неполные записи ограничивают выводы.
 
-=== ПОДСКАЗКИ ДЛЯ РЕКОМЕНДАЦИЙ (по важности) ===
-${hintsText}
+ТРЕБОВАНИЯ К СТРУКТУРЕ
+- summary: краткое резюме в 2–3 предложениях.
+- patterns: массив от 0 до 3 объектов.
+- recommendations: массив из 2–4 объектов.
+- actions: ровно 3 объекта.
+- limitations: короткое объяснение ограничений анализа.
+- У каждого объекта patterns должны быть title, explanation, evidence.
+- У каждого объекта recommendations должны быть title, explanation.
+- У каждого объекта actions должны быть title, description.
+- Все значения этих полей должны быть непустыми строками.
 
-ВАЖНО О ФАКТАХ
-Блок «ФАКТЫ» составлен автоматически по ключевым словам и может не узнать редкие или написанные с ошибкой слова. Если в записях ты явно видишь продукт из группы, которая в фактах отмечена как отсутствующая, не предлагай добавлять эту группу. Непонятные слова не угадывай: цитируй как есть или не упоминай.
-
-КАК СОСТАВИТЬ ОТВЕТ
-
-summary (2–3 предложения):
-- начни с сильных сторон из блока «СИЛЬНЫЕ СТОРОНЫ»;
-- затем назови одно-два самых заметных наблюдения из подсказок;
-- не пересказывай весь дневник.
-
-patterns (от 0 до 3):
-- бери только из списка «ПОВТОРЯЕТСЯ В ОБА ДНЯ»;
-- закономерность — это то, что есть в обоих днях; одно наблюдение за один день закономерностью не является;
-- разные продукты не называй одним и тем же (рис и гречка — разные продукты; говори «крупы» или называй оба);
-- формулируй осторожно: «в записях видно», «в оба дня встречается»;
-- evidence: даты и точные слова из записей;
-- если список пуст, верни patterns: [] и коротко объясни это в limitations.
-
-recommendations:
-- ровно ${hintsCount} — по одной на каждую подсказку, в том же порядке;
-- explanation: 1–2 предложения: что видно в записях и что можно попробовать; мягко, например «можно попробовать», «для разнообразия»;
-- не добавляй рекомендации, которых нет в подсказках; не давай общих советов вроде «ешьте больше овощей».
-
-actions (ровно три):
-- по одному маленькому действию на каждую из первых трёх рекомендаций, на основе «Идеи» из подсказок;
-- действие выполнимо за неделю, без граммов и подсчётов;
-- не повторяй одно и то же разными словами.
-
-limitations:
-- напиши, что два дня — небольшая выборка, порции и самочувствие могут быть не указаны, поэтому выводы предварительные.
-
-ОГРАНИЧЕНИЯ
-- Не подсчитывай калории, БЖУ и холестерин.
-- Не проси и не оценивай граммы, вес или размеры порций. Количество упоминай только если оно записано пользователем (например, «5 яиц»), без оценок «много» или «мало».
-- Не ставь диагнозы и не делай медицинских заключений.
-- Не называй продукты «вредными» или «запрещёнными».
-- Не назначай диеты, добавки или лечение.
-- Не выдумывай продукты, симптомы, эмоции или причины.
-- Не объясняй, почему пользователь так ест (удобство, вкус, привычка), если он сам этого не писал.
-- Не стыди пользователя и не оценивай его силу воли.
-- Если самочувствие не записано, не делай выводов о связи питания с самочувствием.
-- Два дня — очень маленькая выборка: не используй слова «часто», «всегда», «обычно», «постоянно».
 ${
-  retryNote
-    ? `\nПРЕДЫДУЩИЙ ОТВЕТ БЫЛ ОТКЛОНЁН: ${retryNote}\nИсправь это и верни новый JSON.\n`
+  params.retryNote
+    ? `\nПРЕДЫДУЩИЙ ОТВЕТ НЕ ПРОШЁЛ ПРОВЕРКУ: ${params.retryNote}\nИсправь указанную проблему и верни новый полный JSON.\n`
     : ""
 }
-Верни только валидный JSON, без Markdown и текста вокруг.
+
+Верни только JSON без Markdown и текста до или после него.
 
 Формат:
 {
-  "summary": "Краткое резюме наблюдений",
+  "summary": "Краткое резюме",
   "patterns": [
     {
-      "title": "Короткое название",
-      "explanation": "Осторожное объяснение закономерности",
-      "evidence": "Даты и точные слова из записей"
+      "title": "Название наблюдения",
+      "explanation": "Осторожное объяснение",
+      "evidence": "Конкретные записи и даты"
     }
   ],
   "recommendations": [
     {
-      "title": "Короткая рекомендация",
-      "explanation": "Что можно попробовать и почему"
+      "title": "Рекомендация",
+      "explanation": "Что можно попробовать"
     }
   ],
   "actions": [
     {
-      "title": "Небольшое действие",
-      "description": "Конкретный шаг, который можно выполнить"
+      "title": "Действие 1",
+      "description": "Конкретный небольшой шаг"
     },
     {
-      "title": "Небольшое действие",
-      "description": "Конкретный шаг, который можно выполнить"
+      "title": "Действие 2",
+      "description": "Конкретный небольшой шаг"
     },
     {
-      "title": "Небольшое действие",
-      "description": "Конкретный шаг, который можно выполнить"
+      "title": "Действие 3",
+      "description": "Конкретный небольшой шаг"
     }
   ],
-  "limitations": "Что нельзя достоверно заключить по этим записям"
+  "limitations": "Ограничения анализа"
 }
 `.trim();
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Валидация ответа модели                                                   */
+/* Разбор и проверка ответа                                                    */
 /* -------------------------------------------------------------------------- */
-
-const WORD_RE = new RegExp(`[${L}]{3,}`, "gu");
-
-const STOP_KEYS = new Set([
-  "для",
-  "дня",
-  "дни",
-  "день",
-  "дней",
-  "днях",
-  "оба",
-  "при",
-  "что",
-  "как",
-  "это",
-  "без",
-  "или",
-  "два",
-  "запи",
-  "прие",
-  "пищи",
-  "блюд",
-]);
-
-// Слова, которые нельзя использовать в любом случае.
-const HARD_BANNED =
-  /вредн|шкідлив|запрещ|заборон|калори|калорі|холестерин|диагноз|діагноз|лечени|лікуванн|похуден|схуднен|диет(?!ическ|олог)|дієт(?!ичн|олог)/i;
-
-// Слова, которые нарушают осторожный тон: сначала просим исправить.
-const SOFT_BANNED = new RegExp(
-  `(?<![${L}])(?:всегда|обычно|постоянно|часто|завжди|зазвичай|постійно)(?![${L}])`,
-  "i",
-);
-
-function wordsOf(text: string): string[] {
-  return normalize(text).match(WORD_RE) ?? [];
-}
 
 function cleanString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : null;
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  return value as Record<string, unknown>;
 }
 
-function isGrounded(text: string, stems: Set<string>): boolean {
-  return wordsOf(text).some((word) => {
-    const key = word.slice(0, 4);
+function extractJson(content: string): string {
+  const cleaned = content
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
 
-    return !STOP_KEYS.has(key) && stems.has(key);
-  });
+  if (cleaned.startsWith("{") && cleaned.endsWith("}")) {
+    return cleaned;
+  }
+
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+
+  if (start >= 0 && end > start) {
+    return cleaned.slice(start, end + 1);
+  }
+
+  throw new Error("ответ не содержит JSON-объект");
 }
 
 function parseAnalysis(
   content: string,
-  { diaryStems, isLastAttempt }: ParseContext,
+  context: ParseContext,
 ): FoodDiaryAnalysis {
-  let raw: unknown;
+  let parsed: unknown;
 
   try {
-    raw = JSON.parse(content);
-  } catch {
-    throw new Error("ответ не является валидным JSON");
+    parsed = JSON.parse(extractJson(content));
+  } catch (error) {
+    throw new Error(
+      `не удалось прочитать JSON: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
   }
 
-  const data = asRecord(raw);
+  const data = asRecord(parsed);
 
   if (!data) {
-    throw new Error("ответ имеет неожиданный формат");
+    throw new Error("ответ должен быть JSON-объектом");
   }
 
   const summary = cleanString(data.summary);
   const limitations = cleanString(data.limitations);
 
-  if (!summary || !limitations) {
-    throw new Error("не заполнены summary или limitations");
+  if (!summary) {
+    throw new Error("отсутствует summary");
   }
 
-  const patterns = (Array.isArray(data.patterns) ? data.patterns : [])
+  if (!limitations) {
+    throw new Error("отсутствует limitations");
+  }
+
+  if (!Array.isArray(data.patterns)) {
+    throw new Error("patterns должен быть массивом");
+  }
+
+  if (!Array.isArray(data.recommendations)) {
+    throw new Error("recommendations должен быть массивом");
+  }
+
+  if (!Array.isArray(data.actions)) {
+    throw new Error("actions должен быть массивом");
+  }
+
+  const patterns = data.patterns
     .map((item) => {
       const record = asRecord(item);
 
@@ -1158,19 +542,12 @@ function parseAnalysis(
         evidence: cleanString(record?.evidence),
       };
     })
-    // Закономерность без опоры на реальные слова из дневника отбрасываем.
     .filter(
-      (item) =>
-        item.title &&
-        item.explanation &&
-        item.evidence &&
-        isGrounded(item.evidence, diaryStems),
+      (item) => item.title && item.explanation && item.evidence,
     )
     .slice(0, 3);
 
-  const recommendations = (
-    Array.isArray(data.recommendations) ? data.recommendations : []
-  )
+  const recommendations = data.recommendations
     .map((item) => {
       const record = asRecord(item);
 
@@ -1180,13 +557,15 @@ function parseAnalysis(
       };
     })
     .filter((item) => item.title && item.explanation)
-    .slice(0, 5);
+    .slice(0, 4);
 
-  if (recommendations.length === 0) {
-    throw new Error("нет ни одной рекомендации");
+  if (recommendations.length < 2) {
+    throw new Error(
+      `нужно не менее двух рекомендаций; получено: ${recommendations.length}`,
+    );
   }
 
-  const actions = (Array.isArray(data.actions) ? data.actions : [])
+  const actions = data.actions
     .map((item) => {
       const record = asRecord(item);
 
@@ -1197,95 +576,67 @@ function parseAnalysis(
     })
     .filter((item) => item.title && item.description);
 
-  if (actions.length < 3) {
-    throw new Error("нужно ровно три действия");
+  if (actions.length !== 3) {
+    throw new Error(
+      `нужно ровно три корректных действия; получено: ${actions.length}`,
+    );
   }
 
-  const finalActions = actions.slice(0, 3);
+  const normalizeTitle = (value: string) =>
+    normalize(value).replace(/[^\p{L}\p{N}]+/gu, " ");
 
-  if (
-    new Set(finalActions.map((action) => action.title.toLowerCase())).size < 3
-  ) {
-    throw new Error("действия повторяются");
+  const actionTitles = actions.map((item) => normalizeTitle(item.title));
+
+  if (new Set(actionTitles).size !== 3) {
+    throw new Error("названия трёх действий повторяются");
   }
 
-  const analysis: FoodDiaryAnalysis = {
+  const recommendationTitles = recommendations.map((item) =>
+    normalizeTitle(item.title),
+  );
+
+  if (new Set(recommendationTitles).size !== recommendationTitles.length) {
+    throw new Error("названия рекомендаций повторяются");
+  }
+
+  const allText = [
     summary,
-    patterns,
-    recommendations,
-    actions: finalActions,
     limitations,
-  };
-
-  const texts = [
-    analysis.summary,
-    analysis.limitations,
-    ...analysis.patterns.flatMap((item) => [
+    ...patterns.flatMap((item) => [
       item.title,
       item.explanation,
       item.evidence,
     ]),
-    ...analysis.recommendations.flatMap((item) => [
-      item.title,
-      item.explanation,
-    ]),
-    ...analysis.actions.flatMap((item) => [item.title, item.description]),
-  ];
+    ...recommendations.flatMap((item) => [item.title, item.explanation]),
+    ...actions.flatMap((item) => [item.title, item.description]),
+  ].join(" ");
 
-  if (texts.some((text) => HARD_BANNED.test(text))) {
+  if (
+    /вредн|шкідлив|запрещ|заборон|калори|калорі|холестерин|диагноз|діагноз|лечени|лікуванн|похуден|схуднен/i.test(
+      allText,
+    )
+  ) {
     throw new Error(
-      "в тексте есть запрещённые слова (калории, диагнозы, «вредно», диеты, лечение)",
+      "ответ содержит запрещённые медицинские или оценочные формулировки",
     );
   }
 
-  if (!isLastAttempt && texts.some((text) => SOFT_BANNED.test(text))) {
-    throw new Error(
-      "в тексте есть слова «часто», «всегда», «обычно» или «постоянно», а по двум дням так говорить нельзя",
-    );
-  }
+  // Сохраняем контекст для дальнейшего расширения проверки обоснованности.
+  // Не отклоняем весь ответ только потому, что модель использовала
+  // словоформу, которой нет в исходной записи.
+  void context.diaryWords;
 
-  return analysis;
+  return {
+    summary,
+    patterns,
+    recommendations,
+    actions,
+    limitations,
+  };
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Запрос к Ollama                                                           */
-/* -------------------------------------------------------------------------- */
-
-async function requestOllama(params: {
-  baseUrl: string;
-  model: string;
-  prompt: string;
-}): Promise<string> {
-  const response = await $fetch<{
-    message?: { content?: string };
-  }>(`${params.baseUrl}/api/chat`, {
-    method: "POST",
-    timeout: 240_000,
-    body: {
-      model: params.model,
-      stream: false,
-      format: "json",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: params.prompt },
-      ],
-      options: {
-        temperature: 0.2,
-        num_ctx: 8192,
-        num_predict: 1200,
-      },
-    },
-  });
-
-  if (!response.message?.content) {
-    throw new Error("Ollama вернул пустой ответ.");
-  }
-
-  return response.message.content;
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Обработчик                                                                */
+/* API                                                                         */
 /* -------------------------------------------------------------------------- */
 
 export default defineEventHandler(async (event) => {
@@ -1312,8 +663,6 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // Используем переданный access token для всех запросов к Supabase.
-  // Сессия не сохраняется на сервере и не обновляется автоматически.
   const supabase = createClient(supabaseUrl, supabaseKey, {
     auth: {
       persistSession: false,
@@ -1342,6 +691,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody<{
     taskId?: string;
     programWeek?: number;
+    locale?: string;
   }>(event);
 
   if (
@@ -1432,8 +782,12 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // Предобработка: программа определяет группы продуктов, повторы, пробелы и
-  // подсказки, а модель только формулирует из них аккуратный текст.
+  const languageName = detectLanguage(
+    body.locale,
+    getHeader(event, "accept-language"),
+    diaryEntries,
+  );
+
   const diaryContext = buildDiaryContext(
     diaryEntries,
     String(session.first_date),
@@ -1447,9 +801,7 @@ export default defineEventHandler(async (event) => {
     const prompt = buildPrompt({
       entriesText: diaryContext.entriesText,
       factsText: diaryContext.factsText,
-      hintsText: diaryContext.hintsText,
-      hintsCount: diaryContext.hintsCount,
-      languageName: diaryContext.languageName,
+      languageName,
       retryNote,
     });
 
@@ -1463,18 +815,21 @@ export default defineEventHandler(async (event) => {
         prompt,
       });
     } catch (error) {
-      console.error("[FoodDiary] Gemini request failed:", error);
+      console.error(
+        `[FoodDiary] Gemini request failed (attempt ${attempt}/${MAX_ATTEMPTS}):`,
+        error,
+      );
 
       throw createError({
         statusCode: 502,
-        statusMessage: "Не удалось провести ИИ-анализ. Попробуй ещё раз позже.",
+        statusMessage:
+          "Не удалось получить ответ от ИИ. Проверь настройки Gemini API и попробуй ещё раз.",
       });
     }
 
     try {
       analysis = parseAnalysis(content, {
-        diaryStems: diaryContext.diaryStems,
-        isLastAttempt: attempt === MAX_ATTEMPTS,
+        diaryWords: diaryContext.diaryWords,
       });
 
       break;
@@ -1491,10 +846,14 @@ export default defineEventHandler(async (event) => {
   }
 
   if (!analysis) {
+    console.error(
+      "[FoodDiary] All Gemini responses were rejected by validation.",
+    );
+
     throw createError({
       statusCode: 502,
       statusMessage:
-        "ИИ вернул ответ в неподходящем виде. Попробуй ещё раз чуть позже.",
+        "ИИ не смог подготовить корректный анализ после нескольких попыток. Попробуй ещё раз.",
     });
   }
 
