@@ -4,6 +4,8 @@ import {
   getWeeklyTasks,
   getWeeklyCompletions,
   completeWeeklyTask,
+  getWeeklyZoneProgress,
+  saveWeeklyZoneProgress,
 } from "~/services/weeklyTask.service";
 import { useSupabaseClient } from "../setup";
 
@@ -331,5 +333,107 @@ describe("completeWeeklyTask", () => {
     });
 
     await expect(completeWeeklyTask("wk1", 1)).rejects.toThrow("insert boom");
+  });
+});
+
+describe("getWeeklyZoneProgress", () => {
+  it("maps zone rows into a partial progress record", async () => {
+    mockTables({
+      weekly_task_zone_progress: {
+        data: [
+          { zone_key: "desk", is_completed: true },
+          { zone_key: "wardrobe", is_completed: false },
+        ],
+        error: null,
+      },
+    });
+
+    const result = await getWeeklyZoneProgress(2);
+
+    expect(result).toEqual({ desk: true, wardrobe: false });
+  });
+
+  it("filters by the current user and the requested week", async () => {
+    mockTables({ weekly_task_zone_progress: { data: [], error: null } });
+
+    await getWeeklyZoneProgress(3);
+
+    const chain = chainByTable["weekly_task_zone_progress"];
+    expect(chain.eq).toHaveBeenCalledWith("user_id", "u1");
+    expect(chain.eq).toHaveBeenCalledWith("week", 3);
+  });
+
+  it("returns an empty record when there are no rows", async () => {
+    mockTables({ weekly_task_zone_progress: { data: null, error: null } });
+
+    await expect(getWeeklyZoneProgress(1)).resolves.toEqual({});
+  });
+
+  it("throws when the user is not authenticated", async () => {
+    mockTables({});
+    vi.mocked(useSupabaseClient).mockReturnValue({
+      auth: {
+        getUser: vi
+          .fn()
+          .mockResolvedValue({ data: { user: null }, error: null }),
+      },
+      from: mockFrom,
+    } as any);
+
+    await expect(getWeeklyZoneProgress(1)).rejects.toThrow(
+      "Пользователь не авторизован"
+    );
+  });
+
+  it("rethrows the read error", async () => {
+    mockTables({
+      weekly_task_zone_progress: { data: null, error: new Error("zone boom") },
+    });
+
+    await expect(getWeeklyZoneProgress(1)).rejects.toThrow("zone boom");
+  });
+});
+
+describe("saveWeeklyZoneProgress", () => {
+  it("upserts the zone state for the current user", async () => {
+    mockTables({ weekly_task_zone_progress: { data: null, error: null } });
+
+    await saveWeeklyZoneProgress(2, "shelves", true);
+
+    const chain = chainByTable["weekly_task_zone_progress"];
+    expect(chain.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_id: "u1",
+        week: 2,
+        zone_key: "shelves",
+        is_completed: true,
+        completed_at: expect.any(String),
+      }),
+      { onConflict: "user_id,week,zone_key" }
+    );
+  });
+
+  it("stores completed_at only while the zone is checked", async () => {
+    mockTables({ weekly_task_zone_progress: { data: null, error: null } });
+
+    await saveWeeklyZoneProgress(1, "desk", false);
+
+    const payload =
+      chainByTable["weekly_task_zone_progress"].upsert.mock.calls[0][0];
+    expect(payload.is_completed).toBe(false);
+    expect(payload.completed_at).toBeNull();
+  });
+
+  it("rethrows the upsert error", async () => {
+    mockTables({
+      weekly_task_zone_progress: {
+        data: null,
+        error: new Error("save zone boom"),
+      },
+    });
+
+    await expect(saveWeeklyZoneProgress(1, "desk", true)).rejects.toThrow(
+      "save zone boom"
+    );
   });
 });

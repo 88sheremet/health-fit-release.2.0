@@ -136,9 +136,11 @@ function formatTime(value: string | null): string {
   if (!value) return "время не указано";
 
   const match = value.match(/^(\d{1,2}):(\d{2})/);
+  const hours = match?.[1];
+  const minutes = match?.[2];
 
-  return match
-    ? `${match[1].padStart(2, "0")}:${match[2]}`
+  return hours && minutes
+    ? `${hours.padStart(2, "0")}:${minutes}`
     : "время не указано";
 }
 
