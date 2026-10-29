@@ -106,6 +106,7 @@ export interface Database {
           task_id: string;
           day_index: number;
           completed_at: string;
+          feedback: string | null;
         };
         Insert: {
           id?: string;
@@ -113,6 +114,7 @@ export interface Database {
           task_id: string;
           day_index: number;
           completed_at?: string;
+          feedback?: string | null;
         };
         Update: {
           id?: string;
@@ -120,6 +122,7 @@ export interface Database {
           task_id?: string;
           day_index?: number;
           completed_at?: string;
+          feedback?: string | null;
         };
         Relationships: [];
       };
@@ -195,6 +198,36 @@ export interface Database {
           weekly_task_id?: string;
           week?: number;
           completed_at?: string;
+        };
+        Relationships: [];
+      };
+      weekly_task_zone_progress: {
+        Row: {
+          id: string;
+          user_id: string;
+          week: number;
+          zone_key: string;
+          is_completed: boolean;
+          completed_at: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          week: number;
+          zone_key: string;
+          is_completed: boolean;
+          completed_at?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          week?: number;
+          zone_key?: string;
+          is_completed?: boolean;
+          completed_at?: string | null;
+          updated_at?: string;
         };
         Relationships: [];
       };

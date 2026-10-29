@@ -363,24 +363,23 @@ export const useTaskStore = defineStore("tasks", {
      * ==========================================
      */
 
-    async completeTask(task: Task) {
+    async completeTask(task: Task, feedback?: string): Promise<number> {
       if (this.completed[task.id]) {
-        return;
+        return 0;
       }
 
       const supabase = useSupabaseClient();
 
       const {
         data: { user },
+        error: userError,
       } = await supabase.auth.getUser();
+
+      if (userError) throw userError;
 
       if (!user) {
         throw new Error("Пользователь не авторизован");
       }
-
-      /*
-       * 1. Save task completion
-       */
 
       const { error: completionError } = await supabase
         .from("daily_task_completions")
@@ -389,49 +388,44 @@ export const useTaskStore = defineStore("tasks", {
           task_id: task.id,
           day_index: this.dayIndex,
           completed_at: new Date().toISOString(),
+          feedback: task.type === "mental" ? feedback ?? null : null,
         });
 
       if (completionError) {
-        /*
-         * Task was already completed.
-         */
-
         if (completionError.code === "23505") {
           this.completed[task.id] = true;
-
-          return;
+          return 0;
         }
 
         throw completionError;
       }
 
-      /*
-       * 2. Add Energy.
-       *
-       * addEnergy() is the single
-       * source of truth for Energy updates.
-       */
+      let awardedEnergy = 0;
 
       try {
-        await this.addEnergy(task.reward, "daily_task");
+        awardedEnergy = await this.addEnergy(task.reward, "daily_task");
       } catch (error) {
-        /*
-         * The completion was already
-         * saved. We throw the error so
-         * the UI knows that Energy update
-         * failed.
-         */
+        // Если начисление не удалось, пробуем убрать запись выполнения.
+        const { error: rollbackError } = await supabase
+          .from("daily_task_completions")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("task_id", task.id)
+          .eq("day_index", this.dayIndex);
 
-        console.error("[DailyTasks] Ошибка начисления Energy:", error);
+        if (rollbackError) {
+          console.error(
+            "[DailyTasks] Не удалось отменить запись выполнения:",
+            rollbackError,
+          );
+        }
 
         throw error;
       }
 
-      /*
-       * 3. Update local completion state.
-       */
-
       this.completed[task.id] = true;
+
+      return awardedEnergy;
     },
 
     /*
@@ -440,51 +434,35 @@ export const useTaskStore = defineStore("tasks", {
      * ==========================================
      */
 
-    async addEnergy(amount: number, source = "manual") {
+    async addEnergy(amount: number, source = "manual"): Promise<number> {
       if (!Number.isFinite(amount)) {
         throw new Error("Некорректное значение Energy");
       }
 
       if (amount === 0) {
-        return;
+        return 0;
       }
 
       const supabase = useSupabaseClient();
 
       const {
         data: { user },
+        error: userError,
       } = await supabase.auth.getUser();
+
+      if (userError) throw userError;
 
       if (!user) {
         throw new Error("Пользователь не авторизован");
       }
 
-      /*
-       * Energy cannot exceed 1000.
-       */
+      const previousEnergy = this.energy;
+      const newEnergy = Math.max(0, Math.min(1000, previousEnergy + amount));
+      const actualAmount = newEnergy - previousEnergy;
 
-      const newEnergy = Math.min(1000, this.energy + amount);
-
-      /*
-       * Actual amount received.
-       *
-       * Example:
-       *
-       * energy = 995
-       * amount = 15
-       *
-       * actualAmount = 5
-       */
-
-      const actualAmount = newEnergy - this.energy;
-
-      if (actualAmount <= 0) {
-        return;
+      if (actualAmount === 0) {
+        return 0;
       }
-
-      /*
-       * 1. Update current Energy.
-       */
 
       const { error: progressError } = await supabase
         .from("user_progress")
@@ -498,10 +476,6 @@ export const useTaskStore = defineStore("tasks", {
         throw progressError;
       }
 
-      /*
-       * 2. Save Energy history.
-       */
-
       const { error: historyError } = await supabase
         .from("energy_history")
         .insert({
@@ -512,19 +486,85 @@ export const useTaskStore = defineStore("tasks", {
         });
 
       if (historyError) {
-        console.error(
-          "[DailyTasks] Ошибка сохранения energy history:",
-          historyError,
-        );
+        // Пытаемся восстановить баланс, если история не сохранилась.
+        const { error: rollbackError } = await supabase
+          .from("user_progress")
+          .update({
+            energy: previousEnergy,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", user.id);
+
+        if (rollbackError) {
+          console.error(
+            "[DailyTasks] Не удалось восстановить баланс:",
+            rollbackError,
+          );
+        }
 
         throw historyError;
       }
 
-      /*
-       * 3. Update local state.
-       */
-
       this.energy = newEnergy;
+
+      return actualAmount;
+    },
+
+    async undoTask(task: Task, awardedEnergy: number): Promise<void> {
+      if (task.type !== "food" || !this.completed[task.id]) {
+        return;
+      }
+
+      const supabase = useSupabaseClient();
+
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) throw userError;
+
+      if (!user) {
+        throw new Error("Пользователь не авторизован");
+      }
+
+      const { error: deleteError } = await supabase
+        .from("daily_task_completions")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("task_id", task.id)
+        .eq("day_index", this.dayIndex);
+
+      if (deleteError) {
+        throw deleteError;
+      }
+
+      try {
+        if (awardedEnergy > 0) {
+          await this.addEnergy(-awardedEnergy, "daily_task_undo");
+        }
+      } catch (error) {
+        // Если обратное начисление не удалось, восстанавливаем выполнение.
+        const { error: restoreError } = await supabase
+          .from("daily_task_completions")
+          .insert({
+            user_id: user.id,
+            task_id: task.id,
+            day_index: this.dayIndex,
+            completed_at: new Date().toISOString(),
+          });
+
+        if (restoreError) {
+          console.error(
+            "[DailyTasks] Не удалось восстановить выполнение:",
+            restoreError,
+          );
+        }
+
+        throw error;
+      }
+
+      delete this.completed[task.id];
     },
 
     /*

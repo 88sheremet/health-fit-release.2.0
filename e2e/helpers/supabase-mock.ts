@@ -560,6 +560,22 @@ function buildRouteHandler(opts?: {
           headers: { "content-type": "application/json" },
         });
       }
+
+      // undoTask() removes the completion row with a filtered DELETE so the
+      // card can be completed again. Drop the matching row and forget it.
+      if (method === "DELETE") {
+        const taskIdMatch = url.match(/task_id=eq\.([^&]+)/);
+        const taskId = taskIdMatch ? decodeURIComponent(taskIdMatch[1]) : null;
+        state.completions = state.completions.filter(
+          (c) => taskId === null || c.task_id !== taskId,
+        );
+        return route.fulfill({
+          status: 200,
+          json: [],
+          headers: { "content-type": "application/json" },
+        });
+      }
+
       const dayMatch = url.match(/day_index=eq\.(\d+)/);
       const day = dayMatch ? Number(dayMatch[1]) : null;
       const rows = state.completions.filter(

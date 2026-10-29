@@ -13,6 +13,8 @@ const mockedGetDailyTasks = vi.mocked(getDailyTasks);
 
 let mockGetUser: ReturnType<typeof vi.fn>;
 let mockCompleteInsert: ReturnType<typeof vi.fn>;
+let mockCompleteDelete: ReturnType<typeof vi.fn>;
+let mockHistoryInsert: ReturnType<typeof vi.fn>;
 let progressRow: any;
 
 function setupSupabaseClient(user: any) {
@@ -32,6 +34,14 @@ function setupSupabaseClient(user: any) {
     }));
 
   mockCompleteInsert = vi.fn().mockResolvedValue({ data: null, error: null });
+  mockCompleteDelete = vi.fn(() => ({
+    eq: vi.fn(() => ({
+      eq: vi.fn(() => ({
+        eq: vi.fn().mockResolvedValue({ data: null, error: null }),
+      })),
+    })),
+  }));
+  mockHistoryInsert = vi.fn().mockResolvedValue({ data: null, error: null });
 
   const client = {
     auth: {
@@ -68,6 +78,7 @@ function setupSupabaseClient(user: any) {
           select: buildCompletionsRead(),
           eq: vi.fn().mockReturnThis(),
           insert: mockCompleteInsert,
+          delete: mockCompleteDelete,
         };
       }
 
@@ -77,7 +88,7 @@ function setupSupabaseClient(user: any) {
        */
       if (table === "energy_history") {
         return {
-          insert: vi.fn().mockResolvedValue({ error: null }),
+          insert: mockHistoryInsert,
         };
       }
 
@@ -436,6 +447,129 @@ describe("dailyTasks store", () => {
       expect(store.completedCount).toBe(1);
       vi.useRealTimers();
     });
+
+    it("sends feedback only for mental tasks and null otherwise", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-06-15T12:00:00"));
+      setupSupabaseClient({ id: "u1" });
+
+      const store = useTaskStore();
+      store.energy = 40;
+
+      const mental = {
+        id: "task-mental",
+        type: "mental" as const,
+        title: "Медитация",
+        reward: 10,
+        whatDoing: "практика",
+        whyDoing: "снять стресс",
+      };
+      const food = {
+        id: "task-food",
+        type: "food" as const,
+        title: "Завтрак",
+        reward: 10,
+        whatDoing: "яичница",
+        whyDoing: "энергия",
+      };
+
+      await store.completeTask(mental, "calm");
+      await store.completeTask(food);
+
+      expect(mockCompleteInsert).toHaveBeenCalledWith(
+        expect.objectContaining({ task_id: "task-mental", feedback: "calm" })
+      );
+      expect(mockCompleteInsert).toHaveBeenCalledWith(
+        expect.objectContaining({ task_id: "task-food", feedback: null })
+      );
+      vi.useRealTimers();
+    });
+
+    it("returns the awarded energy", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-06-15T12:00:00"));
+      setupSupabaseClient({ id: "u1" });
+
+      const store = useTaskStore();
+      store.energy = 40;
+
+      const task = {
+        id: "task-1",
+        type: "physical" as const,
+        title: "Задача",
+        reward: 15,
+        whatDoing: "опис",
+        whyDoing: "причина",
+      };
+
+      const awarded = await store.completeTask(task);
+
+      expect(awarded).toBe(15);
+      expect(store.energy).toBe(55);
+      vi.useRealTimers();
+    });
+
+    it("marks a duplicate insert (23505) as done without awarding energy", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-06-15T12:00:00"));
+      setupSupabaseClient({ id: "u1" });
+
+      const store = useTaskStore();
+      store.energy = 40;
+
+      const task = {
+        id: "task-1",
+        type: "physical" as const,
+        title: "Задача",
+        reward: 15,
+        whatDoing: "опис",
+        whyDoing: "причина",
+      };
+
+      mockCompleteInsert.mockResolvedValueOnce({
+        data: null,
+        error: { code: "23505", message: "duplicate" },
+      });
+
+      const awarded = await store.completeTask(task);
+
+      expect(awarded).toBe(0);
+      expect(store.isDone("task-1")).toBe(true);
+      expect(store.energy).toBe(40);
+      vi.useRealTimers();
+    });
+
+    it("rolls back the completion when energy cannot be awarded", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-06-15T12:00:00"));
+      setupSupabaseClient({ id: "u1" });
+
+      const store = useTaskStore();
+      store.energy = 40;
+
+      const task = {
+        id: "task-1",
+        type: "physical" as const,
+        title: "Задача",
+        reward: 15,
+        whatDoing: "опис",
+        whyDoing: "причина",
+      };
+
+      mockHistoryInsert.mockResolvedValueOnce({
+        data: null,
+        error: { message: "energy history boom" },
+      });
+
+      await expect(store.completeTask(task)).rejects.toThrow(
+        "energy history boom"
+      );
+
+      expect(mockCompleteDelete).toHaveBeenCalled();
+      expect(store.isDone("task-1")).toBe(false);
+      expect(store.energy).toBe(40);
+      vi.useRealTimers();
+    });
   });
 
   describe("addEnergy", () => {
@@ -450,6 +584,163 @@ describe("dailyTasks store", () => {
       await store.addEnergy(100);
 
       expect(store.energy).toBe(140);
+      vi.useRealTimers();
+    });
+
+    it("clamps growth to the 1000 cap", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-06-15T12:00:00"));
+      setupSupabaseClient({ id: "u1" });
+
+      const store = useTaskStore();
+      store.energy = 990;
+
+      const awarded = await store.addEnergy(30);
+
+      expect(awarded).toBe(10);
+      expect(store.energy).toBe(1000);
+      vi.useRealTimers();
+    });
+
+    it("does not drop energy below zero", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-06-15T12:00:00"));
+      setupSupabaseClient({ id: "u1" });
+
+      const store = useTaskStore();
+      store.energy = 5;
+
+      const awarded = await store.addEnergy(-10);
+
+      expect(awarded).toBe(-5);
+      expect(store.energy).toBe(0);
+      vi.useRealTimers();
+    });
+
+    it("does not persist anything when the amount is zero", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-06-15T12:00:00"));
+      setupSupabaseClient({ id: "u1" });
+
+      const store = useTaskStore();
+      store.energy = 40;
+
+      const awarded = await store.addEnergy(0);
+
+      expect(awarded).toBe(0);
+      expect(mockHistoryInsert).not.toHaveBeenCalled();
+      expect(store.energy).toBe(40);
+      vi.useRealTimers();
+    });
+
+    it("keeps the balance unchanged when history insert fails", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-06-15T12:00:00"));
+      setupSupabaseClient({ id: "u1" });
+
+      const store = useTaskStore();
+      store.energy = 40;
+
+      mockHistoryInsert.mockResolvedValueOnce({
+        data: null,
+        error: { message: "history boom" },
+      });
+
+      await expect(store.addEnergy(10)).rejects.toThrow("history boom");
+      expect(store.energy).toBe(40);
+      vi.useRealTimers();
+    });
+  });
+
+  describe("undoTask", () => {
+    async function makeFoodTask() {
+      return {
+        id: "task-food",
+        type: "food" as const,
+        title: "Завтрак",
+        reward: 10,
+        whatDoing: "яичница",
+        whyDoing: "энергия",
+      };
+    }
+
+    it("deletes the completion and subtracts the awarded energy", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-06-15T12:00:00"));
+      setupSupabaseClient({ id: "u1" });
+
+      const store = useTaskStore();
+      store.energy = 30;
+      store.completed = { "task-food": true };
+
+      const foodTask = await makeFoodTask();
+      await store.undoTask(foodTask, 10);
+
+      expect(mockCompleteDelete).toHaveBeenCalled();
+      expect(store.energy).toBe(20);
+      expect(store.isDone("task-food")).toBe(false);
+      vi.useRealTimers();
+    });
+
+    it("is a no-op for non-food tasks", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-06-15T12:00:00"));
+      setupSupabaseClient({ id: "u1" });
+
+      const store = useTaskStore();
+      store.completed = { "task-1": true };
+
+      const task = {
+        id: "task-1",
+        type: "physical" as const,
+        title: "Прогулка",
+        reward: 15,
+        whatDoing: "опис",
+        whyDoing: "причина",
+      };
+
+      await store.undoTask(task, 15);
+
+      expect(mockCompleteDelete).not.toHaveBeenCalled();
+      expect(store.isDone("task-1")).toBe(true);
+      vi.useRealTimers();
+    });
+
+    it("is a no-op when the task is not completed", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-06-15T12:00:00"));
+      setupSupabaseClient({ id: "u1" });
+
+      const store = useTaskStore();
+
+      const foodTask = await makeFoodTask();
+      await store.undoTask(foodTask, 10);
+
+      expect(mockCompleteDelete).not.toHaveBeenCalled();
+      vi.useRealTimers();
+    });
+
+    it("restores the completion when energy subtraction fails", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-06-15T12:00:00"));
+      setupSupabaseClient({ id: "u1" });
+
+      const store = useTaskStore();
+      store.energy = 30;
+      store.completed = { "task-food": true };
+
+      mockHistoryInsert.mockResolvedValueOnce({
+        data: null,
+        error: { message: "undo boom" },
+      });
+
+      const foodTask = await makeFoodTask();
+      await expect(store.undoTask(foodTask, 10)).rejects.toThrow("undo boom");
+
+      expect(mockCompleteInsert).toHaveBeenCalledWith(
+        expect.objectContaining({ task_id: "task-food" })
+      );
+      expect(store.isDone("task-food")).toBe(true);
       vi.useRealTimers();
     });
   });
