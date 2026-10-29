@@ -749,6 +749,8 @@ async function confirmDiary() {
         body: {
           taskId: props.taskId,
           programWeek: props.programWeek,
+          locale: locale.value,
+          // forceRegenerate: true,
         },
         timeout: 300_000,
       },
