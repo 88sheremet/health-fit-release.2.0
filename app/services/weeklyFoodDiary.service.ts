@@ -52,7 +52,6 @@ export type FoodDiaryErrorCode =
   | "descriptionRequired"
   | "missingEntryBothDays";
 
-// Ошибки с кодом, чтобы UI мог показать локализованный текст через i18n.
 export class FoodDiaryError extends Error {
   readonly code: FoodDiaryErrorCode;
 
@@ -144,7 +143,6 @@ export async function saveFoodDiaryDates(
   const supabase = getDatabase();
   const userId = await getUserId();
 
-  // Do not silently orphan entries when changing the selected dates.
   const { data: existingSession, error: readSessionError } = await supabase
     .from("weekly_food_diary_sessions")
     .select("first_date, second_date")
@@ -278,7 +276,6 @@ export async function saveFoodDiaryEntry(
 
   if (error) throw error;
 
-  // Any change to entries invalidates a previous analysis.
   await invalidateAnalysis(supabase, userId, taskId, programWeek);
 
   return data as FoodDiaryEntry;

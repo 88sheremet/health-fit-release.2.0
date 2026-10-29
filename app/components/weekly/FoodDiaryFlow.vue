@@ -93,9 +93,7 @@
               :label="$t('foodDiary.dateLabel')"
               outlined
               :disable="saving"
-              :rules="[
-                (value) => !!value || $t('foodDiary.dateRequired'),
-              ]"
+              :rules="[(value) => !!value || $t('foodDiary.dateRequired')]"
             />
             <q-select
               v-model="form.meal_type"
@@ -107,9 +105,7 @@
               :label="$t('foodDiary.mealTypeLabel')"
               outlined
               :disable="saving"
-              :rules="[
-                (value) => !!value || $t('foodDiary.mealTypeRequired'),
-              ]"
+              :rules="[(value) => !!value || $t('foodDiary.mealTypeRequired')]"
             />
             <q-input
               v-model="form.meal_time"
@@ -257,7 +253,9 @@
 
         <div class="review-day">
           <h3>
-            {{ $t("foodDiary.dayHeading", { n: 1, date: dateLabel(firstDate) }) }}
+            {{
+              $t("foodDiary.dayHeading", { n: 1, date: dateLabel(firstDate) })
+            }}
           </h3>
           <div
             v-if="entriesForDate(firstDate).length === 0"
@@ -333,9 +331,6 @@
             >
               <strong>{{ item.title }}</strong>
               <p>{{ item.explanation }}</p>
-              <p class="entry-feeling">
-                {{ $t("foodDiary.evidenceLabel", { text: item.evidence }) }}
-              </p>
             </article>
 
             <h3>{{ $t("foodDiary.recommendationsTitle") }}</h3>
@@ -475,15 +470,15 @@ const dateOptions = computed(() => {
     });
   return options;
 });
-const mealTypeOptions = computed<
-  { label: string; value: FoodDiaryMealType }[]
->(() => [
-  { label: t("foodDiary.mealTypes.breakfast"), value: "breakfast" },
-  { label: t("foodDiary.mealTypes.lunch"), value: "lunch" },
-  { label: t("foodDiary.mealTypes.dinner"), value: "dinner" },
-  { label: t("foodDiary.mealTypes.snack"), value: "snack" },
-  { label: t("foodDiary.mealTypes.drink"), value: "drink" },
-]);
+const mealTypeOptions = computed<{ label: string; value: FoodDiaryMealType }[]>(
+  () => [
+    { label: t("foodDiary.mealTypes.breakfast"), value: "breakfast" },
+    { label: t("foodDiary.mealTypes.lunch"), value: "lunch" },
+    { label: t("foodDiary.mealTypes.dinner"), value: "dinner" },
+    { label: t("foodDiary.mealTypes.snack"), value: "snack" },
+    { label: t("foodDiary.mealTypes.drink"), value: "drink" },
+  ],
+);
 const sortedEntries = computed(() =>
   [...entries.value].sort((a, b) => {
     const dateCompare = a.entry_date.localeCompare(b.entry_date);
@@ -602,7 +597,10 @@ async function saveDates() {
     resetForm();
   } catch (error) {
     console.error("[FoodDiaryFlow] Не удалось сохранить даты:", error);
-    errorMessage.value = resolveErrorMessage(error, "foodDiary.errors.saveDates");
+    errorMessage.value = resolveErrorMessage(
+      error,
+      "foodDiary.errors.saveDates",
+    );
   } finally {
     savingDates.value = false;
   }
@@ -639,7 +637,10 @@ async function saveEntry() {
     });
   } catch (error) {
     console.error("[FoodDiaryFlow] Не удалось сохранить запись:", error);
-    errorMessage.value = resolveErrorMessage(error, "foodDiary.errors.saveEntry");
+    errorMessage.value = resolveErrorMessage(
+      error,
+      "foodDiary.errors.saveEntry",
+    );
   } finally {
     savingEntry.value = false;
   }
@@ -687,7 +688,10 @@ async function goToReview() {
     resetForm();
   } catch (error) {
     console.error("[FoodDiaryFlow] Не удалось открыть проверку:", error);
-    errorMessage.value = resolveErrorMessage(error, "foodDiary.errors.openReview");
+    errorMessage.value = resolveErrorMessage(
+      error,
+      "foodDiary.errors.openReview",
+    );
   } finally {
     openingReview.value = false;
   }
@@ -716,11 +720,14 @@ async function returnToEditing() {
 }
 
 async function confirmDiary() {
+  if (analyzing.value) return;
+
   analyzing.value = true;
   errorMessage.value = "";
 
   try {
     const supabase = useSupabaseClient();
+
     const {
       data: { session },
       error: authError,
@@ -729,8 +736,7 @@ async function confirmDiary() {
     if (authError) throw authError;
 
     if (!session?.access_token) {
-      errorMessage.value = t("foodDiary.errors.sessionExpired");
-      return;
+      throw new Error("Сессия завершилась. Войди в приложение заново.");
     }
 
     const result = await $fetch<{ analysis?: FoodDiaryAnalysis }>(
@@ -744,17 +750,16 @@ async function confirmDiary() {
           taskId: props.taskId,
           programWeek: props.programWeek,
         },
-        timeout: 130_000,
+        timeout: 300_000,
       },
     );
 
-    if (
-      !result?.analysis ||
-      typeof result.analysis.summary !== "string"
-    ) {
+    if (!result?.analysis || typeof result.analysis.summary !== "string") {
       console.error("[FoodDiaryFlow] API вернул пустой анализ:", result);
-      errorMessage.value = t("foodDiary.errors.emptyAnalysis");
-      return;
+
+      throw new Error(
+        "Анализ выполнен, но его результат не получен. Проверь ответ API.",
+      );
     }
 
     analysis.value = result.analysis;
@@ -762,17 +767,19 @@ async function confirmDiary() {
 
     $q.notify({
       type: "positive",
-      message: t("foodDiary.notifyAnalysisReady"),
+      message: "Анализ дневника готов!",
       position: "top",
     });
   } catch (error: any) {
     console.error("[FoodDiaryFlow] Ошибка анализа:", error);
 
+    const statusMessage =
+      error?.data?.statusMessage || error?.data?.message || error?.message;
+
     errorMessage.value =
-      error?.data?.statusMessage ||
-      error?.data?.message ||
-      error?.message ||
-      t("foodDiary.errors.analyze");
+      error?.name === "TimeoutError" || error?.cause?.name === "TimeoutError"
+        ? "Анализ занимает больше времени, чем ожидалось. Попробуй ещё раз через минуту."
+        : statusMessage || "Не удалось получить результат анализа.";
   } finally {
     analyzing.value = false;
   }

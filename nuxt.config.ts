@@ -11,12 +11,9 @@ export default defineNuxtConfig({
     "@nuxtjs/i18n",
   ],
 
-  // Серверні налаштування Ollama.
-  // Значення можна перевизначити через змінні середовища.
   runtimeConfig: {
-    ollamaBaseUrl: process.env.OLLAMA_BASE_URL || "http://127.0.0.1:11434",
-
-    ollamaModel: process.env.OLLAMA_MODEL || "qwen2.5:3b",
+    geminiApiKey: process.env.GEMINI_API_KEY || "",
+    geminiModel: process.env.GEMINI_MODEL || "gemini-3.1-flash-lite",
   },
 
   i18n: {
