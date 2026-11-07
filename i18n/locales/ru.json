@@ -397,7 +397,7 @@
     "mealTypeLabel": "Приём пищи",
     "mealTypeRequired": "Выбери тип записи",
     "timeLabel": "Время",
-    "descriptionLabel": "Что ты ел или пил? (Чем подробнее тем лучше)",
+    "descriptionLabel": "Что ты ел или пил? (Чем подробнее, тем лучше)",
     "descriptionRequired": "Добавь описание",
     "feelingLabel": "Как ты себя чувствовал? (необязательно)",
     "feelingHint": "Например: был голоден, устал, ел за компьютером",
