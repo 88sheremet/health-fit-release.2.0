@@ -12,8 +12,19 @@
       </div>
     </div>
 
-    <!-- Описание задания всегда остаётся видимым -->
-    <q-card class="task-card">
+    <!-- Специальное задание по осанке -->
+    <GeometryWeek
+      v-if="isGeometryTask"
+      :task-id="store.currentTask.id"
+      :week="store.currentWeek"
+      :current-day="store.currentDayWithinWeek"
+      :title="store.currentTask.nameProgram"
+      :what-doing="store.currentTask.whatDoing"
+      :why-doing="store.currentTask.whyDoing"
+    />
+
+    <!-- Все остальные недельные задания -->
+    <q-card v-else class="task-card">
       <div class="badge">
         {{ $t("weekly.badge") }}
       </div>
@@ -143,7 +154,7 @@
       </div>
     </q-card>
 
-    <!-- Форма дневника идёт после описания задания -->
+    <!-- Дневник питания -->
     <FoodDiaryFlow
       v-if="isFoodDiaryTask"
       :task-id="FOOD_DIARY_TASK_ID"
@@ -159,8 +170,12 @@ import { computed, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useWeeklyTaskStore } from "~/stores/weeklyTasks";
+import { GEOMETRY_WEEK_TASK_ID } from "~/stores/weeklyTasks";
+
 import type { WeeklyZoneKey } from "~/interfaces/WeeklyState.interface";
+
 import FoodDiaryFlow from "~/components/weekly/FoodDiaryFlow.vue";
+import GeometryWeek from "~/components/weekly/GeometryWeek.vue";
 
 definePageMeta({
   middleware: "auth",
@@ -174,6 +189,10 @@ const FOOD_DIARY_TASK_ID = "5382c1d1-f307-4076-a7e7-97e1c03fc5a7";
 
 const isFoodDiaryTask = computed(
   () => store.currentTask.id === FOOD_DIARY_TASK_ID,
+);
+
+const isGeometryTask = computed(
+  () => store.currentTask.id === GEOMETRY_WEEK_TASK_ID,
 );
 
 const completing = ref(false);
@@ -226,7 +245,6 @@ async function toggleZone(
   savingZones[zoneKey] = true;
 
   try {
-    // Store toggleZone инвертирует текущее значение.
     await store.toggleZone(zoneKey);
   } catch (error) {
     console.error("[WeeklyPage] Не удалось сохранить зону:", error);

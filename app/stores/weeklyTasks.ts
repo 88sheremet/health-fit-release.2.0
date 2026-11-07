@@ -26,8 +26,11 @@ const WEEKLY_ZONE_KEYS: WeeklyZoneKey[] = [
   "drawers",
 ];
 
-// Специальный функционал очистки пространства.
 const SPACE_CLEANUP_TASK_ID = "ac671c82-1240-4548-a661-2f67cebad9ae";
+
+export const GEOMETRY_WEEK_TASK_ID = "b41ff541-7ea1-46a1-8bc2-38722b19bccb";
+
+const GEOMETRY_WEEK_MIN_COMPLETED = 5;
 
 export const useWeeklyTaskStore = defineStore("weeklyTasks", {
   state: (): WeeklyState => ({
@@ -88,13 +91,14 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
       };
     },
 
-    // Проверяем одновременно ID задания и неделю программы.
     isSpaceCleanupTask(): boolean {
       return this.currentTask.id === SPACE_CLEANUP_TASK_ID;
     },
 
-    // Для уборки доступно с третьего дня.
-    // Для остальных заданий сохраняется старое правило: дни 6–7.
+    isGeometryTask(): boolean {
+      return this.currentTask.id === GEOMETRY_WEEK_TASK_ID;
+    },
+
     canComplete(): boolean {
       if (this.isSpaceCleanupTask) {
         return this.currentDayWithinWeek >= 3;
@@ -163,7 +167,6 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
     async loadZoneProgress(week?: number) {
       const targetWeek = week ?? this.currentWeek;
 
-      // Загружаем чек-лист только для специального задания.
       if (!this.isSpaceCleanupTask) {
         this.zoneProgress = {};
         return;
@@ -181,11 +184,8 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
     },
 
     async init(locale = "ru") {
-      // Сначала загружаем задания и историю завершений.
       await Promise.all([this.loadTasks(locale), this.loadCompletions()]);
 
-      // После загрузки заданий можно достоверно определить
-      // специальное задание текущей недели.
       if (this.isSpaceCleanupTask) {
         await this.loadZoneProgress();
       } else {
@@ -198,7 +198,6 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
         throw new Error(`Неизвестная зона: ${zoneKey}`);
       }
 
-      // Чек-лист доступен только для задания по уборке.
       if (!this.isSpaceCleanupTask || this.isCompleted()) {
         return;
       }
@@ -206,11 +205,8 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
       const nextValue = this.zoneProgress[zoneKey] !== true;
       const week = this.currentWeek;
 
-      // Сначала сохраняем изменение в Supabase.
       await saveWeeklyZoneProgress(week, zoneKey, nextValue);
 
-      // Не изменяем текущий интерфейс, если пользователь
-      // перешёл на другую неделю во время сохранения.
       if (week !== this.currentWeek || !this.isSpaceCleanupTask) {
         return;
       }
@@ -218,6 +214,10 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
       this.zoneProgress[zoneKey] = nextValue;
     },
 
+    /**
+     * Завершение обычных недельных заданий.
+     * Для них сохраняются прежние ограничения.
+     */
     async completeCurrentTask() {
       if (this.isCompleted()) {
         return;
@@ -231,7 +231,6 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
         );
       }
 
-      // Все пять зон обязательны только для задания по уборке.
       if (this.isSpaceCleanupTask && !this.allZonesCompleted) {
         throw new Error(
           "Перед завершением задания необходимо отметить все пять зон.",
@@ -245,6 +244,12 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
         throw new Error("Не удалось определить текущее еженедельное задание.");
       }
 
+      if (this.isGeometryTask) {
+        throw new Error(
+          "Для завершения задания по осанке используйте отдельную проверку этапов.",
+        );
+      }
+
       try {
         await saveWeeklyCompletion(task.id, week);
 
@@ -254,6 +259,46 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
         await dailyStore.addEnergy(90);
       } catch (error) {
         console.error("[WeeklyTasks] Ошибка выполнения задания:", error);
+        throw error;
+      }
+    },
+
+    /**
+     * Завершение задания «Геометрия тела».
+     * Для него достаточно 5 выполненных этапов из 7.
+     */
+    async completeGeometryTask(completedStages: number) {
+      if (this.isCompleted()) {
+        return;
+      }
+
+      if (!this.isGeometryTask) {
+        throw new Error("Текущее задание не является заданием по осанке.");
+      }
+
+      if (completedStages < GEOMETRY_WEEK_MIN_COMPLETED) {
+        throw new Error("Необходимо выполнить минимум 5 этапов из 7.");
+      }
+
+      const task = this.currentTask;
+      const week = this.currentWeek;
+
+      if (!task.id) {
+        throw new Error("Не удалось определить текущее недельное задание.");
+      }
+
+      try {
+        await saveWeeklyCompletion(task.id, week);
+
+        this.completed[week] = true;
+
+        const dailyStore = useTaskStore();
+        await dailyStore.addEnergy(90);
+      } catch (error) {
+        console.error(
+          "[WeeklyTasks] Ошибка завершения задания по осанке:",
+          error,
+        );
 
         throw error;
       }
@@ -263,8 +308,6 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
       return this.completed[this.currentWeek] === true;
     },
 
-    // Оставлено для совместимости с существующим кодом.
-    // Для завершения задания используй completeCurrentTask().
     rewardEnergy() {
       const dailyStore = useTaskStore();
       dailyStore.energy += 90;
