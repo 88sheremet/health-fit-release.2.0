@@ -1,4 +1,20 @@
-import { vi } from "vitest";
+import { afterEach, beforeEach, vi } from "vitest";
+
+/**
+ * Сервисы и сторы намеренно логируют ожидаемые ошибки через `console.error`
+ * (например, при проверке error-путей). В тестах эти сообщения не нужны и
+ * только засоряют stderr, поэтому на время каждого теста глушим их.
+ * Если конкретному тесту нужно проверить вызов — он может переопределить spy.
+ */
+let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+
+beforeEach(() => {
+  consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+});
+
+afterEach(() => {
+  consoleErrorSpy.mockRestore();
+});
 
 /**
  * Nuxt auto-import globals are not defined in the Vitest node environment.

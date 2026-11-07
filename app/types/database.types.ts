@@ -201,6 +201,33 @@ export interface Database {
         };
         Relationships: [];
       };
+      weekly_task_day_completions: {
+        Row: {
+          id: string;
+          user_id: string;
+          weekly_task_id: string;
+          week: number;
+          day: number;
+          completed_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          weekly_task_id: string;
+          week: number;
+          day: number;
+          completed_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          weekly_task_id?: string;
+          week?: number;
+          day?: number;
+          completed_at?: string;
+        };
+        Relationships: [];
+      };
       weekly_task_zone_progress: {
         Row: {
           id: string;

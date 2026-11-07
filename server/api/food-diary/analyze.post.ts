@@ -78,7 +78,7 @@ const GEMINI_TIMEOUT = 120_000;
 /* Словарь продуктов                                                           */
 /* -------------------------------------------------------------------------- */
 
-const FOOD_GROUPS: Record<string, FoodGroupDefinition> = {
+const FOOD_GROUPS = {
   grains: {
     label: "крупы, хлеб и гарниры",
     patterns:
@@ -138,7 +138,7 @@ const FOOD_GROUPS: Record<string, FoodGroupDefinition> = {
     patterns:
       /вода|воды|водой|чай|кофе|кава|сок|сік|компот|какао|лимонад|газировк|напит|напій|узвар|смузи/i,
   },
-};
+} satisfies Record<string, FoodGroupDefinition>;
 
 type FoodGroup = keyof typeof FOOD_GROUPS;
 
@@ -169,7 +169,12 @@ function formatTime(value: string | null): string {
 
   if (!match) return "время не указано";
 
-  return `${match[1].padStart(2, "0")}:${match[2]}`;
+  const hours = match[1];
+  const minutes = match[2];
+
+  if (!hours || !minutes) return "время не указано";
+
+  return `${hours.padStart(2, "0")}:${minutes}`;
 }
 
 function getMinutes(value: string | null): number | null {
@@ -291,6 +296,10 @@ function getMealIntervals(entries: FoodDiaryEntry[]): string[] {
 
   // Берём последний записанный обед и ближайший следующий за ним ужин.
   const lunch = lunchMeals[lunchMeals.length - 1];
+
+  if (!lunch) {
+    return [];
+  }
 
   const dinner = dinnerMeals.find((meal) => meal.time > lunch.time);
 
