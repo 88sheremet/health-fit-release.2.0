@@ -433,7 +433,7 @@
         <!-- Кнопка завершения доступна только после получения AI-анализа -->
         <q-btn
           v-if="stage === 'ready' && analysis"
-          label="Задание выполнено"
+          :label="$t('foodDiary.completeTaskBtn')"
           color="primary"
           unelevated
           no-caps
@@ -890,7 +890,7 @@ async function confirmDiary() {
     if (authError) throw authError;
 
     if (!session?.access_token) {
-      throw new Error("Сессия завершилась. Войди в приложение заново.");
+      throw new Error(t("foodDiary.errors.sessionExpired"));
     }
 
     const result = await $fetch<{ analysis?: FoodDiaryAnalysis }>(
@@ -913,9 +913,7 @@ async function confirmDiary() {
     if (!result?.analysis || typeof result.analysis.summary !== "string") {
       console.error("[FoodDiaryFlow] API вернул пустой анализ:", result);
 
-      throw new Error(
-        "Анализ выполнен, но его результат не получен. Проверь ответ API.",
-      );
+      throw new Error(t("foodDiary.errors.emptyAnalysis"));
     }
 
     analysis.value = result.analysis;
@@ -923,7 +921,7 @@ async function confirmDiary() {
 
     $q.notify({
       type: "positive",
-      message: "Анализ дневника готов!",
+      message: t("foodDiary.notifyAnalysisReady"),
       position: "top",
     });
   } catch (error: any) {
@@ -934,8 +932,8 @@ async function confirmDiary() {
 
     errorMessage.value =
       error?.name === "TimeoutError" || error?.cause?.name === "TimeoutError"
-        ? "Анализ занимает больше времени, чем ожидалось. Попробуй ещё раз через минуту."
-        : statusMessage || "Не удалось получить результат анализа.";
+        ? t("foodDiary.errors.analyzeTimeout")
+        : statusMessage || t("foodDiary.errors.analyze");
   } finally {
     analyzing.value = false;
   }
@@ -954,8 +952,7 @@ async function completeFoodDiaryTask() {
 
   // Защита от завершения другого задания или другой недели.
   if (!isCurrentFoodDiaryTask.value) {
-    errorMessage.value =
-      "Это задание больше не является текущим. Обнови страницу и попробуй снова.";
+    errorMessage.value = t("foodDiary.errors.taskNotCurrent");
     return;
   }
 
@@ -970,14 +967,13 @@ async function completeFoodDiaryTask() {
 
     $q.notify({
       type: "positive",
-      message: "Задание выполнено! Ты получил 90 Energy.",
+      message: t("foodDiary.notifyTaskCompleted"),
       position: "top",
     });
   } catch (error: any) {
     console.error("[FoodDiaryFlow] Не удалось завершить задание:", error);
 
-    errorMessage.value =
-      error?.message || "Не удалось завершить задание. Попробуй ещё раз.";
+    errorMessage.value = t("foodDiary.errors.completeTask");
   } finally {
     completingTask.value = false;
   }
