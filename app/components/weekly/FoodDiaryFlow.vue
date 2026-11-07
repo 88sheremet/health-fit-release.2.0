@@ -21,9 +21,9 @@
       </div>
     </div>
 
-    <q-banner v-if="errorMessage" class="error-banner" rounded>{{
-      errorMessage
-    }}</q-banner>
+    <q-banner v-if="errorMessage" class="error-banner" rounded>
+      {{ errorMessage }}
+    </q-banner>
 
     <div v-if="loading" class="loading-state">
       <q-spinner size="32px" />
@@ -71,6 +71,7 @@
 
         <template v-if="sessionSaved">
           <q-separator class="separator" />
+
           <div class="section-heading">
             <h3>
               {{
@@ -95,6 +96,7 @@
               :disable="saving"
               :rules="[(value) => !!value || $t('foodDiary.dateRequired')]"
             />
+
             <q-select
               v-model="form.meal_type"
               :options="mealTypeOptions"
@@ -107,6 +109,7 @@
               :disable="saving"
               :rules="[(value) => !!value || $t('foodDiary.mealTypeRequired')]"
             />
+
             <q-input
               v-model="form.meal_time"
               :label="$t('foodDiary.timeLabel')"
@@ -114,6 +117,7 @@
               outlined
               :disable="saving"
             />
+
             <q-input
               v-model="form.description"
               :label="$t('foodDiary.descriptionLabel')"
@@ -126,6 +130,7 @@
                   !!value?.trim() || $t('foodDiary.descriptionRequired'),
               ]"
             />
+
             <q-input
               v-model="form.feeling"
               :label="$t('foodDiary.feelingLabel')"
@@ -145,6 +150,7 @@
                 :disable="saving"
                 @click="resetForm"
               />
+
               <q-btn
                 :label="
                   editingId
@@ -162,6 +168,7 @@
           </q-form>
 
           <q-separator class="separator" />
+
           <div class="entries-heading">
             <h3>{{ $t("foodDiary.yourEntries") }}</h3>
             <span>{{ entries.length }}</span>
@@ -170,6 +177,7 @@
           <div v-if="entries.length === 0" class="empty-state">
             {{ $t("foodDiary.emptyEntries") }}
           </div>
+
           <div v-else class="entry-list">
             <q-card
               v-for="entry in sortedEntries"
@@ -181,14 +189,19 @@
               <div class="entry-meta">
                 <span>{{ dateLabel(entry.entry_date) }}</span>
                 <span>{{ mealLabel(entry.meal_type) }}</span>
-                <span v-if="entry.meal_time">{{
-                  entry.meal_time.slice(0, 5)
-                }}</span>
+                <span v-if="entry.meal_time">
+                  {{ entry.meal_time.slice(0, 5) }}
+                </span>
               </div>
-              <div class="entry-description">{{ entry.description }}</div>
+
+              <div class="entry-description">
+                {{ entry.description }}
+              </div>
+
               <div v-if="entry.feeling" class="entry-feeling">
                 {{ entry.feeling }}
               </div>
+
               <div class="entry-actions">
                 <q-btn
                   :label="$t('foodDiary.editBtn')"
@@ -199,6 +212,7 @@
                   :disable="saving"
                   @click="editEntry(entry)"
                 />
+
                 <q-btn
                   :label="$t('foodDiary.deleteBtn')"
                   flat
@@ -222,6 +236,7 @@
             :loading="openingReview"
             @click="goToReview"
           />
+
           <p
             v-if="entries.length && !hasEntriesForBothDays"
             class="validation-hint"
@@ -241,6 +256,7 @@
                   : $t("foodDiary.analysisTitle")
               }}
             </h3>
+
             <p>
               {{
                 stage === "review"
@@ -254,15 +270,20 @@
         <div class="review-day">
           <h3>
             {{
-              $t("foodDiary.dayHeading", { n: 1, date: dateLabel(firstDate) })
+              $t("foodDiary.dayHeading", {
+                n: 1,
+                date: dateLabel(firstDate),
+              })
             }}
           </h3>
+
           <div
             v-if="entriesForDate(firstDate).length === 0"
             class="empty-state"
           >
             {{ $t("foodDiary.noEntriesForDay") }}
           </div>
+
           <div
             v-for="entry in entriesForDate(firstDate)"
             :key="entry.id"
@@ -276,7 +297,11 @@
               }}
               · {{ mealLabel(entry.meal_type) }}
             </div>
-            <div class="entry-description">{{ entry.description }}</div>
+
+            <div class="entry-description">
+              {{ entry.description }}
+            </div>
+
             <div v-if="entry.feeling" class="entry-feeling">
               {{ entry.feeling }}
             </div>
@@ -288,15 +313,20 @@
         <div class="review-day">
           <h3>
             {{
-              $t("foodDiary.dayHeading", { n: 2, date: dateLabel(secondDate) })
+              $t("foodDiary.dayHeading", {
+                n: 2,
+                date: dateLabel(secondDate),
+              })
             }}
           </h3>
+
           <div
             v-if="entriesForDate(secondDate).length === 0"
             class="empty-state"
           >
             {{ $t("foodDiary.noEntriesForDay") }}
           </div>
+
           <div
             v-for="entry in entriesForDate(secondDate)"
             :key="entry.id"
@@ -310,7 +340,11 @@
               }}
               · {{ mealLabel(entry.meal_type) }}
             </div>
-            <div class="entry-description">{{ entry.description }}</div>
+
+            <div class="entry-description">
+              {{ entry.description }}
+            </div>
+
             <div v-if="entry.feeling" class="entry-feeling">
               {{ entry.feeling }}
             </div>
@@ -319,11 +353,13 @@
 
         <template v-if="stage === 'ready' && analysis">
           <q-separator class="separator" />
+
           <section class="analysis-result">
             <h3>{{ $t("foodDiary.noticedTitle") }}</h3>
             <p>{{ analysis.summary }}</p>
 
             <h3>{{ $t("foodDiary.patternsTitle") }}</h3>
+
             <article
               v-for="(item, index) in analysis.patterns"
               :key="`pattern-${index}`"
@@ -334,6 +370,7 @@
             </article>
 
             <h3>{{ $t("foodDiary.recommendationsTitle") }}</h3>
+
             <article
               v-for="(item, index) in analysis.recommendations"
               :key="`recommendation-${index}`"
@@ -344,6 +381,7 @@
             </article>
 
             <h3>{{ $t("foodDiary.nextStepsTitle") }}</h3>
+
             <article
               v-for="(item, index) in analysis.actions"
               :key="`action-${index}`"
@@ -352,7 +390,10 @@
               <strong>{{ index + 1 }}. {{ item.title }}</strong>
               <p>{{ item.description }}</p>
             </article>
-            <p class="analysis-limitations">{{ analysis.limitations }}</p>
+
+            <p class="analysis-limitations">
+              {{ analysis.limitations }}
+            </p>
           </section>
         </template>
 
@@ -366,6 +407,7 @@
             :disable="saving"
             @click="returnToEditing"
           />
+
           <q-btn
             v-if="stage === 'review'"
             :label="$t('foodDiary.confirmAnalysisBtn')"
@@ -376,16 +418,35 @@
             :disable="saving || !hasEntriesForBothDays"
             @click="confirmDiary"
           />
+
           <q-btn
             v-else
             :label="$t('foodDiary.backToDiaryBtn')"
             color="primary"
             unelevated
             no-caps
-            :disable="saving"
+            :disable="saving || completingTask"
             @click="returnToEditing"
           />
         </div>
+
+        <!-- Кнопка завершения доступна только после получения AI-анализа -->
+        <q-btn
+          v-if="stage === 'ready' && analysis"
+          label="Задание выполнено"
+          color="primary"
+          unelevated
+          no-caps
+          class="primary-btn"
+          :loading="completingTask"
+          :disable="
+            completingTask ||
+            isFoodDiaryTaskCompleted ||
+            !isCurrentFoodDiaryTask ||
+            !weeklyStore.canComplete
+          "
+          @click="completeFoodDiaryTask"
+        />
       </q-card>
     </template>
   </div>
@@ -395,6 +456,7 @@
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
+
 import {
   deleteFoodDiaryEntry,
   loadFoodDiary,
@@ -402,6 +464,7 @@ import {
   saveFoodDiaryEntry,
   setFoodDiaryStage,
 } from "~/services/weeklyFoodDiary.service";
+
 import type {
   FoodDiaryAnalysis,
   FoodDiaryEntry,
@@ -409,20 +472,30 @@ import type {
   FoodDiaryStage,
 } from "~/services/weeklyFoodDiary.service";
 
+import { useWeeklyTaskStore } from "~/stores/weeklyTasks";
+
 const props = defineProps<{ taskId: string; programWeek: number }>();
+
 const $q = useQuasar();
 const { t, te, locale } = useI18n();
+
+const weeklyStore = useWeeklyTaskStore();
+
 const loading = ref(true);
 const saving = ref(false);
 const savingDates = ref(false);
 const savingEntry = ref(false);
 const openingReview = ref(false);
 const analyzing = ref(false);
+const completingTask = ref(false);
+
 const errorMessage = ref("");
 const firstDate = ref("");
 const secondDate = ref("");
+
 const stage = ref<FoodDiaryStage>("collecting");
 const sessionSaved = ref(false);
+
 const entries = ref<FoodDiaryEntry[]>([]);
 const analysis = ref<FoodDiaryAnalysis | null>(null);
 const editingId = ref<string | null>(null);
@@ -444,15 +517,18 @@ const steps = computed(() => [
 const stageIndex = computed(() =>
   stage.value === "review" ? 1 : stage.value === "ready" ? 2 : 0,
 );
+
 const datesAreValid = computed(
   () =>
     !!firstDate.value &&
     !!secondDate.value &&
     firstDate.value !== secondDate.value,
 );
+
 const dateOptions = computed(() => {
   const options: Array<{ label: string; value: string }> = [];
-  if (firstDate.value)
+
+  if (firstDate.value) {
     options.push({
       label: t("foodDiary.dayHeading", {
         n: 1,
@@ -460,7 +536,9 @@ const dateOptions = computed(() => {
       }),
       value: firstDate.value,
     });
-  if (secondDate.value)
+  }
+
+  if (secondDate.value) {
     options.push({
       label: t("foodDiary.dayHeading", {
         n: 2,
@@ -468,8 +546,11 @@ const dateOptions = computed(() => {
       }),
       value: secondDate.value,
     });
+  }
+
   return options;
 });
+
 const mealTypeOptions = computed<{ label: string; value: FoodDiaryMealType }[]>(
   () => [
     { label: t("foodDiary.mealTypes.breakfast"), value: "breakfast" },
@@ -479,14 +560,17 @@ const mealTypeOptions = computed<{ label: string; value: FoodDiaryMealType }[]>(
     { label: t("foodDiary.mealTypes.drink"), value: "drink" },
   ],
 );
+
 const sortedEntries = computed(() =>
   [...entries.value].sort((a, b) => {
     const dateCompare = a.entry_date.localeCompare(b.entry_date);
+
     return dateCompare !== 0
       ? dateCompare
       : (a.meal_time ?? "").localeCompare(b.meal_time ?? "");
   }),
 );
+
 const hasEntriesForBothDays = computed(
   () =>
     !!firstDate.value &&
@@ -495,37 +579,67 @@ const hasEntriesForBothDays = computed(
     entries.value.some((entry) => entry.entry_date === secondDate.value),
 );
 
+/**
+ * Проверяем, что компонент дневника относится именно
+ * к текущему заданию и текущей неделе в weeklyTasks store.
+ */
+const isCurrentFoodDiaryTask = computed(
+  () =>
+    weeklyStore.currentTask?.id === props.taskId &&
+    weeklyStore.currentWeek === props.programWeek,
+);
+
+/**
+ * Статус выполнения текущего задания.
+ * Используем существующий метод store, чтобы не создавать
+ * отдельную логику проверки завершения.
+ */
+const isFoodDiaryTaskCompleted = computed(
+  () => isCurrentFoodDiaryTask.value && weeklyStore.isCompleted(),
+);
+
 function dateLabel(value: string | null): string {
   if (!value) return t("foodDiary.dateNotChosen");
+
   const date = new Date(`${value}T12:00:00`);
+
   if (Number.isNaN(date.getTime())) return value;
+
   return new Intl.DateTimeFormat(locale.value, {
     day: "numeric",
     month: "long",
     year: "numeric",
   }).format(date);
 }
+
 function mealLabel(type: FoodDiaryMealType): string {
   return (
     mealTypeOptions.value.find((option) => option.value === type)?.label ?? type
   );
 }
+
 // Ошибки сервиса дневника приходят с кодом — переводим их через i18n,
 // остальные (сетевые и т.п.) отдаём как есть, иначе показываем запасной текст.
 function resolveErrorMessage(error: unknown, fallbackKey: string): string {
   if (error && typeof error === "object" && "code" in error) {
     const code = (error as { code?: unknown }).code;
+
     if (typeof code === "string") {
       const key = `foodDiary.errors.${code}`;
+
       if (te(key)) return t(key);
     }
   }
+
   if (error instanceof Error && error.message) return error.message;
+
   return t(fallbackKey);
 }
+
 function entriesForDate(date: string): FoodDiaryEntry[] {
   return sortedEntries.value.filter((entry) => entry.entry_date === date);
 }
+
 function resetForm() {
   editingId.value = null;
   form.entry_date = firstDate.value || secondDate.value || "";
@@ -534,6 +648,7 @@ function resetForm() {
   form.description = "";
   form.feeling = "";
 }
+
 function editEntry(entry: FoodDiaryEntry) {
   editingId.value = entry.id;
   form.entry_date = entry.entry_date;
@@ -541,20 +656,25 @@ function editEntry(entry: FoodDiaryEntry) {
   form.meal_time = entry.meal_time?.slice(0, 5) ?? "";
   form.description = entry.description;
   form.feeling = entry.feeling ?? "";
+
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 async function loadData() {
   loading.value = true;
   errorMessage.value = "";
+
   try {
     const result = await loadFoodDiary(props.taskId, props.programWeek);
+
     entries.value = result.entries;
+
     if (result.session) {
       firstDate.value = result.session.first_date ?? "";
       secondDate.value = result.session.second_date ?? "";
       stage.value = result.session.stage;
       analysis.value = result.session.analysis ?? null;
+
       sessionSaved.value = !!(
         result.session.first_date && result.session.second_date
       );
@@ -565,9 +685,11 @@ async function loadData() {
       analysis.value = null;
       sessionSaved.value = false;
     }
+
     resetForm();
   } catch (error) {
     console.error("[FoodDiaryFlow] Не удалось загрузить дневник:", error);
+
     errorMessage.value = resolveErrorMessage(error, "foodDiary.errors.load");
   } finally {
     loading.value = false;
@@ -579,8 +701,10 @@ async function saveDates() {
     errorMessage.value = t("foodDiary.errors.invalidDates");
     return;
   }
+
   savingDates.value = true;
   errorMessage.value = "";
+
   try {
     const result = await saveFoodDiaryDates(
       props.taskId,
@@ -588,15 +712,19 @@ async function saveDates() {
       firstDate.value,
       secondDate.value,
     );
+
     firstDate.value = result.first_date ?? "";
     secondDate.value = result.second_date ?? "";
+
     stage.value = "collecting";
     analysis.value = null;
     sessionSaved.value = true;
+
     // The service prevents changing dates if that would orphan existing entries.
     resetForm();
   } catch (error) {
     console.error("[FoodDiaryFlow] Не удалось сохранить даты:", error);
+
     errorMessage.value = resolveErrorMessage(
       error,
       "foodDiary.errors.saveDates",
@@ -611,8 +739,10 @@ async function saveEntry() {
     errorMessage.value = t("foodDiary.errors.entryRequired");
     return;
   }
+
   savingEntry.value = true;
   errorMessage.value = "";
+
   try {
     const saved = await saveFoodDiaryEntry(props.taskId, props.programWeek, {
       id: editingId.value ?? undefined,
@@ -622,14 +752,22 @@ async function saveEntry() {
       description: form.description,
       feeling: form.feeling,
     });
+
     const existingIndex = entries.value.findIndex(
       (entry) => entry.id === saved.id,
     );
-    if (existingIndex >= 0) entries.value[existingIndex] = saved;
-    else entries.value.push(saved);
+
+    if (existingIndex >= 0) {
+      entries.value[existingIndex] = saved;
+    } else {
+      entries.value.push(saved);
+    }
+
     stage.value = "collecting";
     analysis.value = null;
+
     resetForm();
+
     $q.notify({
       type: "positive",
       message: t("foodDiary.notifySaved"),
@@ -637,6 +775,7 @@ async function saveEntry() {
     });
   } catch (error) {
     console.error("[FoodDiaryFlow] Не удалось сохранить запись:", error);
+
     errorMessage.value = resolveErrorMessage(
       error,
       "foodDiary.errors.saveEntry",
@@ -656,12 +795,19 @@ function confirmDelete(entry: FoodDiaryEntry) {
   }).onOk(async () => {
     saving.value = true;
     errorMessage.value = "";
+
     try {
       await deleteFoodDiaryEntry(props.taskId, props.programWeek, entry.id);
+
       entries.value = entries.value.filter((item) => item.id !== entry.id);
+
       analysis.value = null;
       stage.value = "collecting";
-      if (editingId.value === entry.id) resetForm();
+
+      if (editingId.value === entry.id) {
+        resetForm();
+      }
+
       $q.notify({
         type: "positive",
         message: t("foodDiary.notifyDeleted"),
@@ -669,6 +815,7 @@ function confirmDelete(entry: FoodDiaryEntry) {
       });
     } catch (error) {
       console.error("[FoodDiaryFlow] Не удалось удалить запись:", error);
+
       errorMessage.value = resolveErrorMessage(
         error,
         "foodDiary.errors.deleteEntry",
@@ -682,12 +829,15 @@ function confirmDelete(entry: FoodDiaryEntry) {
 async function goToReview() {
   openingReview.value = true;
   errorMessage.value = "";
+
   try {
     await setFoodDiaryStage(props.taskId, props.programWeek, "review");
+
     stage.value = "review";
     resetForm();
   } catch (error) {
     console.error("[FoodDiaryFlow] Не удалось открыть проверку:", error);
+
     errorMessage.value = resolveErrorMessage(
       error,
       "foodDiary.errors.openReview",
@@ -700,16 +850,20 @@ async function goToReview() {
 async function returnToEditing() {
   saving.value = true;
   errorMessage.value = "";
+
   try {
     await setFoodDiaryStage(props.taskId, props.programWeek, "collecting");
+
     stage.value = "collecting";
     analysis.value = null;
+
     resetForm();
   } catch (error) {
     console.error(
       "[FoodDiaryFlow] Не удалось вернуться к редактированию:",
       error,
     );
+
     errorMessage.value = resolveErrorMessage(
       error,
       "foodDiary.errors.openEditing",
@@ -787,10 +941,53 @@ async function confirmDiary() {
   }
 }
 
+/**
+ * Завершение задания через существующий weeklyTasks store.
+ * Сама проверка canComplete, запись в Supabase и начисление Energy
+ * остаются внутри completeCurrentTask().
+ */
+async function completeFoodDiaryTask() {
+  if (completingTask.value) return;
+
+  // Не разрешаем завершать задание до успешного получения анализа.
+  if (stage.value !== "ready" || !analysis.value) return;
+
+  // Защита от завершения другого задания или другой недели.
+  if (!isCurrentFoodDiaryTask.value) {
+    errorMessage.value =
+      "Это задание больше не является текущим. Обнови страницу и попробуй снова.";
+    return;
+  }
+
+  // Защита от повторного начисления Energy.
+  if (weeklyStore.isCompleted()) return;
+
+  completingTask.value = true;
+  errorMessage.value = "";
+
+  try {
+    await weeklyStore.completeCurrentTask();
+
+    $q.notify({
+      type: "positive",
+      message: "Задание выполнено! Ты получил 90 Energy.",
+      position: "top",
+    });
+  } catch (error: any) {
+    console.error("[FoodDiaryFlow] Не удалось завершить задание:", error);
+
+    errorMessage.value =
+      error?.message || "Не удалось завершить задание. Попробуй ещё раз.";
+  } finally {
+    completingTask.value = false;
+  }
+}
+
 watch(
   () => [props.taskId, props.programWeek],
   () => loadData(),
 );
+
 onMounted(loadData);
 </script>
 
@@ -800,9 +997,11 @@ onMounted(loadData);
   flex-direction: column;
   gap: 20px;
 }
+
 .intro {
   padding: 4px 2px;
 }
+
 .eyebrow {
   margin-bottom: 10px;
   color: var(--green-deep);
@@ -810,12 +1009,14 @@ onMounted(loadData);
   font-weight: 700;
   letter-spacing: 0.08em;
 }
+
 .intro h2 {
   margin: 0;
   font-size: 26px;
   line-height: 1.25;
   font-weight: 750;
 }
+
 .intro p,
 .card-heading p,
 .section-heading p {
@@ -823,11 +1024,13 @@ onMounted(loadData);
   color: var(--grey-dark);
   line-height: 1.6;
 }
+
 .steps {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
+
 .step {
   display: flex;
   align-items: center;
@@ -835,6 +1038,7 @@ onMounted(loadData);
   color: var(--grey);
   font-size: 12px;
 }
+
 .step-number {
   display: inline-flex;
   align-items: center;
@@ -846,20 +1050,25 @@ onMounted(loadData);
   background: var(--grey-hover);
   font-weight: 700;
 }
+
 .step.active {
   color: var(--green-deep);
 }
+
 .step.active .step-number {
   background: var(--green-bg);
   color: var(--green-deep);
 }
+
 .step.current {
   font-weight: 700;
 }
+
 .diary-card {
   padding: 22px;
   border-radius: 24px;
 }
+
 .card-heading h3,
 .section-heading h3,
 .entries-heading h3,
@@ -868,27 +1077,32 @@ onMounted(loadData);
   font-size: 19px;
   font-weight: 700;
 }
+
 .date-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-top: 20px;
 }
+
 .primary-btn {
   width: 100%;
   min-height: 50px;
   margin-top: 18px;
   border-radius: 14px;
 }
+
 .separator {
   margin: 24px 0;
 }
+
 .entry-form {
   display: flex;
   flex-direction: column;
   gap: 14px;
   margin-top: 18px;
 }
+
 .form-actions,
 .review-actions {
   display: flex;
@@ -896,11 +1110,13 @@ onMounted(loadData);
   gap: 10px;
   justify-content: flex-end;
 }
+
 .form-actions :deep(.q-btn),
 .review-actions :deep(.q-btn) {
   min-height: 44px;
   border-radius: 12px;
 }
+
 .entries-heading {
   display: flex;
   align-items: center;
@@ -908,20 +1124,24 @@ onMounted(loadData);
   gap: 12px;
   margin-bottom: 14px;
 }
+
 .entries-heading span {
   color: var(--green-deep);
   font-weight: 700;
 }
+
 .entry-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
+
 .entry-card {
   padding: 16px;
   border-color: var(--grey-hover);
   border-radius: 16px;
 }
+
 .entry-meta {
   display: flex;
   flex-wrap: wrap;
@@ -930,43 +1150,51 @@ onMounted(loadData);
   color: var(--grey);
   font-size: 12px;
 }
+
 .entry-description {
   color: var(--grey-dark);
   line-height: 1.6;
   white-space: pre-line;
   overflow-wrap: anywhere;
 }
+
 .entry-feeling {
   margin-top: 8px;
   color: var(--grey);
   font-size: 13px;
   line-height: 1.5;
 }
+
 .entry-actions {
   display: flex;
   justify-content: flex-end;
   gap: 4px;
   margin-top: 8px;
 }
+
 .review-day {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
+
 .review-entry {
   padding: 14px;
   border: 1px solid var(--grey-hover);
   border-radius: 14px;
 }
+
 .review-time {
   margin-bottom: 8px;
   color: var(--green-deep);
   font-size: 13px;
   font-weight: 700;
 }
+
 .review-actions {
   margin-top: 24px;
 }
+
 .empty-state {
   padding: 16px;
   border-radius: 14px;
@@ -974,10 +1202,12 @@ onMounted(loadData);
   color: var(--grey-dark);
   line-height: 1.5;
 }
+
 .error-banner {
   background: rgba(193, 53, 53, 0.08);
   color: var(--negative);
 }
+
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -985,63 +1215,77 @@ onMounted(loadData);
   padding: 36px;
   color: var(--grey);
 }
+
 .validation-hint {
   margin: 10px 0 0;
   color: var(--grey-dark);
   font-size: 13px;
   line-height: 1.5;
 }
+
 .analysis-result {
   display: flex;
   flex-direction: column;
   gap: 12px;
   margin-top: 24px;
 }
+
 .analysis-result h3 {
   margin: 12px 0 0;
   font-size: 18px;
   font-weight: 700;
 }
+
 .analysis-result p {
   margin: 6px 0 0;
   color: var(--grey-dark);
   line-height: 1.6;
 }
+
 .analysis-item {
   padding: 16px;
   border: 1px solid var(--grey-hover);
   border-radius: 14px;
 }
+
 .analysis-item strong {
   line-height: 1.5;
 }
+
 .analysis-limitations {
   padding: 14px;
   border-radius: 12px;
   background: var(--grey-hover);
 }
+
 @media (max-width: 520px) {
   .diary-card {
     padding: 18px;
   }
+
   .intro h2 {
     font-size: 23px;
   }
+
   .date-grid {
     grid-template-columns: 1fr;
   }
+
   .steps {
     gap: 5px;
   }
+
   .step {
     align-items: flex-start;
     flex-direction: column;
     gap: 5px;
   }
+
   .form-actions,
   .review-actions {
     flex-direction: column;
   }
+
   .form-actions :deep(.q-btn),
   .review-actions :deep(.q-btn) {
     width: 100%;
