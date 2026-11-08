@@ -256,7 +256,7 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
         this.completed[week] = true;
 
         const dailyStore = useTaskStore();
-        await dailyStore.addEnergy(90);
+        return await dailyStore.addEnergy(90);
       } catch (error) {
         console.error("[WeeklyTasks] Ошибка выполнения задания:", error);
         throw error;
@@ -293,7 +293,7 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
         this.completed[week] = true;
 
         const dailyStore = useTaskStore();
-        await dailyStore.addEnergy(90);
+        return await dailyStore.addEnergy(90);
       } catch (error) {
         console.error(
           "[WeeklyTasks] Ошибка завершения задания по осанке:",

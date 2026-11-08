@@ -121,6 +121,7 @@ import { ref } from "vue";
 
 import { routes } from "~/router/routes";
 import { signInWithGoogle } from "~/services/googleAuth.service";
+import { authErrorKey } from "~/utils/authErrors";
 
 definePageMeta({
   middleware: "guest",
@@ -222,7 +223,9 @@ const register = async () => {
 
     if (error) {
       console.error("[Auth] Registration error:", error);
-      errorMessage.value = error.message;
+      errorMessage.value = t(
+        authErrorKey(error, "register") ?? "auth.errors.genericRegister"
+      );
       return;
     }
 
@@ -264,7 +267,9 @@ const register = async () => {
     successMessage.value = t("auth.registerSuccess");
   } catch (error) {
     console.error("[Auth] Registration unexpected error:", error);
-    errorMessage.value = t("auth.registerError");
+    errorMessage.value = t(
+      authErrorKey(error, "register") ?? "auth.errors.genericRegister"
+    );
   } finally {
     loading.value = false;
   }
@@ -280,10 +285,9 @@ const registerWithGoogle = async () => {
   } catch (error) {
     console.error("[Auth] Google registration error:", error);
 
-    errorMessage.value =
-      error instanceof Error
-        ? error.message
-        : t("auth.registerError");
+    errorMessage.value = t(
+      authErrorKey(error, "register") ?? "auth.errors.genericRegister"
+    );
 
     googleLoading.value = false;
   }

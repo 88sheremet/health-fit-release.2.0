@@ -1262,6 +1262,7 @@ export default defineEventHandler(async (event) => {
   if (!accessToken) {
     throw createError({
       statusCode: 401,
+      data: { code: "unauthorized" },
       statusMessage: "Необходимо войти в аккаунт.",
     });
   }
@@ -1278,6 +1279,7 @@ export default defineEventHandler(async (event) => {
 
     throw createError({
       statusCode: 500,
+      data: { code: "supabaseConfig" },
       statusMessage: "Не настроено подключение к Supabase.",
     });
   }
@@ -1303,6 +1305,7 @@ export default defineEventHandler(async (event) => {
   if (authError || !user) {
     throw createError({
       statusCode: 401,
+      data: { code: "sessionInvalid" },
       statusMessage: "Сессия недействительна или завершилась. Войди заново.",
     });
   }
@@ -1324,6 +1327,7 @@ export default defineEventHandler(async (event) => {
   ) {
     throw createError({
       statusCode: 400,
+      data: { code: "invalidParams" },
       statusMessage: "Некорректные параметры дневника.",
     });
   }
@@ -1343,6 +1347,7 @@ export default defineEventHandler(async (event) => {
 
     throw createError({
       statusCode: 500,
+      data: { code: "loadSession" },
       statusMessage: "Не удалось загрузить дневник.",
     });
   }
@@ -1350,6 +1355,7 @@ export default defineEventHandler(async (event) => {
   if (!session || !session.first_date || !session.second_date) {
     throw createError({
       statusCode: 400,
+      data: { code: "datesNotChosen" },
       statusMessage: "Сначала выбери два дня для дневника.",
     });
   }
@@ -1357,6 +1363,7 @@ export default defineEventHandler(async (event) => {
   if (session.stage === "collecting") {
     throw createError({
       statusCode: 400,
+      data: { code: "reviewNotDone" },
       statusMessage: "Сначала проверь записи дневника.",
     });
   }
@@ -1392,6 +1399,7 @@ export default defineEventHandler(async (event) => {
 
     throw createError({
       statusCode: 500,
+      data: { code: "loadEntries" },
       statusMessage: "Не удалось загрузить записи питания.",
     });
   }
@@ -1409,6 +1417,7 @@ export default defineEventHandler(async (event) => {
   if (!firstDayHasEntries || !secondDayHasEntries) {
     throw createError({
       statusCode: 400,
+      data: { code: "missingEntryBothDays" },
       statusMessage:
         "Добавь хотя бы одну запись за каждый из двух выбранных дней.",
     });
@@ -1532,6 +1541,7 @@ export default defineEventHandler(async (event) => {
 
       throw createError({
         statusCode: 502,
+        data: { code: "geminiUnavailable" },
         statusMessage: "Временно не удалось получить ответ от сервиса анализа.",
         message: `Gemini API error (${status}): ${lastGeminiError.message}`,
       });
@@ -1544,6 +1554,7 @@ export default defineEventHandler(async (event) => {
 
     throw createError({
       statusCode: 502,
+      data: { code: "invalidAnalysis" },
       statusMessage: "Не удалось подготовить корректный анализ дневника.",
       message:
         "Gemini вернул ответы, которые не прошли проверку. Попробуй повторить анализ.",
@@ -1568,6 +1579,7 @@ export default defineEventHandler(async (event) => {
 
     throw createError({
       statusCode: 500,
+      data: { code: "saveAnalysis" },
       statusMessage:
         "Анализ выполнен, но не удалось сохранить результат. Попробуй ещё раз.",
     });

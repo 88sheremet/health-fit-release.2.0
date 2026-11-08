@@ -927,13 +927,18 @@ async function confirmDiary() {
   } catch (error: any) {
     console.error("[FoodDiaryFlow] Ошибка анализа:", error);
 
-    const statusMessage =
-      error?.data?.statusMessage || error?.data?.message || error?.message;
+    const code = error?.data?.code;
+    const serverKey =
+      typeof code === "string" && /^[a-zA-Z][a-zA-Z0-9]*$/.test(code)
+        ? `foodDiary.serverErrors.${code}`
+        : "";
 
     errorMessage.value =
       error?.name === "TimeoutError" || error?.cause?.name === "TimeoutError"
         ? t("foodDiary.errors.analyzeTimeout")
-        : statusMessage || t("foodDiary.errors.analyze");
+        : serverKey && te(serverKey)
+          ? t(serverKey)
+          : t("foodDiary.serverErrors.generic");
   } finally {
     analyzing.value = false;
   }
@@ -963,11 +968,11 @@ async function completeFoodDiaryTask() {
   errorMessage.value = "";
 
   try {
-    await weeklyStore.completeCurrentTask();
+    const reward = await weeklyStore.completeCurrentTask();
 
     $q.notify({
       type: "positive",
-      message: t("foodDiary.notifyTaskCompleted"),
+      message: t("foodDiary.notifyTaskCompleted", { reward }),
       position: "top",
     });
   } catch (error: any) {

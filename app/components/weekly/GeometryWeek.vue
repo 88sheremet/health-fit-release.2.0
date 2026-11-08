@@ -168,7 +168,11 @@
     </div>
 
     <div v-if="isTaskCompleted" class="success-banner">
-      {{ $t("weekly.geometry.success") }}
+      {{
+        awardedReward === null
+          ? $t("weekly.successBanner")
+          : $t("weekly.geometry.success", { reward: awardedReward })
+      }}
     </div>
   </q-card>
 </template>
@@ -199,6 +203,7 @@ const weeklyStore = useWeeklyTaskStore();
 const completing = ref(false);
 const finalizing = ref(false);
 const taskError = ref("");
+const awardedReward = ref<number | null>(null);
 
 const isTaskCompleted = computed(() => weeklyStore.isCompleted());
 
@@ -273,7 +278,9 @@ async function finalizeTask() {
   taskError.value = "";
 
   try {
-    await weeklyStore.completeGeometryTask(geometryStore.completedCount);
+    awardedReward.value =
+      (await weeklyStore.completeGeometryTask(geometryStore.completedCount)) ??
+      null;
   } catch (error) {
     console.error(
       "[GeometryWeek] Не удалось завершить недельное задание:",
