@@ -213,13 +213,16 @@ Preserve:
 - Required markup.
 - Inline formatting.
 
-### ICU and pluralization
+### ICU and message syntax
 
 Preserve:
-- ICU message syntax.
-- Pluralization rules.
-- Select expressions.
+- ICU message syntax, if present.
+- Select expressions, if present.
 - Interpolation syntax.
+- Existing pluralization syntax and structures, if present.
+
+Do not perform a separate pluralization runtime check.
+Do not investigate or block the audit because of known pluralization runtime issues.
 
 ### Other technical structures
 
@@ -439,7 +442,9 @@ Do not assume that a standard Git `post-push` hook exists.
 - Support any project branch.
 - Do not run before the Push succeeds.
 - Do not queue missed runs.
-- If OpenCode is not running when the Push occurs, skip that run.
+- If the external watcher is not running when the Push occurs, skip that run.
+- The external watcher starts OpenCode CLI automatically after detecting a successful Push.
+- OpenCode CLI does not need to be running before the Push.
 - Do not replay skipped runs when OpenCode starts later.
 
 The external trigger should provide the SHA of the successfully pushed commit.
@@ -459,7 +464,10 @@ Before processing:
 3. If the SHA has already been processed, skip the run.
 4. Otherwise, continue with the audit.
 
-After the audit and mandatory validation are completed, save the SHA.
+After the audit and mandatory validation are completed, the external launcher must save the SHA.
+
+The agent must never write, update, or manage the processed SHA state file.
+Only the external launcher is responsible for duplicate protection and state persistence.
 
 A run with unresolved warnings may still count as processed if the audit completed and all mandatory technical checks passed.
 
@@ -480,7 +488,7 @@ If no localization issues are found:
 2. Execute the required validation checks.
 3. Generate the audit report.
 4. Use the `Successful` status if all mandatory checks pass.
-5. Save the processed SHA.
+5. Allow the external launcher to save the processed SHA after successful validation.
 6. Do not create unnecessary files.
 
 ## 19. Localization Audit Report
