@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
+
 import { useMorningRoutine } from "~/composables/useMorningRoutine";
 
 import squatsVideo from "~/assets/exercises/squats.mp4";
@@ -24,41 +26,43 @@ const {
   completeToday,
 } = useMorningRoutine();
 
+const { t } = useI18n();
+
 interface Exercise {
   id: string;
-  title: string;
+  titleKey: string;
   file: string;
 }
 
 const exercises: Exercise[] = [
   {
     id: "squats",
-    title: "Присідання",
+    titleKey: "weekly.morningRoutine.exercises.squats",
     file: "squats.mp4",
   },
   {
     id: "knee-push-ups",
-    title: "Віджимання з колін",
+    titleKey: "weekly.morningRoutine.exercises.kneePushUps",
     file: "push.mp4",
   },
   {
     id: "plank",
-    title: "Планка",
+    titleKey: "weekly.morningRoutine.exercises.plank",
     file: "plank.mp4",
   },
   {
     id: "reverse-lunges",
-    title: "Зворотні випади",
+    titleKey: "weekly.morningRoutine.exercises.reverseLunges",
     file: "lunges.mp4",
   },
   {
     id: "crunches",
-    title: "Скручування",
+    titleKey: "weekly.morningRoutine.exercises.crunches",
     file: "ads.mp4",
   },
   {
     id: "superman",
-    title: "Вправа «Супермен»",
+    titleKey: "weekly.morningRoutine.exercises.superman",
     file: "superman.mp4",
   },
 ];
@@ -95,31 +99,13 @@ const days = computed(() =>
   }),
 );
 
-const statusTitle = computed(() => {
-  switch (status.value) {
-    case "upcoming":
-      return "Челендж ще не розпочався";
-    case "active":
-      return "Челендж триває";
-    case "success":
-      return "Челендж успішно завершено!";
-    case "failed":
-      return "Челендж завершено";
-  }
-});
+const statusTitle = computed(() =>
+  t(`weekly.morningRoutine.status.${status.value}.title`),
+);
 
-const statusDescription = computed(() => {
-  switch (status.value) {
-    case "upcoming":
-      return "Перший день челенджу почнеться на четвертому тижні програми.";
-    case "active":
-      return "Виконуй ранкову руханку та відмічай кожен завершений день.";
-    case "success":
-      return "Ти виконав необхідну кількість днів. Нагорода доступна!";
-    case "failed":
-      return "Цього разу не вдалося набрати 5 виконаних днів. Спробуй наступного разу.";
-  }
-});
+const statusDescription = computed(() =>
+  t(`weekly.morningRoutine.status.${status.value}.description`),
+);
 
 const progress = computed(() => completedCount.value / 7);
 
@@ -137,9 +123,13 @@ onMounted(() => {
     <q-card-section>
       <div class="row items-center justify-between q-mb-md">
         <div>
-          <div class="text-h5 text-weight-bold">7 хвилин вранці</div>
+          <div class="text-h5 text-weight-bold">
+            {{ $t("weekly.morningRoutine.title") }}
+          </div>
 
-          <div class="text-subtitle2 text-grey-7">Тиждень пробудження</div>
+          <div class="text-subtitle2 text-grey-7">
+            {{ $t("weekly.morningRoutine.subtitle") }}
+          </div>
         </div>
 
         <q-icon name="wb_sunny" size="36px" color="orange" />
@@ -182,7 +172,9 @@ onMounted(() => {
       </q-banner>
 
       <div class="row items-center justify-between q-mb-sm">
-        <span class="text-weight-medium"> Прогрес </span>
+        <span class="text-weight-medium">
+          {{ $t("weekly.morningRoutine.progress") }}
+        </span>
 
         <span class="text-weight-bold"> {{ completedCount }} / 7 </span>
       </div>
@@ -196,15 +188,21 @@ onMounted(() => {
       />
 
       <div class="row justify-between text-caption text-grey-7 q-mt-sm">
-        <span>Виконано: {{ completedCount }}</span>
-        <span>Пропущено: {{ missedDays }}</span>
+        <span>
+          {{ $t("weekly.morningRoutine.completed") }} {{ completedCount }}
+        </span>
+        <span>
+          {{ $t("weekly.morningRoutine.missed") }} {{ missedDays }}
+        </span>
       </div>
     </q-card-section>
 
     <q-separator />
 
     <q-card-section>
-      <div class="text-subtitle1 text-weight-bold q-mb-md">Твій тиждень</div>
+      <div class="text-subtitle1 text-weight-bold q-mb-md">
+        {{ $t("weekly.morningRoutine.weekTitle") }}
+      </div>
 
       <div class="row q-col-gutter-sm">
         <div v-for="day in days" :key="day.number" class="col">
@@ -216,7 +214,9 @@ onMounted(() => {
               'day-item--missed': day.missed,
             }"
           >
-            <div class="text-caption">День</div>
+            <div class="text-caption">
+              {{ $t("weekly.morningRoutine.day") }}
+            </div>
 
             <div class="text-h6 text-weight-bold">
               {{ day.number }}
@@ -254,21 +254,22 @@ onMounted(() => {
       </div>
 
       <div v-if="status === 'active'" class="text-caption text-grey-7 q-mt-md">
-        Можна пропустити до 2 днів. Для успішного завершення потрібно виконати
-        щонайменше 5 із 7 днів.
+        {{ $t("weekly.morningRoutine.skipHint") }}
       </div>
     </q-card-section>
 
     <q-separator />
 
     <q-card-section>
-      <div class="text-subtitle1 text-weight-bold q-mb-md">Вправи</div>
+      <div class="text-subtitle1 text-weight-bold q-mb-md">
+        {{ $t("weekly.morningRoutine.exercisesTitle") }}
+      </div>
 
       <div class="exercise-list q-mb-md">
         <q-btn
           v-for="(exercise, index) in exercises"
           :key="exercise.id"
-          :label="exercise.title"
+          :label="$t(exercise.titleKey)"
           :class="[
             'exercise-btn',
             selectedExerciseIndex === index
@@ -282,7 +283,7 @@ onMounted(() => {
       </div>
 
       <div class="text-weight-medium q-mb-sm">
-        {{ selectedExercise.title }}
+        {{ $t(selectedExercise.titleKey) }}
       </div>
 
       <video
@@ -300,7 +301,7 @@ onMounted(() => {
     <q-card-section>
       <q-btn
         v-if="canCompleteToday"
-        label="Виконано за сьогодні"
+        :label="$t('weekly.morningRoutine.completeToday')"
         color="positive"
         icon="check_circle"
         class="complete-btn full-width"
@@ -320,15 +321,15 @@ onMounted(() => {
           <q-icon name="check_circle" />
         </template>
 
-        Сьогоднішній день уже зараховано!
+        {{ $t("weekly.morningRoutine.todayCompleted") }}
       </q-banner>
 
       <q-banner v-else-if="status === 'active'" class="bg-grey-2" rounded>
-        Цей день ще не настав або вже завершився.
+        {{ $t("weekly.morningRoutine.dayUnavailable") }}
       </q-banner>
 
       <div v-if="error" class="text-negative text-caption q-mt-md">
-        {{ error }}
+        {{ error ? $t(error) : "" }}
       </div>
 
       <div v-if="isLoading" class="row justify-center q-mt-md">

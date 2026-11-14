@@ -90,7 +90,7 @@ export function useMorningRoutine() {
       completedDays.value = await getMorningRoutineCompletions();
     } catch (err) {
       console.error("Failed to load morning routine progress:", err);
-      error.value = "Не вдалося завантажити прогрес";
+      error.value = "weekly.morningRoutine.errors.load";
     } finally {
       isLoading.value = false;
     }
@@ -128,7 +128,7 @@ export function useMorningRoutine() {
       return true;
     } catch (err) {
       console.error("Failed to complete morning routine day:", err);
-      error.value = "Не вдалося зберегти виконання";
+      error.value = "weekly.morningRoutine.errors.save";
       return false;
     } finally {
       isSubmitting.value = false;
