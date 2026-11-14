@@ -1,3 +1,4 @@
+
 <template>
   <div class="page">
     <div class="header">
@@ -12,9 +13,44 @@
       </div>
     </div>
 
+    <!-- Специальное задание: утренняя зарядка -->
+<template v-if="isMorningRoutineTask">
+  <q-card class="task-card">
+    <div class="badge">
+      {{ $t("weekly.badge") }}
+    </div>
+
+    <div class="task-title">
+      {{ store.currentTask.nameProgram }}
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        {{ $t("weekly.whatToDo") }}
+      </div>
+
+      <div class="text">
+        {{ store.currentTask.whatDoing }}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        {{ $t("weekly.whyNeeded") }}
+      </div>
+
+      <div class="text">
+        {{ store.currentTask.whyDoing }}
+      </div>
+    </div>
+  </q-card>
+
+  <MorningRoutine />
+</template>
+
     <!-- Специальное задание по осанке -->
     <GeometryWeek
-      v-if="isGeometryTask"
+      v-else-if="isGeometryTask"
       :task-id="store.currentTask.id"
       :week="store.currentWeek"
       :current-day="store.currentDayWithinWeek"
@@ -176,6 +212,7 @@ import type { WeeklyZoneKey } from "~/interfaces/WeeklyState.interface";
 
 import FoodDiaryFlow from "~/components/weekly/FoodDiaryFlow.vue";
 import GeometryWeek from "~/components/weekly/GeometryWeek.vue";
+import MorningRoutine from "~/components/weekly/MorningRoutine.vue";
 
 definePageMeta({
   middleware: "auth",
@@ -187,8 +224,15 @@ const store = useWeeklyTaskStore();
 
 const FOOD_DIARY_TASK_ID = "5382c1d1-f307-4076-a7e7-97e1c03fc5a7";
 
+const MORNING_ROUTINE_TASK_ID =
+  "81658713-0b40-463c-914f-899952d824b0";
+
 const isFoodDiaryTask = computed(
   () => store.currentTask.id === FOOD_DIARY_TASK_ID,
+);
+
+const isMorningRoutineTask = computed(
+  () => store.currentTask.id === MORNING_ROUTINE_TASK_ID,
 );
 
 const isGeometryTask = computed(
@@ -309,6 +353,7 @@ async function completeWeeklyTask() {
 .task-card {
   padding: 24px;
   border-radius: 24px;
+  margin-bottom: 15px;
 }
 
 .badge {
