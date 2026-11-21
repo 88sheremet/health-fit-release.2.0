@@ -5,7 +5,7 @@
         <div class="title">
           {{ $t("daily.greeting", { name: userName }) }} 👋
         </div>
-        <div class="subtitle">
+        <div v-if="!store.isProgramFinished" class="subtitle">
           {{ $t("daily.day", { n: store.dayIndex }) }}
         </div>
       </div>
@@ -29,7 +29,30 @@
       </div>
     </q-card>
 
-    <div v-if="store.isRestDay" class="rest-card">
+    <div v-if="store.isProgramFinished" class="program-finished-card">
+      <div class="program-finished-icon">
+        <span class="material-icons">emoji_events</span>
+      </div>
+
+      <div class="program-finished-title">
+        {{ $t("weekly.final.title") }}
+      </div>
+
+      <div class="program-finished-text">
+        {{ $t("weekly.final.description") }}
+      </div>
+
+      <q-btn
+        unelevated
+        rounded
+        color="primary"
+        class="program-finished-button"
+        :label="$t('weekly.final.button')"
+        @click="startFinalScreening"
+      />
+    </div>
+
+    <div v-else-if="store.isRestDay" class="rest-card">
       <div class="emoji">🌿</div>
       <div class="rest-title">{{ $t("daily.restTitle") }}</div>
       <div class="rest-text">{{ $t("daily.restText") }}</div>
@@ -137,6 +160,7 @@ import { useQuasar } from "quasar";
 
 import { useTaskStore } from "~/stores/dailyTasks";
 import { useJournalStore } from "~/stores/journal";
+import { useScreeningStore } from "~/stores/screening";
 import type { Task } from "~/interfaces/Task.interface";
 import click from "~/assets/click.png";
 
@@ -154,6 +178,7 @@ interface CompletionPayload {
 const supabase = useSupabaseClient();
 const store = useTaskStore();
 const journalStore = useJournalStore();
+const screeningStore = useScreeningStore();
 
 const { locale, t, tm, rt } = useI18n();
 const $q = useQuasar();
@@ -354,6 +379,11 @@ async function undoFoodTask() {
   } finally {
     undoLoading.value = false;
   }
+}
+
+async function startFinalScreening() {
+  screeningStore.startScreening("final");
+  await navigateTo("/questions");
 }
 
 async function loadUserName() {
@@ -566,6 +596,52 @@ onBeforeUnmount(() => {
   border: none;
   cursor: pointer;
   padding: 4px;
+}
+
+.program-finished-card {
+  margin-top: 30px;
+  padding: 30px 24px;
+  border-radius: 24px;
+  background: var(--white);
+  text-align: center;
+  box-shadow: 0 18px 45px var(--shadow-lg);
+}
+
+.program-finished-icon {
+  width: 86px;
+  height: 86px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 26px;
+  background: var(--icon-green-bg);
+  color: var(--green);
+}
+
+.program-finished-icon .material-icons {
+  font-size: 48px;
+}
+
+.program-finished-title {
+  font-size: 24px;
+  line-height: 1.3;
+  font-weight: 800;
+  color: var(--black1);
+}
+
+.program-finished-text {
+  margin-top: 12px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--grey2);
+}
+
+.program-finished-button {
+  margin-top: 24px;
+  min-height: 48px;
+  padding: 0 24px;
+  font-weight: 700;
 }
 
 /* Reward animation */

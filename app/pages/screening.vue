@@ -69,18 +69,31 @@
 <script setup lang="ts">
 import { useScreeningStore } from "~/stores/screening";
 import { routes } from "~/router/routes";
+
 definePageMeta({
   layout: "authenticated",
   middleware: "auth",
 });
+
 const store = useScreeningStore();
 
-const skip = () => {
-  store.completeScreening();
-  navigateTo(routes.recovery.menu);
+const skip = async () => {
+  // Итоговый скрининг нельзя пропустить.
+  if (store.screeningType === "final") return;
+
+  try {
+    await store.completeScreening();
+    await navigateTo(routes.recovery.menu);
+  } catch (error) {
+    console.error("[Screening] Не удалось сохранить результат:", error);
+  }
 };
 
 const startQuestions = () => {
+  // Сбрасываем ответы предыдущего скрининга,
+  // сохраняя выбранный тип initial/final.
+  store.resetScreening();
+
   navigateTo(routes.onboarding.questions);
 };
 </script>

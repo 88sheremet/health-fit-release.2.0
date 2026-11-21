@@ -18,6 +18,9 @@ import type {
   WeeklyZoneKey,
 } from "../interfaces/WeeklyState.interface";
 
+const PROGRAM_WEEKS = 4;
+const PROGRAM_DAYS = PROGRAM_WEEKS * 7;
+
 const WEEKLY_ZONE_KEYS: WeeklyZoneKey[] = [
   "desk",
   "wardrobe",
@@ -41,53 +44,54 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
   }),
 
   getters: {
-    currentWeek(): number {
+    daysSinceStart(): number {
       const dailyStore = useTaskStore();
 
-      if (!dailyStore.startDate) {
-        return 1;
-      }
+      if (!dailyStore.startDate) return 0;
 
-      return Math.floor(getDaysSince(dailyStore.startDate) / 7) + 1;
+      return getDaysSince(dailyStore.startDate);
+    },
+
+    isProgramFinished(): boolean {
+      return this.daysSinceStart >= PROGRAM_DAYS;
+    },
+
+    currentWeek(): number {
+      return Math.min(Math.floor(this.daysSinceStart / 7) + 1, PROGRAM_WEEKS);
     },
 
     currentDayWithinWeek(): number {
-      const dailyStore = useTaskStore();
+      if (this.isProgramFinished) return 7;
 
-      if (!dailyStore.startDate) {
-        return 1;
-      }
-
-      return (getDaysSince(dailyStore.startDate) % 7) + 1;
+      return (this.daysSinceStart % 7) + 1;
     },
 
     currentTask(state): WeeklyTask {
-      const weekIndex = this.currentWeek - 1;
+      if (!state.tasksLoaded || state.tasks.length === 0) {
+        return {
+          id: "",
+          nameProgram: "",
+          whatDoing: "",
+          whyDoing: "",
+        };
+      }
 
-      if (state.tasksLoaded && state.tasks.length > 0) {
-        const currentWeekTask = state.tasks.find(
-          (task) => task.week === this.currentWeek,
-        );
+      const task = state.tasks.find((item) => item.week === this.currentWeek);
 
-        const fallbackTask = state.tasks[weekIndex % state.tasks.length];
-
-        const task = currentWeekTask ?? fallbackTask;
-
-        if (task) {
-          return {
-            id: task.id,
-            nameProgram: task.title,
-            whatDoing: task.what_doing,
-            whyDoing: task.why_doing,
-          };
-        }
+      if (!task) {
+        return {
+          id: "",
+          nameProgram: "",
+          whatDoing: "",
+          whyDoing: "",
+        };
       }
 
       return {
-        id: "",
-        nameProgram: "",
-        whatDoing: "",
-        whyDoing: "",
+        id: task.id,
+        nameProgram: task.title,
+        whatDoing: task.what_doing,
+        whyDoing: task.why_doing,
       };
     },
 
@@ -100,6 +104,8 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
     },
 
     canComplete(): boolean {
+      if (this.isProgramFinished) return false;
+
       if (this.isSpaceCleanupTask) {
         return this.currentDayWithinWeek >= 3;
       }
@@ -112,9 +118,7 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
     },
 
     completedZoneCount(): number {
-      if (!this.isSpaceCleanupTask) {
-        return 0;
-      }
+      if (!this.isSpaceCleanupTask) return 0;
 
       return WEEKLY_ZONE_KEYS.filter(
         (zoneKey) => this.zoneProgress[zoneKey] === true,
@@ -186,7 +190,7 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
     async init(locale = "ru") {
       await Promise.all([this.loadTasks(locale), this.loadCompletions()]);
 
-      if (this.isSpaceCleanupTask) {
+      if (this.isSpaceCleanupTask && !this.isProgramFinished) {
         await this.loadZoneProgress();
       } else {
         this.zoneProgress = {};
@@ -198,7 +202,11 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
         throw new Error(`Неизвестная зона: ${zoneKey}`);
       }
 
-      if (!this.isSpaceCleanupTask || this.isCompleted()) {
+      if (
+        this.isProgramFinished ||
+        !this.isSpaceCleanupTask ||
+        this.isCompleted()
+      ) {
         return;
       }
 
@@ -207,21 +215,19 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
 
       await saveWeeklyZoneProgress(week, zoneKey, nextValue);
 
-      if (week !== this.currentWeek || !this.isSpaceCleanupTask) {
+      if (
+        week !== this.currentWeek ||
+        !this.isSpaceCleanupTask ||
+        this.isProgramFinished
+      ) {
         return;
       }
 
       this.zoneProgress[zoneKey] = nextValue;
     },
 
-    /**
-     * Завершение обычных недельных заданий.
-     * Для них сохраняются прежние ограничения.
-     */
     async completeCurrentTask() {
-      if (this.isCompleted()) {
-        return;
-      }
+      if (this.isProgramFinished || this.isCompleted()) return;
 
       if (!this.canComplete) {
         throw new Error(
@@ -252,7 +258,6 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
 
       try {
         await saveWeeklyCompletion(task.id, week);
-
         this.completed[week] = true;
 
         const dailyStore = useTaskStore();
@@ -263,14 +268,8 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
       }
     },
 
-    /**
-     * Завершение задания «Геометрия тела».
-     * Для него достаточно 5 выполненных этапов из 7.
-     */
     async completeGeometryTask(completedStages: number) {
-      if (this.isCompleted()) {
-        return;
-      }
+      if (this.isProgramFinished || this.isCompleted()) return;
 
       if (!this.isGeometryTask) {
         throw new Error("Текущее задание не является заданием по осанке.");
@@ -289,7 +288,6 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
 
       try {
         await saveWeeklyCompletion(task.id, week);
-
         this.completed[week] = true;
 
         const dailyStore = useTaskStore();
@@ -299,7 +297,6 @@ export const useWeeklyTaskStore = defineStore("weeklyTasks", {
           "[WeeklyTasks] Ошибка завершения задания по осанке:",
           error,
         );
-
         throw error;
       }
     },

@@ -1,201 +1,228 @@
-
 <template>
   <div class="page">
     <div class="header">
       <div class="title">{{ $t("weekly.title") }}</div>
 
-      <div class="subtitle">
-        {{ $t("weekly.week", { n: store.currentWeek }) }}
-      </div>
-
-      <div class="week-day">
-        {{ $t("weekly.dayOfWeek", { n: store.currentDayWithinWeek }) }}
-      </div>
-    </div>
-
-    <!-- Специальное задание: утренняя зарядка -->
-<template v-if="isMorningRoutineTask">
-  <q-card class="task-card">
-    <div class="badge">
-      {{ $t("weekly.badge") }}
-    </div>
-
-    <div class="task-title">
-      {{ store.currentTask.nameProgram }}
-    </div>
-
-    <div class="section">
-      <div class="section-title">
-        {{ $t("weekly.whatToDo") }}
-      </div>
-
-      <div class="text">
-        {{ store.currentTask.whatDoing }}
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">
-        {{ $t("weekly.whyNeeded") }}
-      </div>
-
-      <div class="text">
-        {{ store.currentTask.whyDoing }}
-      </div>
-    </div>
-  </q-card>
-
-  <MorningRoutine />
-</template>
-
-    <!-- Специальное задание по осанке -->
-    <GeometryWeek
-      v-else-if="isGeometryTask"
-      :task-id="store.currentTask.id"
-      :week="store.currentWeek"
-      :current-day="store.currentDayWithinWeek"
-      :title="store.currentTask.nameProgram"
-      :what-doing="store.currentTask.whatDoing"
-      :why-doing="store.currentTask.whyDoing"
-    />
-
-    <!-- Все остальные недельные задания -->
-    <q-card v-else class="task-card">
-      <div class="badge">
-        {{ $t("weekly.badge") }}
-      </div>
-
-      <div class="task-title">
-        {{ store.currentTask.nameProgram }}
-      </div>
-
-      <div class="section">
-        <div class="section-title">
-          {{ $t("weekly.whatToDo") }}
+      <template v-if="!store.isProgramFinished">
+        <div class="subtitle">
+          {{ $t("weekly.week", { n: store.currentWeek }) }}
         </div>
 
-        <div class="text">
-          {{ store.currentTask.whatDoing }}
+        <div class="week-day">
+          {{ $t("weekly.dayOfWeek", { n: store.currentDayWithinWeek }) }}
         </div>
+      </template>
+    </div>
+
+    <!-- Программа завершена -->
+    <q-card v-if="store.isProgramFinished" class="task-card final-card">
+      <div class="final-icon">
+        <span class="material-icons">emoji_events</span>
       </div>
 
-      <div class="section">
-        <div class="section-title">
-          {{ $t("weekly.whyNeeded") }}
-        </div>
-
-        <div class="text">
-          {{ store.currentTask.whyDoing }}
-        </div>
+      <div class="task-title final-title">
+        {{ $t("weekly.final.title") }}
       </div>
 
-      <!-- Чек-лист только для задания по очистке пространства -->
-      <div v-if="store.isSpaceCleanupTask" class="checklist">
-        <div class="checklist-header">
+      <div class="text final-description">
+        {{ $t("weekly.final.description") }}
+      </div>
+
+      <q-btn
+        unelevated
+        no-caps
+        color="primary"
+        class="complete-btn"
+        :label="$t('weekly.final.button')"
+        @click="startFinalScreening"
+      />
+    </q-card>
+
+    <template v-else>
+      <!-- Специальное задание: утренняя зарядка -->
+      <template v-if="isMorningRoutineTask">
+        <q-card class="task-card">
+          <div class="badge">
+            {{ $t("weekly.badge") }}
+          </div>
+
+          <div class="task-title">
+            {{ store.currentTask.nameProgram }}
+          </div>
+
+          <div class="section">
+            <div class="section-title">
+              {{ $t("weekly.whatToDo") }}
+            </div>
+
+            <div class="text">
+              {{ store.currentTask.whatDoing }}
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">
+              {{ $t("weekly.whyNeeded") }}
+            </div>
+
+            <div class="text">
+              {{ store.currentTask.whyDoing }}
+            </div>
+          </div>
+        </q-card>
+
+        <MorningRoutine />
+      </template>
+
+      <!-- Специальное задание по осанке -->
+      <GeometryWeek
+        v-else-if="isGeometryTask"
+        :task-id="store.currentTask.id"
+        :week="store.currentWeek"
+        :current-day="store.currentDayWithinWeek"
+        :title="store.currentTask.nameProgram"
+        :what-doing="store.currentTask.whatDoing"
+        :why-doing="store.currentTask.whyDoing"
+      />
+
+      <!-- Все остальные недельные задания -->
+      <q-card v-else class="task-card">
+        <div class="badge">
+          {{ $t("weekly.badge") }}
+        </div>
+
+        <div class="task-title">
+          {{ store.currentTask.nameProgram }}
+        </div>
+
+        <div class="section">
           <div class="section-title">
-            {{ $t("weekly.zones.title") }}
+            {{ $t("weekly.whatToDo") }}
           </div>
 
-          <div class="progress-count">
-            {{ store.completedZoneCount }}/{{ store.zoneCount }}
+          <div class="text">
+            {{ store.currentTask.whatDoing }}
           </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">
+            {{ $t("weekly.whyNeeded") }}
+          </div>
+
+          <div class="text">
+            {{ store.currentTask.whyDoing }}
+          </div>
+        </div>
+
+        <!-- Чек-лист только для задания по очистке пространства -->
+        <div v-if="store.isSpaceCleanupTask" class="checklist">
+          <div class="checklist-header">
+            <div class="section-title">
+              {{ $t("weekly.zones.title") }}
+            </div>
+
+            <div class="progress-count">
+              {{ store.completedZoneCount }}/{{ store.zoneCount }}
+            </div>
+          </div>
+
+          <div
+            class="progress-track"
+            role="progressbar"
+            :aria-valuenow="store.completedZoneCount"
+            :aria-valuemin="0"
+            :aria-valuemax="store.zoneCount"
+          >
+            <div
+              class="progress-fill"
+              :style="{ width: `${store.zoneProgressPercent}%` }"
+            ></div>
+          </div>
+
+          <div class="progress-caption">
+            {{
+              $t("weekly.zones.progress", {
+                completed: store.completedZoneCount,
+                total: store.zoneCount,
+              })
+            }}
+          </div>
+
+          <div class="zone-list">
+            <q-checkbox
+              v-for="zone in zones"
+              :key="zone.key"
+              :model-value="store.zoneProgress[zone.key] === true"
+              :label="$t(zone.label)"
+              color="positive"
+              keep-color
+              :disable="store.isCompleted() || savingZones[zone.key]"
+              class="zone-checkbox"
+              @update:model-value="toggleZone(zone.key, $event)"
+            />
+          </div>
+
+          <div v-if="zoneError" class="error-message">
+            {{ zoneError }}
+          </div>
+        </div>
+
+        <!-- Кнопка завершения для обычных заданий -->
+        <q-btn
+          v-if="!isFoodDiaryTask && !store.isCompleted()"
+          color="primary"
+          unelevated
+          no-caps
+          class="complete-btn"
+          :label="$t('weekly.completedBtn')"
+          :loading="completing"
+          :disable="
+            !store.canComplete ||
+            (store.isSpaceCleanupTask && !store.allZonesCompleted) ||
+            completing
+          "
+          @click="completeWeeklyTask"
+        />
+
+        <div
+          v-if="!isFoodDiaryTask && !store.canComplete && !store.isCompleted()"
+          class="week-info"
+        >
+          {{ $t("weekly.info") }}
         </div>
 
         <div
-          class="progress-track"
-          role="progressbar"
-          :aria-valuenow="store.completedZoneCount"
-          :aria-valuemin="0"
-          :aria-valuemax="store.zoneCount"
+          v-else-if="
+            !isFoodDiaryTask &&
+            store.isSpaceCleanupTask &&
+            !store.allZonesCompleted &&
+            !store.isCompleted()
+          "
+          class="week-info"
         >
-          <div
-            class="progress-fill"
-            :style="{ width: `${store.zoneProgressPercent}%` }"
-          ></div>
+          {{ $t("weekly.zones.completeAll") }}
         </div>
 
-        <div class="progress-caption">
-          {{
-            $t("weekly.zones.progress", {
-              completed: store.completedZoneCount,
-              total: store.zoneCount,
-            })
-          }}
+        <div v-if="taskError" class="error-message">
+          {{ taskError }}
         </div>
 
-        <div class="zone-list">
-          <q-checkbox
-            v-for="zone in zones"
-            :key="zone.key"
-            :model-value="store.zoneProgress[zone.key] === true"
-            :label="$t(zone.label)"
-            color="positive"
-            keep-color
-            :disable="store.isCompleted() || savingZones[zone.key]"
-            class="zone-checkbox"
-            @update:model-value="toggleZone(zone.key, $event)"
-          />
+        <div
+          v-if="!isFoodDiaryTask && store.isCompleted()"
+          class="success-banner"
+        >
+          {{ $t("weekly.successBanner") }}
         </div>
+      </q-card>
 
-        <div v-if="zoneError" class="error-message">
-          {{ zoneError }}
-        </div>
-      </div>
-
-      <!-- Кнопка завершения для обычных заданий -->
-      <q-btn
-        v-if="!isFoodDiaryTask && !store.isCompleted()"
-        color="primary"
-        unelevated
-        no-caps
-        class="complete-btn"
-        :label="$t('weekly.completedBtn')"
-        :loading="completing"
-        :disable="
-          !store.canComplete ||
-          (store.isSpaceCleanupTask && !store.allZonesCompleted) ||
-          completing
-        "
-        @click="completeWeeklyTask"
+      <!-- Дневник питания -->
+      <FoodDiaryFlow
+        v-if="isFoodDiaryTask"
+        :task-id="FOOD_DIARY_TASK_ID"
+        :program-week="store.currentWeek"
       />
-
-      <div
-        v-if="!isFoodDiaryTask && !store.canComplete && !store.isCompleted()"
-        class="week-info"
-      >
-        {{ $t("weekly.info") }}
-      </div>
-
-      <div
-        v-else-if="
-          !isFoodDiaryTask &&
-          store.isSpaceCleanupTask &&
-          !store.allZonesCompleted &&
-          !store.isCompleted()
-        "
-        class="week-info"
-      >
-        {{ $t("weekly.zones.completeAll") }}
-      </div>
-
-      <div v-if="taskError" class="error-message">
-        {{ taskError }}
-      </div>
-
-      <div
-        v-if="!isFoodDiaryTask && store.isCompleted()"
-        class="success-banner"
-      >
-        {{ $t("weekly.successBanner") }}
-      </div>
-    </q-card>
-
-    <!-- Дневник питания -->
-    <FoodDiaryFlow
-      v-if="isFoodDiaryTask"
-      :task-id="FOOD_DIARY_TASK_ID"
-      :program-week="store.currentWeek"
-    />
+    </template>
 
     <BottomNavigation />
   </div>
@@ -205,8 +232,12 @@
 import { computed, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useWeeklyTaskStore } from "~/stores/weeklyTasks";
-import { GEOMETRY_WEEK_TASK_ID } from "~/stores/weeklyTasks";
+import {
+  useWeeklyTaskStore,
+  GEOMETRY_WEEK_TASK_ID,
+} from "~/stores/weeklyTasks";
+
+import { useScreeningStore } from "~/stores/screening";
 
 import type { WeeklyZoneKey } from "~/interfaces/WeeklyState.interface";
 
@@ -220,12 +251,13 @@ definePageMeta({
 });
 
 const { t, locale } = useI18n();
+
 const store = useWeeklyTaskStore();
+const screeningStore = useScreeningStore();
 
 const FOOD_DIARY_TASK_ID = "5382c1d1-f307-4076-a7e7-97e1c03fc5a7";
 
-const MORNING_ROUTINE_TASK_ID =
-  "81658713-0b40-463c-914f-899952d824b0";
+const MORNING_ROUTINE_TASK_ID = "81658713-0b40-463c-914f-899952d824b0";
 
 const isFoodDiaryTask = computed(
   () => store.currentTask.id === FOOD_DIARY_TASK_ID,
@@ -264,6 +296,12 @@ await store.init(locale.value);
 watch(locale, async (newLocale) => {
   await store.loadTasks(newLocale);
 });
+
+async function startFinalScreening() {
+  screeningStore.startScreening("final");
+
+  await navigateTo("/questions");
+}
 
 async function toggleZone(
   zoneKey: WeeklyZoneKey,
@@ -475,5 +513,34 @@ async function completeWeeklyTask() {
   color: var(--negative);
   font-size: 14px;
   line-height: 1.5;
+}
+
+.final-card {
+  text-align: center;
+  padding: 32px 24px;
+}
+
+.final-icon {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 24px;
+  background: var(--green-bg);
+  color: var(--green-deep);
+}
+
+.final-icon .material-icons {
+  font-size: 42px;
+}
+
+.final-title {
+  margin-bottom: 16px;
+}
+
+.final-description {
+  margin-bottom: 28px;
 }
 </style>
