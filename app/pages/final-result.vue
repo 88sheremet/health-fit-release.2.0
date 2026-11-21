@@ -9,91 +9,173 @@
     </div>
 
     <template v-else-if="initialResult && finalResult">
-      <div class="hero">
+      <!-- Загальний прогрес -->
+      <section class="hero">
         <div class="hero-icon">
           <span class="material-icons">emoji_events</span>
         </div>
 
-        <div class="title">
+        <div class="eyebrow">
+          {{ $t("program.reportEyebrow") }}
+        </div>
+
+        <h1 class="title">
           {{ $t("program.finalTitle") }}
-        </div>
+        </h1>
 
-        <div class="subtitle">
+        <p class="subtitle">
           {{ $t("program.finalDescription") }}
-        </div>
-      </div>
+        </p>
+      </section>
 
-      <q-card flat class="comparison-card">
-        <div class="comparison-title">
-          {{ $t("program.comparisonTitle") }}
+      <section class="overall-card">
+        <div class="section-heading">
+          {{ $t("program.overallProgress") }}
         </div>
 
-        <div
+        <div class="overall-result">
+          <div class="overall-number">
+            {{ totalInitial }}
+            <span class="overall-arrow material-icons">arrow_forward</span>
+            {{ totalFinal }}
+          </div>
+
+          <div class="overall-change" :class="overallStatusClass">
+            <span class="material-icons">
+              {{ overallIcon }}
+            </span>
+            {{ overallChangeText }}
+          </div>
+        </div>
+
+        <div class="overall-labels">
+          <span>{{ $t("program.initialScore") }}</span>
+          <span>{{ $t("program.finalScore") }}</span>
+        </div>
+
+        <div class="overall-bars">
+          <div class="overall-bar-row">
+            <span>{{ $t("program.initialScore") }}</span>
+            <div class="bar-track">
+              <div
+                class="bar-fill initial-fill"
+                :style="{ width: `${(totalInitial / 135) * 100}%` }"
+              />
+            </div>
+            <strong>{{ totalInitial }}</strong>
+          </div>
+
+          <div class="overall-bar-row">
+            <span>{{ $t("program.finalScore") }}</span>
+            <div class="bar-track">
+              <div
+                class="bar-fill final-fill"
+                :style="{ width: `${(totalFinal / 135) * 100}%` }"
+              />
+            </div>
+            <strong>{{ totalFinal }}</strong>
+          </div>
+        </div>
+
+        <div class="score-explanation">
+          <span class="material-icons">info</span>
+          {{ $t("program.scoreExplanation") }}
+        </div>
+      </section>
+
+      <!-- Прогрес за напрямами -->
+      <section class="directions-section">
+        <div class="section-heading">
+          {{ $t("program.directionsTitle") }}
+        </div>
+
+        <p class="section-description">
+          {{ $t("program.directionsDescription") }}
+        </p>
+
+        <q-card
           v-for="item in comparisons"
           :key="item.key"
-          class="comparison-item"
+          flat
+          class="direction-card"
         >
-          <div class="item-header">
-            <div class="item-title">
+          <div class="direction-header">
+            <div class="direction-title">
               {{ $t(item.label) }}
             </div>
 
-            <div
-              class="change"
-              :class="{
-                improved: item.difference > 0,
-                declined: item.difference < 0,
-                unchanged: item.difference === 0,
-              }"
-            >
-              <span v-if="item.difference > 0">+</span>
-              {{ item.difference }}
+            <div class="change-badge" :class="item.status">
+              <span class="material-icons">
+                {{ item.icon }}
+              </span>
+              {{ item.changeText }}
             </div>
           </div>
 
-          <div class="scores">
-            <div class="score-column">
+          <div class="direction-scores">
+            <div class="score-block">
               <div class="score-value">
                 {{ item.initial }}
               </div>
-              <div class="score-label">
+              <div class="score-caption">
                 {{ $t("program.initialScore") }}
               </div>
             </div>
 
-            <div class="score-arrow">
-              <span class="material-icons">arrow_forward</span>
-            </div>
+            <span class="material-icons direction-arrow"> arrow_forward </span>
 
-            <div class="score-column">
-              <div class="score-value">
+            <div class="score-block">
+              <div class="score-value final-value">
                 {{ item.final }}
               </div>
-              <div class="score-label">
+              <div class="score-caption">
                 {{ $t("program.finalScore") }}
               </div>
             </div>
           </div>
 
-          <div class="progress-track">
-            <div
-              class="progress-initial"
-              :style="{ width: `${(item.initial / 45) * 100}%` }"
-            ></div>
-            <div
-              class="progress-final"
-              :style="{ width: `${(item.final / 45) * 100}%` }"
-            ></div>
+          <div class="direction-bars">
+            <div class="direction-bar-row">
+              <span>{{ $t("program.initialScore") }}</span>
+              <div class="bar-track">
+                <div
+                  class="bar-fill initial-fill"
+                  :style="{ width: `${(item.initial / 45) * 100}%` }"
+                />
+              </div>
+              <strong>{{ item.initial }}</strong>
+            </div>
+
+            <div class="direction-bar-row">
+              <span>{{ $t("program.finalScore") }}</span>
+              <div class="bar-track">
+                <div
+                  class="bar-fill final-fill"
+                  :style="{ width: `${(item.final / 45) * 100}%` }"
+                />
+              </div>
+              <strong>{{ item.final }}</strong>
+            </div>
+          </div>
+
+          <div class="direction-insight" :class="item.status">
+            <span class="material-icons">
+              {{ item.icon }}
+            </span>
+            {{ item.insight }}
           </div>
 
           <div class="max-score">
             {{ $t("program.maxScore") }}
           </div>
-        </div>
-      </q-card>
+        </q-card>
+      </section>
 
-      <div class="finish-banner">
-        <span class="material-icons">check_circle</span>
+      <!-- Завершення програми -->
+      <section class="finish-banner">
+        <div class="finish-icon">
+          <span class="material-icons">workspace_premium</span>
+        </div>
 
         <div class="finish-banner-title">
           {{ $t("program.finishBannerTitle") }}
@@ -102,7 +184,11 @@
         <div class="finish-banner-text">
           {{ $t("program.finishBannerDescription") }}
         </div>
-      </div>
+
+        <div class="finish-message">
+          {{ $t("program.finishMotivation") }}
+        </div>
+      </section>
     </template>
   </div>
 </template>
@@ -123,6 +209,7 @@ interface ScreeningResult {
   completed_at: string;
 }
 
+const { t } = useI18n();
 const supabase = useSupabaseClient();
 
 const loading = ref(true);
@@ -131,40 +218,120 @@ const error = ref("");
 const initialResult = ref<ScreeningResult | null>(null);
 const finalResult = ref<ScreeningResult | null>(null);
 
+const totalInitial = computed(() => {
+  if (!initialResult.value) return 0;
+
+  return (
+    Number(initialResult.value.physical_score) +
+    Number(initialResult.value.food_score) +
+    Number(initialResult.value.mind_score)
+  );
+});
+
+const totalFinal = computed(() => {
+  if (!finalResult.value) return 0;
+
+  return (
+    Number(finalResult.value.physical_score) +
+    Number(finalResult.value.food_score) +
+    Number(finalResult.value.mind_score)
+  );
+});
+
+// Позитивне значення означає покращення,
+// оскільки менша кількість балів — кращий результат.
+const totalImprovement = computed(() => totalInitial.value - totalFinal.value);
+
+const overallStatusClass = computed(() => {
+  if (totalImprovement.value > 0) return "improved";
+  if (totalImprovement.value < 0) return "declined";
+  return "unchanged";
+});
+
+const overallIcon = computed(() => {
+  if (totalImprovement.value > 0) return "trending_down";
+  if (totalImprovement.value < 0) return "trending_up";
+  return "trending_flat";
+});
+
+const overallChangeText = computed(() => {
+  const value = totalImprovement.value;
+
+  if (value > 0) {
+    return t("program.overallImproved", { value });
+  }
+
+  if (value < 0) {
+    return t("program.overallDeclined", { value: Math.abs(value) });
+  }
+
+  return t("program.overallUnchanged");
+});
+
 const comparisons = computed(() => {
   if (!initialResult.value || !finalResult.value) {
     return [];
   }
 
-  return [
+  const items = [
     {
       key: "physical",
       label: "program.physical",
       initial: Number(initialResult.value.physical_score),
       final: Number(finalResult.value.physical_score),
-      difference:
-        Number(finalResult.value.physical_score) -
-        Number(initialResult.value.physical_score),
     },
     {
       key: "food",
       label: "program.food",
       initial: Number(initialResult.value.food_score),
       final: Number(finalResult.value.food_score),
-      difference:
-        Number(finalResult.value.food_score) -
-        Number(initialResult.value.food_score),
     },
     {
       key: "mind",
       label: "program.mind",
       initial: Number(initialResult.value.mind_score),
       final: Number(finalResult.value.mind_score),
-      difference:
-        Number(finalResult.value.mind_score) -
-        Number(initialResult.value.mind_score),
     },
   ];
+
+  return items.map((item) => {
+    const improvement = item.initial - item.final;
+
+    let status: "improved" | "declined" | "unchanged";
+    let icon: string;
+    let changeText: string;
+    let insight: string;
+
+    if (improvement > 0) {
+      status = "improved";
+      icon = "trending_down";
+      changeText = t("program.improvedBy", {
+        value: improvement,
+      });
+      insight = t("program.directionImproved");
+    } else if (improvement < 0) {
+      status = "declined";
+      icon = "trending_up";
+      changeText = t("program.declinedBy", {
+        value: Math.abs(improvement),
+      });
+      insight = t("program.directionDeclined");
+    } else {
+      status = "unchanged";
+      icon = "trending_flat";
+      changeText = t("program.noChange");
+      insight = t("program.directionUnchanged");
+    }
+
+    return {
+      ...item,
+      improvement,
+      status,
+      icon,
+      changeText,
+      insight,
+    };
+  });
 });
 
 onMounted(async () => {
@@ -229,11 +396,18 @@ onMounted(async () => {
 });
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .page {
   min-height: 100vh;
-  padding: 24px 20px 40px;
-  background: var(--bg-gradient-main);
+  padding: 20px 18px 48px;
+  background: radial-gradient(
+      circle at 10% 0%,
+      var(--icon-green-bg),
+      transparent 40%
+    ),
+    radial-gradient(circle at 90% 15%, var(--blue-bg), transparent 38%),
+    var(--bg-gradient-main);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .loading {
@@ -253,176 +427,383 @@ onMounted(async () => {
 }
 
 .hero {
-  padding: 30px 10px 26px;
+  padding: 24px 8px 28px;
   text-align: center;
 }
 
 .hero-icon {
-  width: 94px;
-  height: 94px;
-  margin: 0 auto 22px;
+  width: 82px;
+  height: 82px;
+  margin: 0 auto 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 28px;
+  border-radius: 26px;
   background: var(--icon-green-bg);
   color: var(--green);
+  box-shadow: 0 12px 30px var(--shadow-green);
 }
 
 .hero-icon .material-icons {
-  font-size: 52px;
+  font-size: 44px;
+}
+
+.eyebrow {
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--green);
 }
 
 .title {
+  margin: 0;
   font-size: 30px;
-  font-weight: 800;
+  font-weight: 900;
   line-height: 1.2;
   color: var(--black1);
+  letter-spacing: -0.6px;
 }
 
 .subtitle {
-  max-width: 420px;
+  max-width: 440px;
   margin: 12px auto 0;
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.65;
   color: var(--grey2);
 }
 
-.comparison-card {
+.overall-card {
   padding: 24px 20px;
-  border-radius: 24px;
+  border-radius: 26px;
   background: var(--hero-icon);
   border: 1px solid var(--glass-border);
   box-shadow: 0 18px 45px var(--shadow-lg);
 }
 
-.comparison-title {
-  margin-bottom: 26px;
+.section-heading {
   font-size: 21px;
-  font-weight: 800;
+  font-weight: 850;
   color: var(--black1);
 }
 
-.comparison-item:not(:last-child) {
-  padding-bottom: 24px;
-  margin-bottom: 24px;
-  border-bottom: 1px solid var(--shadow-md);
-}
-
-.item-header {
+.overall-result {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  margin-top: 22px;
 }
 
-.item-title {
-  font-size: 17px;
-  font-weight: 700;
+.overall-number {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 34px;
+  font-weight: 900;
   color: var(--black1);
+  letter-spacing: -1px;
 }
 
-.change {
-  font-size: 18px;
+.overall-arrow {
+  font-size: 22px;
+  color: var(--grey);
+}
+
+.overall-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 13px;
+  border-radius: 14px;
+  font-size: 14px;
   font-weight: 800;
 }
 
-.change.improved {
+.overall-change .material-icons {
+  font-size: 19px;
+}
+
+.improved {
   color: var(--green);
 }
 
-.change.declined {
+.declined {
   color: var(--negative);
 }
 
-.change.unchanged {
+.unchanged {
   color: var(--grey);
 }
 
-.scores {
+.overall-change.improved,
+.change-badge.improved {
+  background: var(--icon-green-bg);
+}
+
+.overall-change.declined,
+.change-badge.declined {
+  background: var(--red-bg);
+}
+
+.overall-change.unchanged,
+.change-badge.unchanged {
+  background: var(--grey-hover);
+}
+
+.overall-labels {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 32px;
-  margin: 20px 0;
-}
-
-.score-column {
-  text-align: center;
-}
-
-.score-value {
-  font-size: 30px;
-  font-weight: 800;
-  color: var(--black1);
-}
-
-.score-label {
-  margin-top: 4px;
-  font-size: 12px;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 11px;
   color: var(--grey2);
 }
 
-.score-arrow {
-  color: var(--grey);
+.overall-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 18px;
 }
 
-.progress-track {
-  position: relative;
-  height: 10px;
+.overall-bar-row,
+.direction-bar-row {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 9px;
+  font-size: 11px;
+  color: var(--grey2);
+}
+
+.overall-bar-row strong,
+.direction-bar-row strong {
+  font-size: 12px;
+  color: var(--black1);
+  text-align: right;
+}
+
+.bar-track {
+  height: 11px;
   overflow: hidden;
   border-radius: 999px;
   background: var(--grey-hover);
 }
 
-.progress-initial,
-.progress-final {
-  position: absolute;
-  top: 0;
-  left: 0;
+.bar-fill {
   height: 100%;
   border-radius: inherit;
+  transition: width 0.7s ease;
 }
 
-.progress-initial {
+.initial-fill {
   background: var(--blue);
-  opacity: 0.45;
 }
 
-.progress-final {
+.final-fill {
   background: var(--green);
-  opacity: 0.9;
+}
+
+.score-explanation {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 22px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--blue-bg);
+  color: var(--grey2);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.score-explanation .material-icons {
+  flex-shrink: 0;
+  font-size: 17px;
+  color: var(--blue);
+}
+
+.directions-section {
+  margin-top: 32px;
+}
+
+.section-description {
+  margin: 7px 0 18px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--grey2);
+}
+
+.direction-card {
+  margin-bottom: 14px;
+  padding: 20px;
+  border-radius: 23px;
+  background: var(--hero-icon);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 12px 32px var(--shadow-md);
+}
+
+.direction-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.direction-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--black1);
+}
+
+.change-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 7px 9px;
+  border-radius: 11px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.change-badge .material-icons {
+  font-size: 16px;
+}
+
+.direction-scores {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  margin: 22px 0;
+}
+
+.score-block {
+  min-width: 65px;
+  text-align: center;
+}
+
+.score-value {
+  font-size: 34px;
+  font-weight: 900;
+  color: var(--grey2);
+}
+
+.final-value {
+  color: var(--green);
+}
+
+.score-caption {
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--grey2);
+}
+
+.direction-arrow {
+  font-size: 22px;
+  color: var(--grey);
+}
+
+.direction-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.direction-bar-row {
+  grid-template-columns: 75px minmax(0, 1fr) 22px;
+}
+
+.direction-insight {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 18px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.direction-insight .material-icons {
+  flex-shrink: 0;
+  font-size: 17px;
 }
 
 .max-score {
-  margin-top: 7px;
+  margin-top: 12px;
   font-size: 11px;
   color: var(--grey);
   text-align: right;
 }
 
 .finish-banner {
-  margin-top: 22px;
-  padding: 26px 22px;
-  border-radius: 22px;
+  margin-top: 28px;
+  padding: 28px 22px;
+  border-radius: 26px;
   background: var(--green-bg);
   color: var(--green-deep);
   text-align: center;
+  border: 1px solid var(--glass-border);
 }
 
-.finish-banner > .material-icons {
-  font-size: 42px;
+.finish-icon {
+  width: 66px;
+  height: 66px;
+  margin: 0 auto 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 22px;
+  background: var(--icon-green-bg);
+}
+
+.finish-icon .material-icons {
+  font-size: 38px;
+  color: var(--green);
 }
 
 .finish-banner-title {
-  margin-top: 10px;
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 21px;
+  font-weight: 900;
+  line-height: 1.3;
 }
 
 .finish-banner-text {
-  margin-top: 8px;
+  margin-top: 10px;
   font-size: 14px;
+  line-height: 1.65;
+}
+
+.finish-message {
+  margin-top: 18px;
+  padding-top: 17px;
+  border-top: 1px solid var(--shadow-md);
+  font-size: 14px;
+  font-weight: 750;
   line-height: 1.6;
+}
+
+@media (max-width: 380px) {
+  .page {
+    padding-right: 13px;
+    padding-left: 13px;
+  }
+
+  .overall-card,
+  .direction-card {
+    padding: 18px 15px;
+  }
+
+  .overall-number {
+    font-size: 29px;
+  }
+
+  .overall-bar-row,
+  .direction-bar-row {
+    grid-template-columns: 68px minmax(0, 1fr) 24px;
+    gap: 6px;
+  }
 }
 </style>
