@@ -74,6 +74,7 @@
 <script setup lang="ts">
 import { routes } from "~/router/routes";
 import { signInWithGoogle } from "~/services/googleAuth.service";
+import { authErrorKey } from "~/utils/authErrors";
 
 definePageMeta({
   middleware: "guest",
@@ -123,14 +124,16 @@ const login = async () => {
     });
 
     if (error) {
-      errorMessage.value = error.message;
+      errorMessage.value = t(
+        authErrorKey(error, "login") ?? "auth.errors.genericLogin"
+      );
       return;
     }
 
     const user = data.user;
 
     if (!user) {
-      errorMessage.value = t("auth.loginError");
+      errorMessage.value = t("auth.errors.genericLogin");
       return;
     }
 
@@ -138,7 +141,9 @@ const login = async () => {
   } catch (error) {
     console.error("[Auth] Login error:", error);
 
-    errorMessage.value = t("auth.loginError");
+    errorMessage.value = t(
+      authErrorKey(error, "login") ?? "auth.errors.genericLogin"
+    );
   } finally {
     loading.value = false;
   }
@@ -153,8 +158,9 @@ const loginWithGoogle = async () => {
   } catch (error) {
     console.error("[Auth] Google login error:", error);
 
-    errorMessage.value =
-      error instanceof Error ? error.message : t("auth.loginError");
+    errorMessage.value = t(
+      authErrorKey(error, "login") ?? "auth.errors.genericLogin"
+    );
     googleLoading.value = false;
   }
 };
@@ -169,7 +175,7 @@ const redirectAfterLogin = async (userId: string) => {
   if (screeningError) {
     console.error("[Auth] Screening check error:", screeningError);
 
-    errorMessage.value = screeningError.message;
+    errorMessage.value = t("auth.errors.screeningCheck");
     return;
   }
 
