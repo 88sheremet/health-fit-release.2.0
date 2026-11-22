@@ -25,7 +25,15 @@
       </div>
 
       <div class="text final-description">
-        {{ $t("weekly.final.description") }}
+        <template v-if="!finalScreeningStatusLoaded">
+          {{ $t("weekly.final.description") }}
+        </template>
+        <template v-else-if="finalScreeningCompleted">
+          {{ $t("weekly.final.completedDescription") }}
+        </template>
+        <template v-else>
+          {{ $t("weekly.final.description") }}
+        </template>
       </div>
 
       <q-btn
@@ -33,8 +41,13 @@
         no-caps
         color="primary"
         class="complete-btn"
-        :label="$t('weekly.final.button')"
-        @click="startFinalScreening"
+        :disable="!finalScreeningStatusLoaded"
+        :label="
+          finalScreeningCompleted
+            ? $t('weekly.final.resultsButton')
+            : $t('weekly.final.button')
+        "
+        @click="handleFinalScreening"
       />
     </q-card>
 
@@ -252,6 +265,7 @@ definePageMeta({
 
 const { t, locale } = useI18n();
 
+const supabase = useSupabaseClient();
 const store = useWeeklyTaskStore();
 const screeningStore = useScreeningStore();
 
@@ -275,6 +289,9 @@ const completing = ref(false);
 const zoneError = ref("");
 const taskError = ref("");
 
+const finalScreeningCompleted = ref(false);
+const finalScreeningStatusLoaded = ref(false);
+
 const savingZones = reactive<Record<WeeklyZoneKey, boolean>>({
   desk: false,
   wardrobe: false,
@@ -291,17 +308,71 @@ const zones: { key: WeeklyZoneKey; label: string }[] = [
   { key: "drawers", label: "weekly.zones.drawers" },
 ];
 
-await store.init(locale.value);
+/**
+ * Проверяет, сохранён ли финальный скрининг.
+ */
+async function checkFinalScreening(): Promise<boolean> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw userError;
+  }
+
+  if (!user) {
+    throw new Error("Пользователь не авторизован");
+  }
+
+  const { data, error } = await supabase
+    .from("final_screening_results")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  finalScreeningCompleted.value = Boolean(data);
+  finalScreeningStatusLoaded.value = true;
+
+  return finalScreeningCompleted.value;
+}
+
+async function handleFinalScreening() {
+  try {
+    const isCompleted = await checkFinalScreening();
+
+    if (isCompleted) {
+      await navigateTo("/final-result");
+      return;
+    }
+
+    screeningStore.startScreening("final");
+    await navigateTo("/questions");
+  } catch (error) {
+    console.error(
+      "[WeeklyPage] Не удалось проверить наличие финального скрининга:",
+      error,
+    );
+  }
+}
+
+await Promise.all([
+  store.init(locale.value),
+  checkFinalScreening().catch((error) => {
+    console.error(
+      "[WeeklyPage] Не удалось загрузить статус финального скрининга:",
+      error,
+    );
+  }),
+]);
 
 watch(locale, async (newLocale) => {
   await store.loadTasks(newLocale);
 });
-
-async function startFinalScreening() {
-  screeningStore.startScreening("final");
-
-  await navigateTo("/questions");
-}
 
 async function toggleZone(
   zoneKey: WeeklyZoneKey,

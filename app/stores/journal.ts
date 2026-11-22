@@ -90,11 +90,52 @@ export const useJournalStore = defineStore("journal", {
     async init() {
       await this.loadEntries();
 
+      const supabase = useSupabaseClient();
+
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) {
+        console.error("[Journal] Ошибка получения пользователя:", userError);
+        this.showCheckin = false;
+        throw userError;
+      }
+
+      if (!user) {
+        this.showCheckin = false;
+        return;
+      }
+
+      const { data: finalScreening, error: finalScreeningError } =
+        await supabase
+          .from("final_screening_results")
+          .select("id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+      if (finalScreeningError) {
+        console.error(
+          "[Journal] Ошибка проверки финального скрининга:",
+          finalScreeningError,
+        );
+
+        this.showCheckin = false;
+        throw finalScreeningError;
+      }
+
+      // После финального скрининга ежедневный Check-In больше не показываем.
+      if (finalScreening) {
+        this.showCheckin = false;
+        return;
+      }
+
       const today = getToday();
 
       const todayCheckin = this.entries.find(
         (entry) =>
-          entry.type === "checkin" && normalizeDate(entry.date) === today
+          entry.type === "checkin" && normalizeDate(entry.date) === today,
       );
 
       this.showCheckin = !todayCheckin;
@@ -122,7 +163,7 @@ export const useJournalStore = defineStore("journal", {
           entry_type,
           mood,
           note
-        `
+        `,
         )
         .eq("user_id", user.id)
         .order("date", {
@@ -156,7 +197,7 @@ export const useJournalStore = defineStore("journal", {
 
       const existingCheckin = this.entries.find(
         (entry) =>
-          entry.type === "checkin" && normalizeDate(entry.date) === today
+          entry.type === "checkin" && normalizeDate(entry.date) === today,
       );
 
       const journalTable = getJournalTable();
@@ -180,7 +221,7 @@ export const useJournalStore = defineStore("journal", {
             entry_type,
             mood,
             note
-          `
+          `,
           )
           .single();
 
@@ -202,7 +243,7 @@ export const useJournalStore = defineStore("journal", {
             entry_type,
             mood,
             note
-          `
+          `,
           )
           .single();
 
@@ -233,14 +274,14 @@ export const useJournalStore = defineStore("journal", {
        */
       if (existingCheckin) {
         this.entries = this.entries.filter(
-          (item) => item.id !== existingCheckin.id
+          (item) => item.id !== existingCheckin.id,
         );
       }
 
       this.entries.push(entry);
 
       this.entries.sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
       );
 
       this.showCheckin = false;
@@ -256,7 +297,7 @@ export const useJournalStore = defineStore("journal", {
       return this.entries.find(
         (entry) =>
           entry.type === "checkin" &&
-          normalizeDate(entry.date) === normalizedDate
+          normalizeDate(entry.date) === normalizedDate,
       );
     },
 
@@ -264,7 +305,7 @@ export const useJournalStore = defineStore("journal", {
       const normalizedDate = normalizeDate(date);
 
       return this.entries.find(
-        (entry) => normalizeDate(entry.date) === normalizedDate
+        (entry) => normalizeDate(entry.date) === normalizedDate,
       );
     },
 
@@ -334,7 +375,7 @@ export const useJournalStore = defineStore("journal", {
           entry_type,
           mood,
           note
-        `
+        `,
         )
         .single();
 
@@ -352,7 +393,7 @@ export const useJournalStore = defineStore("journal", {
       this.entries.push(entry);
 
       this.entries.sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
       );
     },
   },

@@ -39,7 +39,15 @@
       </div>
 
       <div class="program-finished-text">
-        {{ $t("weekly.final.description") }}
+        <template v-if="!finalScreeningStatusLoaded">
+          {{ $t("weekly.final.description") }}
+        </template>
+        <template v-else-if="finalScreeningCompleted">
+          {{ $t("weekly.final.completedDescription") }}
+        </template>
+        <template v-else>
+          {{ $t("weekly.final.description") }}
+        </template>
       </div>
 
       <q-btn
@@ -47,8 +55,13 @@
         rounded
         color="primary"
         class="program-finished-button"
-        :label="$t('weekly.final.button')"
-        @click="startFinalScreening"
+        :disable="!finalScreeningStatusLoaded"
+        :label="
+          finalScreeningCompleted
+            ? $t('weekly.final.resultsButton')
+            : $t('weekly.final.button')
+        "
+        @click="handleFinalScreening"
       />
     </div>
 
@@ -198,6 +211,9 @@ const currentRewardPhrase = ref("");
 
 const undoSeconds = ref(0);
 const undoLoading = ref(false);
+
+const finalScreeningCompleted = ref(false);
+const finalScreeningStatusLoaded = ref(false);
 
 let undoInterval: ReturnType<typeof setInterval> | undefined;
 let rewardTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -381,9 +397,59 @@ async function undoFoodTask() {
   }
 }
 
-async function startFinalScreening() {
-  screeningStore.startScreening("final");
-  await navigateTo("/questions");
+/**
+ * Проверяет, сохранён ли финальный скрининг.
+ * При ошибке не разрешаем запускать новый скрининг вслепую.
+ */
+async function checkFinalScreening(): Promise<boolean> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw userError;
+  }
+
+  if (!user) {
+    throw new Error("Пользователь не авторизован");
+  }
+
+  const { data, error } = await supabase
+    .from("final_screening_results")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  finalScreeningCompleted.value = Boolean(data);
+  finalScreeningStatusLoaded.value = true;
+
+  return finalScreeningCompleted.value;
+}
+
+async function handleFinalScreening() {
+  try {
+    const isCompleted = await checkFinalScreening();
+
+    if (isCompleted) {
+      await navigateTo("/final-result");
+      return;
+    }
+
+    screeningStore.startScreening("final");
+    await navigateTo("/questions");
+  } catch (error) {
+    console.error("[Daily] Не удалось проверить финальный скрининг:", error);
+
+    $q.notify({
+      type: "negative",
+      message: t("taskDetails.completeError"),
+    });
+  }
 }
 
 async function loadUserName() {
@@ -425,11 +491,27 @@ async function loadUserName() {
 }
 
 onMounted(async () => {
-  await Promise.all([
+  const results = await Promise.allSettled([
     store.init(locale.value),
     journalStore.init(),
     loadUserName(),
+    checkFinalScreening(),
   ]);
+
+  const finalScreeningResult = results[3];
+
+  if (
+    finalScreeningResult.status === "fulfilled" &&
+    finalScreeningResult.value
+  ) {
+    // После завершения программы Daily Check-In больше не показываем.
+    journalStore.showCheckin = false;
+  } else if (finalScreeningResult.status === "rejected") {
+    console.error(
+      "[Daily] Не удалось проверить наличие финального скрининга:",
+      finalScreeningResult.reason,
+    );
+  }
 });
 
 watch(
