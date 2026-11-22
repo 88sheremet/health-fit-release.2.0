@@ -16,9 +16,9 @@ export default defineConfig({
   },
   projects: [{ name: "chromium", use: { browserName: "chromium" } }],
   webServer: {
-    command: "npx nuxt dev --port 3100",
+    command: "npx nuxt build && npx nuxt preview --port 3100",
     port: 3100,
     reuseExistingServer: false,
-    timeout: 120_000,
+    timeout: 300_000,
   },
 });

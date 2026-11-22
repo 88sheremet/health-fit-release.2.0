@@ -408,6 +408,75 @@ export interface Database {
         };
         Relationships: [];
       };
+      notification_settings: {
+        Row: {
+          user_id: string;
+          enabled: boolean;
+          reminder_time: string;
+          days_of_week: number[];
+          timezone: string;
+          last_sent_local_date: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          enabled?: boolean;
+          reminder_time?: string;
+          days_of_week?: number[];
+          timezone?: string;
+          last_sent_local_date?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          enabled?: boolean;
+          reminder_time?: string;
+          days_of_week?: number[];
+          timezone?: string;
+          last_sent_local_date?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      push_subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          expiration_time: string | null;
+          user_agent: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          expiration_time?: string | null;
+          user_agent?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          endpoint?: string;
+          p256dh?: string;
+          auth?: string;
+          expiration_time?: string | null;
+          user_agent?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           user_id: string;

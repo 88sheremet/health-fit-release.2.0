@@ -225,6 +225,7 @@ export async function clearSupabaseSession(page: Page) {
 
 type MockState = {
   completions: Array<Record<string, unknown>>;
+  notificationSettings: any | null;
 };
 
 /**
@@ -237,9 +238,16 @@ function buildRouteHandler(opts?: {
   user?: typeof MOCK_USER | null;
   session?: typeof MOCK_SESSION | null;
   screeningResult?: any;
+  finalScreeningResult?: any;
   profile?: any;
   failOAuthExchange?: boolean;
   state?: Partial<MockState>;
+
+  /** Seed row returned by GET /rest/v1/notification_settings. */
+  notificationSettings?: any;
+
+  /** Called with the payload of an upsert to notification_settings. */
+  onNotificationSettingsSave?: (row: any) => void;
 
   /**
    * Seed rows for GET /rest/v1/user_progress.
@@ -277,6 +285,8 @@ function buildRouteHandler(opts?: {
 }) {
   const state: MockState = {
     completions: opts?.state?.completions ?? opts?.completions ?? [],
+    notificationSettings:
+      opts?.state?.notificationSettings ?? opts?.notificationSettings ?? null,
   };
 
   return function handleSupabaseRoute(route: Route, request: any): void {
@@ -418,6 +428,27 @@ function buildRouteHandler(opts?: {
 
     if (
       url.includes("/rest/v1/screening_results") &&
+      (method === "POST" || method === "PATCH")
+    ) {
+      return route.fulfill({
+        status: 201,
+        json: {},
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    // rest/v1/final_screening_results — the journal store uses this to decide
+    // whether the daily check-in dialog is still relevant for the user.
+    if (url.includes("/rest/v1/final_screening_results") && method === "GET") {
+      return route.fulfill({
+        status: 200,
+        json: opts?.finalScreeningResult ?? null,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (
+      url.includes("/rest/v1/final_screening_results") &&
       (method === "POST" || method === "PATCH")
     ) {
       return route.fulfill({
@@ -678,6 +709,41 @@ function buildRouteHandler(opts?: {
       });
     }
 
+    // rest/v1/notification_settings (push notification schedule)
+    if (url.includes("/rest/v1/notification_settings")) {
+      if (method === "POST") {
+        const body = request.postDataJSON() ?? {};
+
+        state.notificationSettings = { ...body };
+        opts?.onNotificationSettingsSave?.(body);
+
+        return route.fulfill({
+          status: 201,
+          json: [body],
+          headers: { "content-type": "application/json" },
+        });
+      }
+
+      if (method === "GET") {
+        return route.fulfill({
+          status: 200,
+          json: state.notificationSettings,
+          headers: { "content-type": "application/json" },
+        });
+      }
+
+      return route.fallback();
+    }
+
+    // rest/v1/push_subscriptions — no stored subscriptions in the mock browser.
+    if (url.includes("/rest/v1/push_subscriptions")) {
+      return route.fulfill({
+        status: method === "GET" ? 200 : 201,
+        json: method === "GET" ? [] : {},
+        headers: { "content-type": "application/json" },
+      });
+    }
+
     return route.fallback();
   };
 }
@@ -712,6 +778,62 @@ export async function mockScreeningCompleted(page: Page) {
     },
     profile: { user_id: MOCK_USER.id, name: "Тест", gender: "male" },
   });
+  await page.route(SUPABASE_ROUTE, handler);
+}
+
+/** Mock Supabase for a user who finished the final screening. */
+export async function mockFinalScreeningCompleted(page: Page) {
+  await seedSupabaseSession(page);
+  const handler = buildRouteHandler({
+    user: MOCK_USER,
+    session: MOCK_SESSION,
+    screeningResult: {
+      id: "sr-1",
+      user_id: MOCK_USER.id,
+      dominant_problem: "physical",
+    },
+    finalScreeningResult: {
+      user_id: MOCK_USER.id,
+      dominant_problem: "mind",
+      completed_at: "2026-08-03T12:00:00Z",
+    },
+    profile: { user_id: MOCK_USER.id, name: "Тест", gender: "male" },
+  });
+  await page.route(SUPABASE_ROUTE, handler);
+}
+
+/** Mock Supabase for the settings page, including push notification state. */
+export async function mockNotificationSettings(
+  page: Page,
+  options: {
+    settings?: any;
+    onSave?: (row: any) => void;
+    permission?: "default" | "granted" | "denied";
+  } = {},
+) {
+  await seedSupabaseSession(page);
+
+  if (options.permission) {
+    const permission = options.permission;
+
+    await page.addInitScript((state) => {
+      Object.defineProperty(Notification, "permission", {
+        configurable: true,
+        get: () => state,
+      });
+
+      Notification.requestPermission = async () => state as NotificationPermission;
+    }, permission);
+  }
+
+  const handler = buildRouteHandler({
+    user: MOCK_USER,
+    session: MOCK_SESSION,
+    profile: { user_id: MOCK_USER.id, name: "Тест", gender: "male" },
+    notificationSettings: options.settings,
+    onNotificationSettingsSave: options.onSave,
+  });
+
   await page.route(SUPABASE_ROUTE, handler);
 }
 

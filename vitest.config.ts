@@ -2,6 +2,9 @@ import { defineConfig } from "vitest/config";
 import { resolve } from "node:path";
 
 export default defineConfig({
+  define: {
+    "import.meta.client": true,
+  },
   resolve: {
     alias: {
       "~": resolve(import.meta.dirname, "app"),

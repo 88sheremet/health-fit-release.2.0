@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import {
   mockSupabaseAuth,
   mockScreeningCompleted,
+  mockFinalScreeningCompleted,
 } from "./helpers/supabase-mock";
 
 test.describe("Welcome page", () => {
@@ -118,5 +119,16 @@ test.describe("Questions flow", () => {
     await expect(page.locator(".block-counter")).toContainText("2", {
       timeout: 10000,
     });
+  });
+});
+
+test.describe("Final screening", () => {
+  test("suppresses the daily check-in dialog", async ({ page }) => {
+    await mockFinalScreeningCompleted(page);
+
+    await page.goto("/daily");
+
+    await expect(page.locator(".energy-card")).toBeVisible({ timeout: 20000 });
+    await expect(page.locator(".checkin-card")).toHaveCount(0);
   });
 });

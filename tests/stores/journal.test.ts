@@ -37,6 +37,8 @@ function setupSupabaseClient(options: {
   selectResult?: QueryResult;
   writeResult?: QueryResult;
   deleteError?: any;
+  finalScreeningResult?: QueryResult;
+  userError?: any;
 }) {
   const {
     user,
@@ -50,13 +52,18 @@ function setupSupabaseClient(options: {
       error: null,
     },
     deleteError = null,
+    finalScreeningResult = {
+      data: null,
+      error: null,
+    },
+    userError = null,
   } = options;
 
   mockGetUser = vi.fn().mockResolvedValue({
     data: {
       user,
     },
-    error: null,
+    error: userError,
   });
 
   mockInsert = vi.fn().mockReturnValue(createSelectChain(writeResult));
@@ -83,6 +90,13 @@ function setupSupabaseClient(options: {
     }),
   });
 
+  const finalScreeningChain = Promise.resolve(finalScreeningResult) as any;
+  finalScreeningChain.select = vi.fn().mockReturnValue(finalScreeningChain);
+  finalScreeningChain.eq = vi.fn().mockReturnValue(finalScreeningChain);
+  finalScreeningChain.maybeSingle = vi
+    .fn()
+    .mockResolvedValue(finalScreeningResult);
+
   const client = {
     auth: {
       getUser: mockGetUser,
@@ -96,6 +110,10 @@ function setupSupabaseClient(options: {
           update: mockUpdate,
           delete: mockDelete,
         };
+      }
+
+      if (table === "final_screening_results") {
+        return finalScreeningChain;
       }
 
       return {};
@@ -1093,6 +1111,58 @@ describe("journal store", () => {
       await store.init();
 
       expect(store.showCheckin).toBe(true);
+    });
+
+    it("does not show checkin after the final screening is completed", async () => {
+      setupSupabaseClient({
+        user: { id: "u1" },
+        selectResult: { data: [], error: null },
+        finalScreeningResult: {
+          data: { id: "fs1" },
+          error: null,
+        },
+      });
+
+      const store = useJournalStore();
+
+      await store.init();
+
+      expect(store.showCheckin).toBe(false);
+    });
+
+    it("propagates final screening lookup errors and hides checkin", async () => {
+      const error = { message: "final screening lookup failed" };
+
+      setupSupabaseClient({
+        user: { id: "u1" },
+        finalScreeningResult: { data: null, error },
+      });
+
+      const store = useJournalStore();
+
+      await expect(store.init()).rejects.toBe(error);
+      expect(store.showCheckin).toBe(false);
+    });
+
+    it("propagates user lookup errors and hides checkin", async () => {
+      const error = { message: "user lookup failed" };
+
+      setupSupabaseClient({ user: null, userError: error });
+
+      const store = useJournalStore();
+
+      await expect(store.init()).rejects.toBe(error);
+      expect(store.showCheckin).toBe(false);
+    });
+
+    it("hides checkin without an authenticated user", async () => {
+      setupSupabaseClient({ user: null });
+
+      const store = useJournalStore();
+
+      await store.init();
+
+      expect(store.showCheckin).toBe(false);
     });
   });
 });
