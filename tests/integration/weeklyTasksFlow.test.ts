@@ -116,7 +116,35 @@ describe("weekly tasks flow integration", () => {
     vi.useRealTimers();
   });
 
-  it("falls back to cyclic task when week exceeds available tasks", async () => {
+  it("selects the configured week 4 task", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-06T12:00:00"));
+
+    getWeeklyTasks.mockResolvedValue([
+      ...mockWeeklyTasks,
+      {
+        id: "wk4-morning",
+        week: 4,
+        title: "Morning Routine",
+        what_doing: "7 day challenge",
+        why_doing: "Energy",
+      },
+    ]);
+
+    const daily = useTaskStore();
+    daily.startDate = "2026-06-15";
+
+    const store = useWeeklyTaskStore();
+    await store.loadTasks();
+
+    expect(store.currentWeek).toBe(4);
+    expect(store.currentTask.id).toBe("wk4-morning");
+    expect(store.currentTask.nameProgram).toBe("Morning Routine");
+
+    vi.useRealTimers();
+  });
+
+  it("returns an empty task when week 4 has no configured task", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-06T12:00:00"));
 
@@ -127,10 +155,13 @@ describe("weekly tasks flow integration", () => {
     await store.loadTasks();
 
     expect(store.currentWeek).toBe(4);
-    // weekIndex=3, 3 % 3 = 0 → tasks[0] = wk1
-    const task = store.currentTask;
-    expect(task.id).toBe("wk1");
-    expect(task.nameProgram).toBe("Breathing Exercise");
+    expect(store.currentTask).toEqual({
+      id: "",
+      nameProgram: "",
+      whatDoing: "",
+      whyDoing: "",
+    });
+    expect(store.canComplete).toBe(false);
 
     vi.useRealTimers();
   });

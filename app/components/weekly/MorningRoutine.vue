@@ -78,7 +78,9 @@ const videoSources: Record<string, string> = {
 
 const selectedExerciseIndex = ref(0);
 
-const selectedExercise = computed(() => exercises[selectedExerciseIndex.value]);
+const selectedExercise = computed(
+  () => exercises[selectedExerciseIndex.value] ?? exercises[0]!
+);
 
 const selectedVideoSrc = computed(
   () => videoSources[selectedExercise.value.file] ?? "",

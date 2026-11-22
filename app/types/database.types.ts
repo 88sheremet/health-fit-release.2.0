@@ -228,6 +228,33 @@ export interface Database {
         };
         Relationships: [];
       };
+      weekly_task_daily_completions: {
+        Row: {
+          id: string;
+          user_id: string;
+          weekly_task_id: string;
+          week: number;
+          day_number: number;
+          completed_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          weekly_task_id: string;
+          week: number;
+          day_number: number;
+          completed_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          weekly_task_id?: string;
+          week?: number;
+          day_number?: number;
+          completed_at?: string;
+        };
+        Relationships: [];
+      };
       weekly_task_zone_progress: {
         Row: {
           id: string;
@@ -316,6 +343,39 @@ export interface Database {
         Relationships: [];
       };
       screening_results: {
+        Row: {
+          user_id: string;
+          answers: Json;
+          physical_score: number | null;
+          food_score: number | null;
+          mind_score: number | null;
+          dominant_problem: string | null;
+          completed_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          answers: Json;
+          physical_score?: number | null;
+          food_score?: number | null;
+          mind_score?: number | null;
+          dominant_problem?: string | null;
+          completed_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          answers?: Json;
+          physical_score?: number | null;
+          food_score?: number | null;
+          mind_score?: number | null;
+          dominant_problem?: string | null;
+          completed_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      final_screening_results: {
         Row: {
           user_id: string;
           answers: Json;

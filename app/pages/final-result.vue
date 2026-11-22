@@ -196,6 +196,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 
+import {
+  getChangeIcon,
+  getChangeStatus,
+  getOverallChangeText,
+  getScoreComparisons,
+  getTotalScore,
+} from "~/utils/finalResult";
+
 definePageMeta({
   layout: "authenticated",
   middleware: "auth",
@@ -218,121 +226,25 @@ const error = ref("");
 const initialResult = ref<ScreeningResult | null>(null);
 const finalResult = ref<ScreeningResult | null>(null);
 
-const totalInitial = computed(() => {
-  if (!initialResult.value) return 0;
+const totalInitial = computed(() => getTotalScore(initialResult.value));
 
-  return (
-    Number(initialResult.value.physical_score) +
-    Number(initialResult.value.food_score) +
-    Number(initialResult.value.mind_score)
-  );
-});
+const totalFinal = computed(() => getTotalScore(finalResult.value));
 
-const totalFinal = computed(() => {
-  if (!finalResult.value) return 0;
-
-  return (
-    Number(finalResult.value.physical_score) +
-    Number(finalResult.value.food_score) +
-    Number(finalResult.value.mind_score)
-  );
-});
-
-// Позитивне значення означає покращення,
-// оскільки менша кількість балів — кращий результат.
 const totalImprovement = computed(() => totalInitial.value - totalFinal.value);
 
-const overallStatusClass = computed(() => {
-  if (totalImprovement.value > 0) return "improved";
-  if (totalImprovement.value < 0) return "declined";
-  return "unchanged";
-});
+const overallStatusClass = computed(() =>
+  getChangeStatus(totalImprovement.value)
+);
 
-const overallIcon = computed(() => {
-  if (totalImprovement.value > 0) return "trending_down";
-  if (totalImprovement.value < 0) return "trending_up";
-  return "trending_flat";
-});
+const overallIcon = computed(() => getChangeIcon(overallStatusClass.value));
 
-const overallChangeText = computed(() => {
-  const value = totalImprovement.value;
+const overallChangeText = computed(() =>
+  getOverallChangeText(totalImprovement.value, t)
+);
 
-  if (value > 0) {
-    return t("program.overallImproved", { value });
-  }
-
-  if (value < 0) {
-    return t("program.overallDeclined", { value: Math.abs(value) });
-  }
-
-  return t("program.overallUnchanged");
-});
-
-const comparisons = computed(() => {
-  if (!initialResult.value || !finalResult.value) {
-    return [];
-  }
-
-  const items = [
-    {
-      key: "physical",
-      label: "program.physical",
-      initial: Number(initialResult.value.physical_score),
-      final: Number(finalResult.value.physical_score),
-    },
-    {
-      key: "food",
-      label: "program.food",
-      initial: Number(initialResult.value.food_score),
-      final: Number(finalResult.value.food_score),
-    },
-    {
-      key: "mind",
-      label: "program.mind",
-      initial: Number(initialResult.value.mind_score),
-      final: Number(finalResult.value.mind_score),
-    },
-  ];
-
-  return items.map((item) => {
-    const improvement = item.initial - item.final;
-
-    let status: "improved" | "declined" | "unchanged";
-    let icon: string;
-    let changeText: string;
-    let insight: string;
-
-    if (improvement > 0) {
-      status = "improved";
-      icon = "trending_down";
-      changeText = t("program.improvedBy", {
-        value: improvement,
-      });
-      insight = t("program.directionImproved");
-    } else if (improvement < 0) {
-      status = "declined";
-      icon = "trending_up";
-      changeText = t("program.declinedBy", {
-        value: Math.abs(improvement),
-      });
-      insight = t("program.directionDeclined");
-    } else {
-      status = "unchanged";
-      icon = "trending_flat";
-      changeText = t("program.noChange");
-      insight = t("program.directionUnchanged");
-    }
-
-    return {
-      ...item,
-      improvement,
-      status,
-      icon,
-      changeText,
-      insight,
-    };
-  });
-});
+const comparisons = computed(() =>
+  getScoreComparisons(initialResult.value, finalResult.value, t)
+);
 
 onMounted(async () => {
   try {
