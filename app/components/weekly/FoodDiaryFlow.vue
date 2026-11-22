@@ -1205,7 +1205,7 @@ onMounted(loadData);
 }
 
 .error-banner {
-  background: rgba(193, 53, 53, 0.08);
+  background: var(--error-banner-bg);
   color: var(--negative);
 }
 

@@ -356,12 +356,12 @@ onMounted(() => {
   gap: 4px;
   border: 1px solid var(--q-separator-color);
   border-radius: 12px;
-  background: rgba(128, 128, 128, 0.04);
+  background: var(--day-bg);
 }
 
 .day-item--completed {
   border-color: var(--q-positive);
-  background: rgba(33, 186, 69, 0.08);
+  background: var(--day-completed-bg);
 }
 
 .day-item--current {
@@ -370,7 +370,7 @@ onMounted(() => {
 
 .day-item--missed {
   border-color: var(--q-negative);
-  background: rgba(193, 0, 21, 0.05);
+  background: var(--day-missed-bg);
 }
 
 .exercise-video {
@@ -378,7 +378,7 @@ onMounted(() => {
   width: 100%;
   max-height: 420px;
   border-radius: 12px;
-  background: #000;
+  background: var(--black);
   object-fit: contain;
 }
 
@@ -404,11 +404,11 @@ onMounted(() => {
 
 .exercise-btn--active {
   background: var(--q-primary);
-  color: #fff;
+  color: var(--white);
 }
 
 .exercise-btn--inactive {
-  background: rgba(25, 118, 210, 0.08);
+  background: var(--exercise-btn-bg);
   color: var(--q-primary);
 }
 
@@ -418,7 +418,7 @@ onMounted(() => {
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0;
-  box-shadow: 0 4px 12px rgba(33, 186, 69, 0.2);
+  box-shadow: var(--complete-btn-shadow);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 

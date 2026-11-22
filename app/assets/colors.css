@@ -1,6 +1,7 @@
 :root {
   /* ---------- Base colors ---------- */
   --white: #ffffff;
+  --black: #000000;
   --black1: #1d1d1f;
   --text-light: #213547;
 
@@ -39,7 +40,16 @@
 
   /* ---------- Borders & focus ---------- */
   --border-default: #e5e7eb;
+  --divider-border: rgba(0, 0, 0, 0.1);
   --focus-ring: 0 0 0 3px rgba(76, 175, 80, 0.3);
+
+  /* ---------- Form controls ---------- */
+  --field-bg: #f8fbf8;
+  --field-border: #dce8dd;
+  --field-label: #718273;
+  --field-icon: #7ca982;
+  --field-focus-shadow: 0 0 0 3px rgba(75, 145, 91, 0.1);
+  --error-text: #c62828;
 
   /* ---------- Glass backgrounds ---------- */
   --hero-icon: rgba(255, 255, 255, 0.7);
@@ -77,6 +87,11 @@
   --green-gradient-end: rgba(34, 197, 94, 0.05);
   --blue-bg: rgba(33, 150, 243, 0.1);
   --green-selection: rgba(76, 175, 80, 0.2);
+  --day-bg: rgba(128, 128, 128, 0.04);
+  --day-completed-bg: rgba(33, 186, 69, 0.08);
+  --day-missed-bg: rgba(193, 0, 21, 0.05);
+  --exercise-btn-bg: rgba(25, 118, 210, 0.08);
+  --error-banner-bg: rgba(193, 53, 53, 0.08);
 
   /* ---------- Glows ---------- */
   --glow-gold: rgba(255, 215, 0, 0.25);
@@ -106,4 +121,5 @@
   /* ---------- Specific shadows ---------- */
   --start-btn-shadow: 0 10px 30px rgba(76, 175, 80, 0.35);
   --hero-icon-shadow: 0 10px 40px rgba(255, 152, 0, 0.2);
+  --complete-btn-shadow: 0 4px 12px rgba(33, 186, 69, 0.2);
 }

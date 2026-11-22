@@ -467,7 +467,7 @@ watch(
 
 .stage-completed .stage-number {
   background: var(--green);
-  color: white;
+  color: var(--white);
 }
 
 .stage-missed {
@@ -534,7 +534,7 @@ watch(
 .instruction-main-task {
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid var(--divider-border);
   line-height: 1.6;
 }
 

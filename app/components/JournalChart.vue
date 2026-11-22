@@ -49,14 +49,13 @@ const store = useJournalStore();
 
 const { locale, t } = useI18n();
 
-const CHART_GREEN = resolveCssColor("--green", "#4caf50");
+const CHART_GREEN = resolveCssColor("--green");
 
-function resolveCssColor(varName: string, fallback: string): string {
-  if (typeof window === "undefined") return fallback;
-  return (
-    getComputedStyle(document.documentElement).getPropertyValue(varName).trim() ||
-    fallback
-  );
+function resolveCssColor(varName: string): string {
+  if (typeof window === "undefined") return "";
+  return getComputedStyle(document.documentElement)
+    .getPropertyValue(varName)
+    .trim();
 }
 
 const checkinEntries = computed(() =>

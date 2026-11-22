@@ -213,12 +213,12 @@ async function saveProfile() {
 .name-input :deep(.q-field__control) {
   min-height: 60px;
   border-radius: 16px;
-  background: #f8fbf8;
+  background: var(--field-bg);
   transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .name-input :deep(.q-field__control::before) {
-  border: 1.5px solid #dce8dd;
+  border: 1.5px solid var(--field-border);
   border-radius: 16px;
   transition: border-color 0.2s ease;
 }
@@ -241,7 +241,7 @@ async function saveProfile() {
 }
 
 .name-input :deep(.q-field__label) {
-  color: #718273;
+  color: var(--field-label);
   font-size: 14px;
 }
 
@@ -250,12 +250,12 @@ async function saveProfile() {
 }
 
 .name-input :deep(.q-field__control:focus-within) {
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgb(75 145 91 / 10%);
+  background: var(--white);
+  box-shadow: var(--field-focus-shadow);
 }
 
 .name-icon {
-  color: #7ca982;
+  color: var(--field-icon);
   font-size: 22px;
 }
 
@@ -278,7 +278,7 @@ async function saveProfile() {
 }
 
 .error-message {
-  color: #c62828;
+  color: var(--error-text);
   font-size: 14px;
 }
 
