@@ -46,6 +46,7 @@
     "sass-embedded": "^1.100.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.11",
-    "vue-tsc": "^3.3.11"
+    "vue-tsc": "^3.3.11",
+    "web-push": "^4.0.0"
   }
 }

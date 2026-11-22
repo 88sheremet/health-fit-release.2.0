@@ -14,6 +14,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     geminiApiKey: process.env.GEMINI_API_KEY || "",
     geminiModel: process.env.GEMINI_MODEL || "gemini-3.1-flash-lite",
+    public: {
+    vapidPublicKey: process.env.NUXT_PUBLIC_VAPID_PUBLIC_KEY || "",
+  },
   },
 
   i18n: {
