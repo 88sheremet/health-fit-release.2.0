@@ -6,6 +6,8 @@ import type { Block } from "../interfaces/Block.interface";
 import type { Answers } from "../interfaces/Answers.interface";
 import type { BlockScores } from "../interfaces/BlockScores.interface";
 
+export type ScreeningType = "initial" | "final";
+
 const SCREENING_BLOCKS: Block[] = [
   {
     id: 1,
@@ -22,7 +24,6 @@ const SCREENING_BLOCKS: Block[] = [
       { id: 109, text: "screeningBlocks.physical.q109" },
     ],
   },
-
   {
     id: 2,
     title: "screeningBlocks.food.title",
@@ -38,7 +39,6 @@ const SCREENING_BLOCKS: Block[] = [
       { id: 209, text: "screeningBlocks.food.q209" },
     ],
   },
-
   {
     id: 3,
     title: "screeningBlocks.mind.title",
@@ -59,15 +59,13 @@ const SCREENING_BLOCKS: Block[] = [
 export const useScreeningStore = defineStore("screening", {
   state: () => ({
     screeningCompleted: false,
+    screeningType: "initial" as ScreeningType,
 
     currentBlock: 0,
-
     answers: {} as Answers,
-
     blockScores: {} as BlockScores,
 
     loading: false,
-
     error: null as string | null,
   }),
 
@@ -100,6 +98,17 @@ export const useScreeningStore = defineStore("screening", {
   },
 
   actions: {
+    getTableName(): "screening_results" | "final_screening_results" {
+      return this.screeningType === "initial"
+        ? "screening_results"
+        : "final_screening_results";
+    },
+
+    startScreening(type: ScreeningType) {
+      this.screeningType = type;
+      this.resetScreening();
+    },
+
     async loadScreening() {
       this.loading = true;
       this.error = null;
@@ -112,39 +121,35 @@ export const useScreeningStore = defineStore("screening", {
           error: userError,
         } = await supabase.auth.getUser();
 
-        if (userError) {
-          throw userError;
-        }
+        if (userError) throw userError;
 
         if (!user) {
           this.resetScreening();
           return;
         }
 
+        const tableName = this.getTableName();
+
         const { data, error } = await supabase
-          .from("screening_results")
+          .from(tableName)
           .select(
             `
-              user_id,
-              answers,
-              physical_score,
-              food_score,
-              mind_score,
-              dominant_problem,
-              completed_at,
-              updated_at
-            `
+            user_id,
+            answers,
+            physical_score,
+            food_score,
+            mind_score,
+            dominant_problem,
+            completed_at,
+            updated_at
+          `,
           )
           .eq("user_id", user.id)
           .maybeSingle();
 
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
 
         if (!data) {
-          console.log("[Screening] Результат не найден — скрининг не пройден");
-
           this.resetScreening();
           return;
         }
@@ -158,7 +163,6 @@ export const useScreeningStore = defineStore("screening", {
         } as BlockScores;
 
         this.screeningCompleted = true;
-
         this.currentBlock = 0;
       } catch (error: any) {
         console.error("[Screening] Ошибка загрузки:", error);
@@ -184,9 +188,7 @@ export const useScreeningStore = defineStore("screening", {
           error: userError,
         } = await supabase.auth.getUser();
 
-        if (userError) {
-          throw userError;
-        }
+        if (userError) throw userError;
 
         if (!user) {
           throw new Error("Пользователь не авторизован");
@@ -195,37 +197,31 @@ export const useScreeningStore = defineStore("screening", {
         const now = new Date().toISOString();
 
         const dominantProblem = this.dominantProblem;
+        const tableName = this.getTableName();
 
-        const { error } = await supabase.from("screening_results").upsert(
+        const { error } = await supabase.from(tableName).upsert(
           {
             user_id: user.id,
-
             answers: this.answers,
-
             physical_score: this.blockScores[1] || 0,
-
             food_score: this.blockScores[2] || 0,
-
             mind_score: this.blockScores[3] || 0,
-
             dominant_problem: dominantProblem,
-
             completed_at: now,
-
             updated_at: now,
           },
           {
             onConflict: "user_id",
-          }
+          },
         );
 
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
 
         this.screeningCompleted = true;
 
-        console.log("[Screening] Результат сохранён в Supabase", {
+        console.log("[Screening] Результат сохранён:", {
+          type: this.screeningType,
+          table: tableName,
           physical: this.blockScores[1],
           food: this.blockScores[2],
           mind: this.blockScores[3],
@@ -244,8 +240,8 @@ export const useScreeningStore = defineStore("screening", {
     },
 
     async completeScreening() {
+      // Последний блок рассчитывается непосредственно перед сохранением.
       this.calculateCurrentBlockScore();
-
       await this.saveScreening();
     },
 
@@ -255,13 +251,12 @@ export const useScreeningStore = defineStore("screening", {
 
     validateCurrentBlock() {
       return this.currentBlockData.questions.every(
-        (question) => this.answers[question.id] !== undefined
+        (question) => this.answers[question.id] !== undefined,
       );
     },
 
     calculateCurrentBlockScore() {
       const block = this.currentBlockData;
-
       let total = 0;
 
       block.questions.forEach((question) => {
@@ -285,13 +280,9 @@ export const useScreeningStore = defineStore("screening", {
 
     resetScreening() {
       this.screeningCompleted = false;
-
       this.currentBlock = 0;
-
       this.answers = {};
-
       this.blockScores = {};
-
       this.error = null;
     },
   },

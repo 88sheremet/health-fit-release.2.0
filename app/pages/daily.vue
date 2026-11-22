@@ -5,7 +5,7 @@
         <div class="title">
           {{ $t("daily.greeting", { name: userName }) }} 👋
         </div>
-        <div class="subtitle">
+        <div v-if="!store.isProgramFinished" class="subtitle">
           {{ $t("daily.day", { n: store.dayIndex }) }}
         </div>
       </div>
@@ -29,7 +29,43 @@
       </div>
     </q-card>
 
-    <div v-if="store.isRestDay" class="rest-card">
+    <div v-if="store.isProgramFinished" class="program-finished-card">
+      <div class="program-finished-icon">
+        <span class="material-icons">emoji_events</span>
+      </div>
+
+      <div class="program-finished-title">
+        {{ $t("weekly.final.title") }}
+      </div>
+
+      <div class="program-finished-text">
+        <template v-if="!finalScreeningStatusLoaded">
+          {{ $t("weekly.final.description") }}
+        </template>
+        <template v-else-if="finalScreeningCompleted">
+          {{ $t("weekly.final.completedDescription") }}
+        </template>
+        <template v-else>
+          {{ $t("weekly.final.description") }}
+        </template>
+      </div>
+
+      <q-btn
+        unelevated
+        rounded
+        color="primary"
+        class="program-finished-button"
+        :disable="!finalScreeningStatusLoaded"
+        :label="
+          finalScreeningCompleted
+            ? $t('weekly.final.resultsButton')
+            : $t('weekly.final.button')
+        "
+        @click="handleFinalScreening"
+      />
+    </div>
+
+    <div v-else-if="store.isRestDay" class="rest-card">
       <div class="emoji">🌿</div>
       <div class="rest-title">{{ $t("daily.restTitle") }}</div>
       <div class="rest-text">{{ $t("daily.restText") }}</div>
@@ -137,6 +173,7 @@ import { useQuasar } from "quasar";
 
 import { useTaskStore } from "~/stores/dailyTasks";
 import { useJournalStore } from "~/stores/journal";
+import { useScreeningStore } from "~/stores/screening";
 import type { Task } from "~/interfaces/Task.interface";
 import click from "~/assets/click.png";
 
@@ -154,6 +191,7 @@ interface CompletionPayload {
 const supabase = useSupabaseClient();
 const store = useTaskStore();
 const journalStore = useJournalStore();
+const screeningStore = useScreeningStore();
 
 const { locale, t, tm, rt } = useI18n();
 const $q = useQuasar();
@@ -173,6 +211,9 @@ const currentRewardPhrase = ref("");
 
 const undoSeconds = ref(0);
 const undoLoading = ref(false);
+
+const finalScreeningCompleted = ref(false);
+const finalScreeningStatusLoaded = ref(false);
 
 let undoInterval: ReturnType<typeof setInterval> | undefined;
 let rewardTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -356,6 +397,61 @@ async function undoFoodTask() {
   }
 }
 
+/**
+ * Проверяет, сохранён ли финальный скрининг.
+ * При ошибке не разрешаем запускать новый скрининг вслепую.
+ */
+async function checkFinalScreening(): Promise<boolean> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw userError;
+  }
+
+  if (!user) {
+    throw new Error("Пользователь не авторизован");
+  }
+
+  const { data, error } = await supabase
+    .from("final_screening_results")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  finalScreeningCompleted.value = Boolean(data);
+  finalScreeningStatusLoaded.value = true;
+
+  return finalScreeningCompleted.value;
+}
+
+async function handleFinalScreening() {
+  try {
+    const isCompleted = await checkFinalScreening();
+
+    if (isCompleted) {
+      await navigateTo("/final-result");
+      return;
+    }
+
+    screeningStore.startScreening("final");
+    await navigateTo("/questions");
+  } catch (error) {
+    console.error("[Daily] Не удалось проверить финальный скрининг:", error);
+
+    $q.notify({
+      type: "negative",
+      message: t("taskDetails.completeError"),
+    });
+  }
+}
+
 async function loadUserName() {
   try {
     const {
@@ -395,11 +491,27 @@ async function loadUserName() {
 }
 
 onMounted(async () => {
-  await Promise.all([
+  const results = await Promise.allSettled([
     store.init(locale.value),
     journalStore.init(),
     loadUserName(),
+    checkFinalScreening(),
   ]);
+
+  const finalScreeningResult = results[3];
+
+  if (
+    finalScreeningResult.status === "fulfilled" &&
+    finalScreeningResult.value
+  ) {
+    // После завершения программы Daily Check-In больше не показываем.
+    journalStore.showCheckin = false;
+  } else if (finalScreeningResult.status === "rejected") {
+    console.error(
+      "[Daily] Не удалось проверить наличие финального скрининга:",
+      finalScreeningResult.reason,
+    );
+  }
 });
 
 watch(
@@ -566,6 +678,52 @@ onBeforeUnmount(() => {
   border: none;
   cursor: pointer;
   padding: 4px;
+}
+
+.program-finished-card {
+  margin-top: 30px;
+  padding: 30px 24px;
+  border-radius: 24px;
+  background: var(--white);
+  text-align: center;
+  box-shadow: 0 18px 45px var(--shadow-lg);
+}
+
+.program-finished-icon {
+  width: 86px;
+  height: 86px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 26px;
+  background: var(--icon-green-bg);
+  color: var(--green);
+}
+
+.program-finished-icon .material-icons {
+  font-size: 48px;
+}
+
+.program-finished-title {
+  font-size: 24px;
+  line-height: 1.3;
+  font-weight: 800;
+  color: var(--black1);
+}
+
+.program-finished-text {
+  margin-top: 12px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--grey2);
+}
+
+.program-finished-button {
+  margin-top: 24px;
+  min-height: 48px;
+  padding: 0 24px;
+  font-weight: 700;
 }
 
 /* Reward animation */

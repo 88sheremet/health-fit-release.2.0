@@ -34,7 +34,7 @@ test.describe("Login page", () => {
     await page.locator(".login-card button[type='submit']").click();
 
     await expect(page.locator(".login-error")).toHaveText(
-      "Введите email и пароль"
+      "Введи email и пароль"
     );
   });
 
@@ -47,7 +47,7 @@ test.describe("Login page", () => {
     await page.locator(".login-card button[type='submit']").click();
 
     await expect(page.locator(".login-error")).toHaveText(
-      "Invalid login credentials"
+      "Неверный email или пароль."
     );
   });
 
@@ -152,7 +152,7 @@ test.describe("Register page", () => {
     await page.goto("/register");
     await page.locator(".register-card button.bg-primary").click();
 
-    await expect(page.locator(".register-error")).toHaveText("Укажите имя");
+    await expect(page.locator(".register-error")).toHaveText("Укажи имя");
   });
 
   test("shows error on short password", async ({ page }) => {

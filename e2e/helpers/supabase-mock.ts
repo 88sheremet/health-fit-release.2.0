@@ -317,15 +317,13 @@ function buildRouteHandler(opts?: {
         });
       }
 
-      if (
-        body?.grant_type === "password" &&
-        body?.email === "bad@example.com"
-      ) {
+      if (grantType === "password" && body?.email === "bad@example.com") {
         return route.fulfill({
           status: 400,
           json: {
             error: "invalid_grant",
             error_description: "Invalid login credentials",
+            error_code: "invalid_credentials",
           },
         });
       }

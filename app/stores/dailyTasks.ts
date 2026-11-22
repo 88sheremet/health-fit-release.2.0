@@ -8,7 +8,7 @@ import type { Task } from "~/interfaces/Task.interface";
 import type { DbDailyTask } from "~/interfaces/DbDailyTask.interface";
 import type { TaskState } from "~/interfaces/TaskState.interface";
 
-const DAY_COUNT = 30;
+const DAY_COUNT = 28;
 
 const TASK_TYPES = ["food", "mental", "physical"] as const;
 
@@ -27,8 +27,7 @@ function normalizeWhatDoing(value: unknown): unknown {
       try {
         return JSON.parse(trimmed);
       } catch {
-        // Если строка не является JSON,
-        // оставляем её как обычный текст.
+        // Оставляем обычный текст без изменений.
       }
     }
   }
@@ -37,7 +36,7 @@ function normalizeWhatDoing(value: unknown): unknown {
 }
 
 function dbTasksForDay(rows: DbDailyTask[], dayIndex: number): Task[] {
-  const targetDay = ((dayIndex - 1) % DAY_COUNT) + 1;
+  const targetDay = Math.min(Math.max(dayIndex, 1), DAY_COUNT);
 
   const byType = new Map<(typeof TASK_TYPES)[number], DbDailyTask[]>();
 
@@ -45,7 +44,6 @@ function dbTasksForDay(rows: DbDailyTask[], dayIndex: number): Task[] {
     const list = byType.get(row.type) ?? [];
 
     list.push(row);
-
     byType.set(row.type, list);
   }
 
@@ -98,12 +96,16 @@ export const useTaskStore = defineStore("tasks", {
       return getDayIndex(state.startDate);
     },
 
+    isProgramFinished(): boolean {
+      return this.dayIndex > DAY_COUNT;
+    },
+
     isRestDay(): boolean {
       return isRestDayByDate(new Date());
     },
 
     todayTasks(): Task[] {
-      if (this.isRestDay) {
+      if (this.isProgramFinished || this.isRestDay) {
         return [];
       }
 
@@ -132,7 +134,6 @@ export const useTaskStore = defineStore("tasks", {
         await this.updateStreak();
       } catch (error) {
         console.error("[DailyTasks] Ошибка инициализации:", error);
-
         throw error;
       } finally {
         this.loading = false;
@@ -148,11 +149,9 @@ export const useTaskStore = defineStore("tasks", {
     async loadTasks(locale = "ru") {
       try {
         this.tasksLoaded = false;
-
         this.tasks = await getDailyTasks(locale);
       } catch (error) {
         console.error("[DailyTasks] Не удалось загрузить задачи:", error);
-
         throw error;
       } finally {
         this.tasksLoaded = true;
@@ -180,13 +179,13 @@ export const useTaskStore = defineStore("tasks", {
         .from("user_progress")
         .select(
           `
-                id,
-                user_id,
-                start_date,
-                energy,
-                streak,
-                last_visit_date
-              `,
+          id,
+          user_id,
+          start_date,
+          energy,
+          streak,
+          last_visit_date
+        `,
         )
         .eq("user_id", user.id)
         .maybeSingle();
@@ -195,13 +194,8 @@ export const useTaskStore = defineStore("tasks", {
         throw error;
       }
 
-      /*
-       * Create progress for a new user.
-       */
-
       if (!data) {
         const startDate = new Date().toISOString();
-
         const today = new Date().toISOString().slice(0, 10);
 
         const { data: newProgress, error: insertError } = await supabase
@@ -221,19 +215,9 @@ export const useTaskStore = defineStore("tasks", {
         }
 
         this.startDate = newProgress.start_date;
-
         this.energy = Number(newProgress.energy);
-
         this.streak = Number(newProgress.streak);
-
         this.lastVisitDate = newProgress.last_visit_date;
-
-        /*
-         * Create initial energy history.
-         *
-         * This is not earned Energy.
-         * It is the starting point.
-         */
 
         const { error: historyError } = await supabase
           .from("energy_history")
@@ -257,11 +241,8 @@ export const useTaskStore = defineStore("tasks", {
       }
 
       this.startDate = data.start_date;
-
       this.energy = Number(data.energy);
-
       this.streak = Number(data.streak);
-
       this.lastVisitDate = data.last_visit_date || "";
     },
 
@@ -286,9 +267,9 @@ export const useTaskStore = defineStore("tasks", {
         .from("daily_task_completions")
         .select(
           `
-              task_id,
-              day_index
-            `,
+          task_id,
+          day_index
+        `,
         )
         .eq("user_id", user.id)
         .eq("day_index", this.dayIndex);
@@ -327,7 +308,6 @@ export const useTaskStore = defineStore("tasks", {
         this.streak = 1;
       } else {
         const lastVisit = new Date(this.lastVisitDate);
-
         const currentDate = new Date(today);
 
         const diffDays = Math.floor(
@@ -364,7 +344,7 @@ export const useTaskStore = defineStore("tasks", {
      */
 
     async completeTask(task: Task, feedback?: string): Promise<number> {
-      if (this.completed[task.id]) {
+      if (this.isProgramFinished || this.completed[task.id]) {
         return 0;
       }
 
@@ -375,7 +355,9 @@ export const useTaskStore = defineStore("tasks", {
         error: userError,
       } = await supabase.auth.getUser();
 
-      if (userError) throw userError;
+      if (userError) {
+        throw userError;
+      }
 
       if (!user) {
         throw new Error("Пользователь не авторизован");
@@ -405,7 +387,6 @@ export const useTaskStore = defineStore("tasks", {
       try {
         awardedEnergy = await this.addEnergy(task.reward, "daily_task");
       } catch (error) {
-        // Если начисление не удалось, пробуем убрать запись выполнения.
         const { error: rollbackError } = await supabase
           .from("daily_task_completions")
           .delete()
@@ -450,7 +431,9 @@ export const useTaskStore = defineStore("tasks", {
         error: userError,
       } = await supabase.auth.getUser();
 
-      if (userError) throw userError;
+      if (userError) {
+        throw userError;
+      }
 
       if (!user) {
         throw new Error("Пользователь не авторизован");
@@ -458,6 +441,7 @@ export const useTaskStore = defineStore("tasks", {
 
       const previousEnergy = this.energy;
       const newEnergy = Math.max(0, Math.min(1000, previousEnergy + amount));
+
       const actualAmount = newEnergy - previousEnergy;
 
       if (actualAmount === 0) {
@@ -486,7 +470,6 @@ export const useTaskStore = defineStore("tasks", {
         });
 
       if (historyError) {
-        // Пытаемся восстановить баланс, если история не сохранилась.
         const { error: rollbackError } = await supabase
           .from("user_progress")
           .update({
@@ -511,7 +494,11 @@ export const useTaskStore = defineStore("tasks", {
     },
 
     async undoTask(task: Task, awardedEnergy: number): Promise<void> {
-      if (task.type !== "food" || !this.completed[task.id]) {
+      if (
+        this.isProgramFinished ||
+        task.type !== "food" ||
+        !this.completed[task.id]
+      ) {
         return;
       }
 
@@ -522,7 +509,9 @@ export const useTaskStore = defineStore("tasks", {
         error: userError,
       } = await supabase.auth.getUser();
 
-      if (userError) throw userError;
+      if (userError) {
+        throw userError;
+      }
 
       if (!user) {
         throw new Error("Пользователь не авторизован");
@@ -544,7 +533,6 @@ export const useTaskStore = defineStore("tasks", {
           await this.addEnergy(-awardedEnergy, "daily_task_undo");
         }
       } catch (error) {
-        // Если обратное начисление не удалось, восстанавливаем выполнение.
         const { error: restoreError } = await supabase
           .from("daily_task_completions")
           .insert({

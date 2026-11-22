@@ -82,38 +82,48 @@
 <script setup lang="ts">
 import { computed, ref, nextTick } from "vue";
 import { useQuasar } from "quasar";
+
 import { useScreeningStore } from "~/stores/screening";
 import { DominantProblem } from "~/enums/DominantProblem.enum";
 import { routes } from "~/router/routes";
+
 definePageMeta({
   layout: "authenticated",
   middleware: "auth",
 });
+
 const screeningStore = useScreeningStore();
 const $q = useQuasar();
 const { t } = useI18n();
 
 const pageRef = ref<HTMLElement | null>(null);
 const questionRefs = ref<any[]>([]);
-
 const showValidation = ref(false);
 
 const answeredQuestions = computed(
   () =>
     screeningStore.currentBlockData.questions.filter(
-      (q) => screeningStore.answers[q.id] !== undefined
-    ).length
+      (question) => screeningStore.answers[question.id] !== undefined,
+    ).length,
 );
 
 const scrollToFirstEmpty = async () => {
   await nextTick();
+
   const questions = screeningStore.currentBlockData.questions;
+
   const index = questions.findIndex(
-    (q) => screeningStore.answers[q.id] === undefined
+    (question) => screeningStore.answers[question.id] === undefined,
   );
+
   if (index === -1) return;
-  const el = questionRefs.value?.[index];
-  el?.$el?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+  const element = questionRefs.value?.[index];
+
+  element?.$el?.scrollIntoView({
+    behavior: "smooth",
+    block: "center",
+  });
 };
 
 const showValidationAlert = () => {
@@ -141,7 +151,13 @@ const goNext = async () => {
     try {
       await screeningStore.completeScreening();
 
-      // Только после успешного сохранения определяем результат
+      // Итоговый скрининг ведёт сразу на сравнение результатов.
+      if (screeningStore.screeningType === "final") {
+        await navigateTo("/final-result");
+        return;
+      }
+
+      // Первоначальный скрининг сохраняет прежнюю маршрутизацию.
       const result = screeningStore.dominantProblem;
 
       if (result === DominantProblem.Physical) {
