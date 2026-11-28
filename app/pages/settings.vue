@@ -109,20 +109,6 @@
           />
         </div>
 
-        <div class="notification-test">
-          <q-btn
-            flat
-            no-caps
-            dense
-            color="primary"
-            icon="notifications"
-            :label="$t('settings.notifications.test')"
-            :loading="testLoading"
-            :disable="pushLoading || permission !== 'granted'"
-            @click="sendTestNotification"
-          />
-        </div>
-
         <q-separator class="notification-separator" />
 
         <div class="schedule-fields">
@@ -299,14 +285,12 @@ const {
   permission,
   isSupported: isPushSupported,
   nextReminderAt,
-  lastNotificationShown,
   lastReminderFiredAt,
   lastReminderShown,
   loadSettings,
   updateSchedule,
   enableNotifications,
   disableNotifications,
-  sendTestNotification: sendPushTestNotification,
 } = usePushNotifications();
 
 const pushEnabled = ref(false);
@@ -316,7 +300,6 @@ const timezone = ref("UTC");
 
 const pushLoading = ref(false);
 const scheduleLoading = ref(false);
-const testLoading = ref(false);
 
 const dayOptions = computed(() => [
   { label: t("settings.notifications.mon"), value: 1 },
@@ -365,21 +348,13 @@ async function saveSchedule() {
   scheduleLoading.value = true;
 
   try {
-    const shownNow = await updateSchedule(
-      pushTime.value,
-      pushDays.value,
-      t("settings.notifications.testBody"),
-    );
+    await updateSchedule(pushTime.value, pushDays.value);
 
     syncNotificationSettings();
 
     $q.notify({
       type: "positive",
-      message: t(
-        shownNow
-          ? "settings.notifications.savedWithReminder"
-          : "settings.notifications.saved",
-      ),
+      message: t("settings.notifications.saved"),
     });
   } catch (error) {
     console.error("Failed to save notification schedule:", error);
@@ -402,15 +377,11 @@ async function toggleNotifications(enabled: boolean) {
       await updateSchedule(pushTime.value, pushDays.value);
 
       // Затем запрашиваем разрешение и создаём подписку.
-      await enableNotifications(t("settings.notifications.testBody"));
+      await enableNotifications();
 
       $q.notify({
-        type: lastNotificationShown.value ? "positive" : "warning",
-        message: t(
-          lastNotificationShown.value
-            ? "settings.notifications.enableSuccess"
-            : "settings.notifications.enabledWithoutNotification",
-        ),
+        type: "positive",
+        message: t("settings.notifications.enableSuccess"),
       });
     } else {
       await disableNotifications();
@@ -433,34 +404,6 @@ async function toggleNotifications(enabled: boolean) {
     });
   } finally {
     pushLoading.value = false;
-  }
-}
-
-async function sendTestNotification() {
-  testLoading.value = true;
-
-  try {
-    const shown = await sendPushTestNotification(
-      t("settings.notifications.testBody"),
-    );
-
-    $q.notify({
-      type: shown ? "positive" : "negative",
-      message: t(
-        shown
-          ? "settings.notifications.testSuccess"
-          : "settings.notifications.testError",
-      ),
-    });
-  } catch (error) {
-    console.error("Failed to show test notification:", error);
-
-    $q.notify({
-      type: "negative",
-      message: t("settings.notifications.testError"),
-    });
-  } finally {
-    testLoading.value = false;
   }
 }
 
@@ -711,10 +654,6 @@ async function changePassword() {
   margin-top: 4px;
   color: var(--grey);
   font-size: 13px;
-}
-
-.notification-test {
-  margin-top: 12px;
 }
 
 .notification-separator {

@@ -13,8 +13,6 @@ const DEFAULT_SETTINGS: NotificationSettings = {
   timezone: "UTC",
 };
 
-const TEST_NOTIFICATION_BODY =
-  "Push-уведомления включены. Напоминания будут приходить по расписанию.";
 const REMINDER_NOTIFICATION_BODY =
   "Пора уделить немного времени своему здоровью. Твои ежедневные задания ждут тебя!";
 
@@ -99,11 +97,6 @@ export const usePushNotifications = () => {
 
   const nextReminderAt = useState<string | null>(
     "push-notification-next-reminder",
-    () => null,
-  );
-
-  const lastNotificationShown = useState<boolean | null>(
-    "push-notification-last-shown",
     () => null,
   );
 
@@ -196,14 +189,29 @@ export const usePushNotifications = () => {
         console.warn("Could not check pushed reminders:", error);
       }
 
+      let shown = false;
+
       try {
-        const shown = await sendTestNotification(REMINDER_NOTIFICATION_BODY);
+        shown = await showNotification(REMINDER_NOTIFICATION_BODY);
 
         lastReminderShown.value = shown;
       } catch (error) {
         console.warn("Could not show local reminder:", error);
 
         lastReminderShown.value = false;
+      }
+
+      if (shown) {
+        try {
+          const user = await getCurrentUser();
+
+          await supabase
+            .from("notification_settings")
+            .update({ last_sent_local_date: getLocalDateString(new Date()) })
+            .eq("user_id", user.id);
+        } catch (error) {
+          console.warn("Could not mark local reminder as sent:", error);
+        }
       }
 
       lastReminderFiredAt.value = Date.now();
@@ -280,6 +288,7 @@ export const usePushNotifications = () => {
       days_of_week: [...newSettings.days_of_week].sort((a, b) => a - b),
       timezone: newSettings.timezone,
       updated_at: new Date().toISOString(),
+      ...(newSettings.enabled ? { last_sent_local_date: null } : {}),
     };
 
     const { error } = await supabase
@@ -299,7 +308,6 @@ export const usePushNotifications = () => {
   const updateSchedule = async (
     reminderTime: string,
     daysOfWeek: number[],
-    reminderBody: string = REMINDER_NOTIFICATION_BODY,
   ) => {
     if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(reminderTime)) {
       throw new Error("Некорректное время уведомления");
@@ -314,7 +322,6 @@ export const usePushNotifications = () => {
     }
 
     const uniqueDays = [...new Set(daysOfWeek)];
-    const wasEnabled = settings.value.enabled;
 
     await saveSettings({
       ...settings.value,
@@ -322,29 +329,9 @@ export const usePushNotifications = () => {
       days_of_week: uniqueDays,
       timezone: getBrowserTimezone(),
     });
-
-    if (!wasEnabled) return false;
-
-    const now = new Date();
-    const [hours, minutes] = reminderTime.split(":").map(Number);
-    const today = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      hours,
-      minutes,
-      0,
-      0,
-    );
-
-    if (today > now || !uniqueDays.includes(getIsoDay(now))) return false;
-
-    return await sendTestNotification(reminderBody);
   };
 
-  const enableNotifications = async (
-    testBody: string = TEST_NOTIFICATION_BODY,
-  ) => {
+  const enableNotifications = async () => {
     if (!import.meta.client || !isSupported.value) {
       throw new Error("Push-уведомления не поддерживаются");
     }
@@ -426,12 +413,6 @@ export const usePushNotifications = () => {
 
     isSubscribed.value = true;
     permission.value = Notification.permission;
-
-    try {
-      await sendTestNotification(testBody);
-    } catch (error) {
-      console.warn("Could not show confirmation notification:", error);
-    }
 
     return true;
   };
@@ -544,16 +525,6 @@ export const usePushNotifications = () => {
     }
   };
 
-  const sendTestNotification = async (
-    body: string = TEST_NOTIFICATION_BODY,
-  ) => {
-    const shown = await showNotification(body);
-
-    lastNotificationShown.value = shown;
-
-    return shown;
-  };
-
   return {
     settings,
     permission,
@@ -561,13 +532,11 @@ export const usePushNotifications = () => {
     canShowNotifications,
     isSubscribed,
     nextReminderAt,
-    lastNotificationShown,
     lastReminderFiredAt,
     lastReminderShown,
     loadSettings,
     updateSchedule,
     enableNotifications,
     disableNotifications,
-    sendTestNotification,
   };
 };

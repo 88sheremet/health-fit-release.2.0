@@ -365,7 +365,7 @@ describe("usePushNotifications", () => {
       expect(push.settings.value.days_of_week).toEqual([1, 3, 6]);
     });
 
-    it("shows the reminder immediately when the saved time has already passed", async () => {
+    it("does not show a notification when saving a past time and schedules the next day", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date(2026, 10, 28, 13, 14, 0));
 
@@ -388,14 +388,9 @@ describe("usePushNotifications", () => {
       const push = usePushNotifications();
       await push.loadSettings();
 
-      await expect(
-        push.updateSchedule("13:13", [1, 2, 3, 4, 5, 6, 7]),
-      ).resolves.toBe(true);
+      await push.updateSchedule("13:13", [1, 2, 3, 4, 5, 6, 7]);
 
-      expect(showNotification).toHaveBeenCalledWith(
-        "Health Fit",
-        expect.objectContaining({ body: expect.any(String) }),
-      );
+      expect(showNotification).not.toHaveBeenCalled();
     });
 
     it("propagates upsert errors without changing local settings", async () => {
@@ -465,21 +460,6 @@ describe("usePushNotifications", () => {
       );
       expect(push.isSubscribed.value).toBe(true);
       expect(push.settings.value.enabled).toBe(true);
-    });
-
-    it("shows a confirmation notification after a successful enable", async () => {
-      const showNotification = vi.fn().mockResolvedValue(undefined);
-      registration.showNotification = showNotification;
-
-      await usePushNotifications().enableNotifications();
-
-      expect(showNotification).toHaveBeenCalledWith(
-        "Health Fit",
-        expect.objectContaining({
-          body: expect.stringContaining("Push-уведомления включены"),
-          data: { url: "/daily" },
-        }),
-      );
     });
 
     it("reuses an existing subscription", async () => {
@@ -552,35 +532,6 @@ describe("usePushNotifications", () => {
         usePushNotifications().disableNotifications(),
       ).rejects.toThrow("delete failed");
       expect(currentSubscription.unsubscribe).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("sendTestNotification", () => {
-    it("shows a notification with the provided body when permission is granted", async () => {
-      setupBrowser({ permission: "granted" });
-      const showNotification = vi.fn().mockResolvedValue(undefined);
-      registration.showNotification = showNotification;
-
-      const result = await usePushNotifications().sendTestNotification(
-        "Тестовое уведомление",
-      );
-
-      expect(result).toBe(true);
-      expect(showNotification).toHaveBeenCalledWith(
-        "Health Fit",
-        expect.objectContaining({ body: "Тестовое уведомление" }),
-      );
-    });
-
-    it("does nothing when permission is denied", async () => {
-      setupBrowser({ permission: "denied" });
-      const showNotification = vi.fn();
-      registration.showNotification = showNotification;
-
-      const result = await usePushNotifications().sendTestNotification();
-
-      expect(result).toBe(false);
-      expect(showNotification).not.toHaveBeenCalled();
     });
   });
 });
