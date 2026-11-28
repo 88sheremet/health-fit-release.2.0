@@ -29,6 +29,42 @@ SUPABASE_KEY=...
 npm run dev
 ```
 
+### Push-уведомлення
+
+Налаштування в застосунку лише зберігає розклад і підписку. Фактичну відправку
+робить Edge Function `send-push-notifications`, яку треба викликати щохвилини.
+Міграція `20261128120000_push_notifications.sql` створює таблиці й pg_cron-завдання,
+але для нього потрібні секрети у Vault:
+
+```sql
+select vault.create_secret('https://<project-ref>.supabase.co', 'push_notifications_project_url');
+select vault.create_secret('<CRON_SECRET>', 'push_notifications_cron_secret');
+```
+
+Секрети самої функції (покладіть у `.env` поруч із уже наявними):
+
+```
+VAPID_PRIVATE_KEY=...
+VAPID_SUBJECT=mailto:...
+CRON_SECRET=...
+```
+
+Публічний ключ береться з `npx web-push generate-vapid-keys` і має збігатися з
+`NUXT_PUBLIC_VAPID_PUBLIC_KEY` у `.env`. Потім:
+
+```bash
+npm run push:setup
+supabase db push
+```
+
+Скрипт деплоїть функцію, виставляє секрети й друкує SQL для Vault, який треба
+виконати в Supabase SQL Editor. `--no-verify-jwt` уже прописаний у `config.toml`.
+Після ввімкнення у налаштуваннях застосунок одразу показує тестове сповіщення.
+Планові нагадування працюють і без cron, поки сторінка відкрита: локальний
+планувальник пропускає день, якщо Edge Function вже відправила push. Щоб
+отримувати нагадування при закритій вкладці, потрібні деплой функції, міграція
+і секрети, описані вище.
+
 ---
 
 # Мобільна версія

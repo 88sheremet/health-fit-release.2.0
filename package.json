@@ -14,6 +14,7 @@
     "import:daily": "node scripts/importDailyTasks.mjs",
     "import:weekly": "node scripts/importWeeklyTasks.mjs",
     "assets:build": "node scripts/generateAppAssets.mjs && capacitor-assets generate --ios --android",
+    "push:setup": "node scripts/setupPush.mjs",
     "test": "vitest run && npm run typecheck",
     "test:watch": "vitest",
     "typecheck": "nuxt typecheck",

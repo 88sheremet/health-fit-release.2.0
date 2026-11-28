@@ -260,6 +260,40 @@ describe("usePushNotifications", () => {
       expect(serviceWorker.getRegistration).toHaveBeenCalledWith("/");
     });
 
+    it("schedules a local reminder when the page stays open", async () => {
+      setupBrowser({ permission: "granted" });
+
+      const setTimeoutSpy = vi.fn().mockReturnValue(1);
+      const clearTimeoutSpy = vi.fn();
+
+      Object.assign(globalThis.window, {
+        setTimeout: setTimeoutSpy,
+        clearTimeout: clearTimeoutSpy,
+      });
+
+      const future = new Date(Date.now() + 60_000);
+      const reminderTime = `${String(future.getHours()).padStart(2, "0")}:${String(
+        future.getMinutes(),
+      ).padStart(2, "0")}`;
+
+      createSupabaseMock({
+        notificationSettings: {
+          data: {
+            enabled: true,
+            reminder_time: reminderTime,
+            days_of_week: [1, 2, 3, 4, 5, 6, 7],
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+          },
+          error: null,
+        },
+      });
+
+      await usePushNotifications().loadSettings();
+
+      expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
+      expect(setTimeoutSpy.mock.calls[0][1]).toBeGreaterThan(0);
+    });
+
     it("uses defaults with the browser timezone when no row exists", async () => {
       const timezoneSpy = vi
         .spyOn(Intl.DateTimeFormat.prototype, "resolvedOptions")
@@ -331,6 +365,39 @@ describe("usePushNotifications", () => {
       expect(push.settings.value.days_of_week).toEqual([1, 3, 6]);
     });
 
+    it("shows the reminder immediately when the saved time has already passed", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 10, 28, 13, 14, 0));
+
+      setupBrowser({ permission: "granted" });
+      const showNotification = vi.fn().mockResolvedValue(undefined);
+      registration.showNotification = showNotification;
+
+      createSupabaseMock({
+        notificationSettings: {
+          data: {
+            enabled: true,
+            reminder_time: "13:13",
+            days_of_week: [1, 2, 3, 4, 5, 6, 7],
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+          },
+          error: null,
+        },
+      });
+
+      const push = usePushNotifications();
+      await push.loadSettings();
+
+      await expect(
+        push.updateSchedule("13:13", [1, 2, 3, 4, 5, 6, 7]),
+      ).resolves.toBe(true);
+
+      expect(showNotification).toHaveBeenCalledWith(
+        "Health Fit",
+        expect.objectContaining({ body: expect.any(String) }),
+      );
+    });
+
     it("propagates upsert errors without changing local settings", async () => {
       const error = new Error("upsert failed");
       createSupabaseMock({ upsertError: error });
@@ -398,6 +465,21 @@ describe("usePushNotifications", () => {
       );
       expect(push.isSubscribed.value).toBe(true);
       expect(push.settings.value.enabled).toBe(true);
+    });
+
+    it("shows a confirmation notification after a successful enable", async () => {
+      const showNotification = vi.fn().mockResolvedValue(undefined);
+      registration.showNotification = showNotification;
+
+      await usePushNotifications().enableNotifications();
+
+      expect(showNotification).toHaveBeenCalledWith(
+        "Health Fit",
+        expect.objectContaining({
+          body: expect.stringContaining("Push-уведомления включены"),
+          data: { url: "/daily" },
+        }),
+      );
     });
 
     it("reuses an existing subscription", async () => {
@@ -470,6 +552,35 @@ describe("usePushNotifications", () => {
         usePushNotifications().disableNotifications(),
       ).rejects.toThrow("delete failed");
       expect(currentSubscription.unsubscribe).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("sendTestNotification", () => {
+    it("shows a notification with the provided body when permission is granted", async () => {
+      setupBrowser({ permission: "granted" });
+      const showNotification = vi.fn().mockResolvedValue(undefined);
+      registration.showNotification = showNotification;
+
+      const result = await usePushNotifications().sendTestNotification(
+        "Тестовое уведомление",
+      );
+
+      expect(result).toBe(true);
+      expect(showNotification).toHaveBeenCalledWith(
+        "Health Fit",
+        expect.objectContaining({ body: "Тестовое уведомление" }),
+      );
+    });
+
+    it("does nothing when permission is denied", async () => {
+      setupBrowser({ permission: "denied" });
+      const showNotification = vi.fn();
+      registration.showNotification = showNotification;
+
+      const result = await usePushNotifications().sendTestNotification();
+
+      expect(result).toBe(false);
+      expect(showNotification).not.toHaveBeenCalled();
     });
   });
 });

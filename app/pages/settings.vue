@@ -71,6 +71,14 @@
         </div>
       </div>
 
+      <div class="notification-hint">
+        <q-icon name="info" size="18px" />
+        <span>
+          {{ $t("settings.notifications.systemHint") }}
+          {{ $t("settings.notifications.closedTabHint") }}
+        </span>
+      </div>
+
       <div v-if="!isPushSupported" class="notification-warning">
         <q-icon name="info" size="20px" />
         <span>
@@ -98,6 +106,20 @@
             color="positive"
             :disable="pushLoading"
             @update:model-value="toggleNotifications"
+          />
+        </div>
+
+        <div class="notification-test">
+          <q-btn
+            flat
+            no-caps
+            dense
+            color="primary"
+            icon="notifications"
+            :label="$t('settings.notifications.test')"
+            :loading="testLoading"
+            :disable="pushLoading || permission !== 'granted'"
+            @click="sendTestNotification"
           />
         </div>
 
@@ -138,6 +160,14 @@
             <span>
               {{ $t("settings.notifications.timezone") }}:
               {{ timezone }}
+            </span>
+          </div>
+
+          <div v-if="nextReminderAt" class="timezone-info next-reminder">
+            <q-icon name="event" size="16px" />
+            <span>
+              {{ $t("settings.notifications.nextReminder") }}:
+              {{ nextReminderAt }}
             </span>
           </div>
 
@@ -249,7 +279,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import LogoutButton from "~/components/auth/LogoutButton.vue";
 import { routes } from "~/router/routes";
 
@@ -268,10 +298,15 @@ const {
   settings: notificationSettings,
   permission,
   isSupported: isPushSupported,
+  nextReminderAt,
+  lastNotificationShown,
+  lastReminderFiredAt,
+  lastReminderShown,
   loadSettings,
   updateSchedule,
   enableNotifications,
   disableNotifications,
+  sendTestNotification: sendPushTestNotification,
 } = usePushNotifications();
 
 const pushEnabled = ref(false);
@@ -281,6 +316,7 @@ const timezone = ref("UTC");
 
 const pushLoading = ref(false);
 const scheduleLoading = ref(false);
+const testLoading = ref(false);
 
 const dayOptions = computed(() => [
   { label: t("settings.notifications.mon"), value: 1 },
@@ -329,13 +365,21 @@ async function saveSchedule() {
   scheduleLoading.value = true;
 
   try {
-    await updateSchedule(pushTime.value, pushDays.value);
+    const shownNow = await updateSchedule(
+      pushTime.value,
+      pushDays.value,
+      t("settings.notifications.testBody"),
+    );
 
     syncNotificationSettings();
 
     $q.notify({
       type: "positive",
-      message: t("settings.notifications.saved"),
+      message: t(
+        shownNow
+          ? "settings.notifications.savedWithReminder"
+          : "settings.notifications.saved",
+      ),
     });
   } catch (error) {
     console.error("Failed to save notification schedule:", error);
@@ -358,11 +402,15 @@ async function toggleNotifications(enabled: boolean) {
       await updateSchedule(pushTime.value, pushDays.value);
 
       // Затем запрашиваем разрешение и создаём подписку.
-      await enableNotifications();
+      await enableNotifications(t("settings.notifications.testBody"));
 
       $q.notify({
-        type: "positive",
-        message: t("settings.notifications.enableSuccess"),
+        type: lastNotificationShown.value ? "positive" : "warning",
+        message: t(
+          lastNotificationShown.value
+            ? "settings.notifications.enableSuccess"
+            : "settings.notifications.enabledWithoutNotification",
+        ),
       });
     } else {
       await disableNotifications();
@@ -385,6 +433,34 @@ async function toggleNotifications(enabled: boolean) {
     });
   } finally {
     pushLoading.value = false;
+  }
+}
+
+async function sendTestNotification() {
+  testLoading.value = true;
+
+  try {
+    const shown = await sendPushTestNotification(
+      t("settings.notifications.testBody"),
+    );
+
+    $q.notify({
+      type: shown ? "positive" : "negative",
+      message: t(
+        shown
+          ? "settings.notifications.testSuccess"
+          : "settings.notifications.testError",
+      ),
+    });
+  } catch (error) {
+    console.error("Failed to show test notification:", error);
+
+    $q.notify({
+      type: "negative",
+      message: t("settings.notifications.testError"),
+    });
+  } finally {
+    testLoading.value = false;
   }
 }
 
@@ -420,6 +496,19 @@ const validateNewPassword = createValidator([
   { check: isRequired, message: t("auth.fillAllFields") },
   { check: minLength(6), message: t("auth.minPassword") },
 ]);
+
+watch(lastReminderFiredAt, (value) => {
+  if (!value) return;
+
+  $q.notify({
+    type: lastReminderShown.value ? "info" : "warning",
+    message: t(
+      lastReminderShown.value
+        ? "settings.notifications.reminderFired"
+        : "settings.notifications.reminderFailed",
+    ),
+  });
+});
 
 onMounted(() => {
   initializeNotifications();
@@ -596,6 +685,16 @@ async function changePassword() {
   width: 100%;
 }
 
+.notification-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  color: var(--grey);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .notification-toggle {
   display: flex;
   align-items: center;
@@ -612,6 +711,10 @@ async function changePassword() {
   margin-top: 4px;
   color: var(--grey);
   font-size: 13px;
+}
+
+.notification-test {
+  margin-top: 12px;
 }
 
 .notification-separator {
@@ -649,6 +752,10 @@ async function changePassword() {
   gap: 6px;
   color: var(--grey);
   font-size: 12px;
+}
+
+.next-reminder {
+  color: var(--green);
 }
 
 .schedule-btn {
